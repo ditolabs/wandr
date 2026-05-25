@@ -1,0 +1,16 @@
+{
+  "name": "Banyuwangi Travel App",
+  "short_name": "BWI Travel",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#f8fafc",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2012/2012297.png", 
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
