@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="theme-color" content="#f4f5f7">
+  <meta name="theme-color" content="#f8fafc">
   <title>Banyuwangi Travel App</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
     *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
     ::-webkit-scrollbar { display: none; }
@@ -66,11 +70,12 @@
     [data-filter="wisata"].active { background: var(--w-bg); color: var(--w-color); box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
     [data-filter="penginapan"].active { background: var(--p-bg); color: var(--p-color); box-shadow: 0 4px 12px rgba(139,92,246,0.2); }
     [data-filter="kuliner"].active { background: var(--k-bg); color: var(--k-color); box-shadow: 0 4px 12px rgba(249,115,22,0.2); }
+    [data-filter="favorit"].active { background: #fee2e2; color: #f43f5e; box-shadow: 0 4px 12px rgba(244,63,94,0.2); }
+    [data-filter="visited"].active { background: var(--w-bg); color: var(--w-color); box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
 
     /* ── SECTION TITLE ── */
     .section-title { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 12px; margin-top: 8px;}
     .section-title h2 { font-size: 16px; font-weight: 700; color: #0f172a; }
-    .section-title a { font-size: 12px; color: var(--hi); font-weight: 700; text-decoration: none; cursor: pointer; }
 
     /* ── HORIZONTAL CARDS (Destinasi Populer) ── */
     .horizontal-scroll { display: flex; gap: 14px; overflow-x: auto; padding: 0 20px 12px; scrollbar-width: none; }
@@ -80,10 +85,10 @@
       cursor: pointer; transition: transform .2s;
     }
     .photo-card:active { transform: translateY(2px); }
-    .pc-img { height: 120px; position: relative; display: flex; align-items: center; justify-content: center; font-size: 40px; }
-    .pc-fav { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: none; cursor: pointer; color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}
+    .pc-img { height: 120px; position: relative; display: flex; align-items: center; justify-content: center; font-size: 40px; background-size: cover; background-position: center;}
+    .pc-fav { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: none; cursor: pointer; color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 10;}
     .pc-fav.active { color: #f43f5e; }
-    .pc-tag { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+    .pc-tag { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; z-index: 10;}
     .pc-content { padding: 12px 14px; }
     .pc-name { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pc-loc { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-weight: 500;}
@@ -96,14 +101,20 @@
       box-shadow: 0 2px 12px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;
       overflow: hidden; cursor: pointer; transition: box-shadow .2s;
     }
+    .list-card.open { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
     .lc-main { display: flex; }
     .lc-img {
       width: 100px; min-height: 100px; display: flex; align-items: center; justify-content: center;
-      font-size: 36px; position: relative; flex-shrink: 0;
+      font-size: 36px; position: relative; flex-shrink: 0; background-size: cover; background-position: center;
     }
+    .lc-badges { position: absolute; top: 6px; right: 6px; display: flex; flex-direction: column; gap: 4px; }
+    .lc-badge { font-size: 10px; background: rgba(255,255,255,0.9); padding: 4px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+    
     .lc-content { flex: 1; padding: 14px; }
     .lc-type-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
     .lc-type { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 10px; }
+    .lc-itin-badge { font-size: 9px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 3px 8px; border-radius: 10px; }
+    
     .wisata .lc-type { color: var(--w-color); background: var(--w-pill); }
     .penginapan .lc-type { color: var(--p-color); background: var(--p-pill); }
     .kuliner .lc-type { color: var(--k-color); background: var(--k-pill); }
@@ -116,37 +127,91 @@
     .akses-ekstrem { background: #fee2e2; color: #991b1b; }
     .lc-price { font-size: 14px; font-weight: 800; color: #0f172a; }
 
-    /* ── FAB ── */
-    .fab {
-      position: fixed; bottom: 90px; right: 20px; z-index: 200;
-      width: 56px; height: 56px; border-radius: 50%; border: none;
-      background: var(--hi); color: #fff; font-size: 26px; font-weight: 300;
-      cursor: pointer; box-shadow: 0 8px 24px rgba(245,158,11,0.4);
-      display: flex; align-items: center; justify-content: center;
-    }
+    /* Card Details */
+    .lc-detail { display: none; border-top: 1px solid #f1f5f9; padding: 16px; background: #fafbfc; }
+    .list-card.open .lc-detail { display: block; }
+    .lc-notes { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 16px; }
+    .lc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action-btn { padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid transparent; }
+    .btn-maps { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; text-decoration: none; }
+    .btn-itin { background: #fff; color: var(--hi); border-color: #fcd34d; }
+    .btn-itin.active { background: var(--hi); color: #fff; border-color: var(--hi); }
+    .btn-fav { background: #fff; color: #f43f5e; border-color: #fecaca; }
+    .btn-fav.active { background: #f43f5e; color: #fff; border-color: #f43f5e; }
+    .btn-visit { background: #fff; color: #10b981; border-color: #bbf7d0; }
+    .btn-visit.active { background: #10b981; color: #fff; border-color: #10b981; }
+
+    .admin-tools { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cbd5e1; }
+    .btn-edit { background: transparent; border: 1px solid #94a3b8; color: #475569; }
+    .btn-del { background: transparent; border: 1px solid #fca5a5; color: #ef4444; margin-left: auto; }
 
     /* ── SHIFTING BOTTOM NAV ── */
     .shifting-nav {
       position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
       width: calc(100% - 32px); max-width: 400px; height: 68px;
-      background: #0f172a; /* Warna gelap solid seperti di JSX */
+      background: #0f172a;
       border-radius: 34px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
       display: flex; align-items: center; justify-content: space-around;
       padding: 0 10px; z-index: 1000;
     }
     .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; height: 100%; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .nav-pill {
-      display: flex; align-items: center; gap: 8px; padding: 12px;
-      border-radius: 50px; transition: all .3s cubic-bezier(.4,0,.2,1);
-      background: transparent; color: #64748b;
-    }
+    .nav-pill { display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 50px; transition: all .3s ease; background: transparent; color: #64748b; }
     .nav-pill .icon { font-size: 20px; }
     .nav-pill .text { font-size: 13px; font-weight: 700; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap; transition: all .3s ease; }
     .nav-item.active .nav-pill { background: rgba(245, 158, 11, 0.2); color: var(--hi); padding: 12px 18px; }
     .nav-item.active .nav-pill .text { max-width: 100px; opacity: 1; }
 
-    /* ── PLACEHOLDER VIEWS ── */
-    .full-view { display: none; padding: 20px; text-align: center; color: var(--muted); padding-top: 100px; }
+    /* ── OTHER VIEWS (MAP, ITINERARY, DASHBOARD) ── */
+    .full-view { display: none; padding: 16px; }
+    
+    /* MAP */
+    #mapView { height: calc(100vh - 120px); padding: 0; }
+    #map { width: 100%; height: 100%; z-index: 1; }
+
+    /* ITINERARY */
+    .summary-card { background: #fff; border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); text-align: center; }
+    .summary-title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; font-weight: 700; }
+    .summary-total { font-size: 34px; font-weight: 800; letter-spacing: -.02em; color: var(--text); margin-bottom: 4px; }
+    .summary-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+    .itin-btn-group { display: flex; gap: 10px; justify-content: center; }
+    .btn-primary { padding: 12px 20px; background: #25D366; color: #fff; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+    .btn-danger { padding: 12px 16px; background: #fee2e2; color: #ef4444; border: none; border-radius: 14px; cursor: pointer; font-size: 14px; font-weight: 600; }
+    
+    .itin-row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .itin-timeline { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .itin-num { width: 32px; height: 32px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+    .itin-line { width: 2px; flex: 1; min-height: 16px; background: #e2e8f0; margin: 4px auto 0; }
+    .itin-card { flex: 1; background: #fff; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); display: flex; overflow: hidden; align-items: center;}
+    .itin-img { width: 70px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; background-size: cover; background-position: center; }
+    .itin-info { flex: 1; padding: 12px; }
+
+    /* DASHBOARD */
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .dash-card { background: #fff; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .dash-num { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+    .dash-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+    .dash-progress-box { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+
+    /* ── FAB & MODALS ── */
+    .fab {
+      position: fixed; bottom: 96px; right: 20px; z-index: 200;
+      width: 56px; height: 56px; border-radius: 50%; border: none;
+      background: var(--hi); color: #fff; font-size: 26px; font-weight: 300;
+      cursor: pointer; box-shadow: 0 8px 24px rgba(245,158,11,0.4);
+      display: flex; align-items: center; justify-content: center;
+    }
+    
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1100; padding: 16px; align-items: center; justify-content: center; }
+    .modal.open { display: flex; }
+    .modal-box { background: var(--surface); border-radius: 24px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; padding: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+    .form-input { width: 100%; padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px; outline: none; }
+    .form-input:focus { border-color: var(--hi); }
+    .btn-submit { width: 100%; padding: 14px; background: var(--text); color: #fff; border: none; border-radius: 14px; font-weight: 700; font-size: 15px; margin-top: 10px; cursor: pointer; }
+    
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 12px 24px; border-radius: 50px; font-size: 13px; font-weight: 600; opacity: 0; transition: all .3s; z-index: 2000; pointer-events: none; }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -155,14 +220,17 @@
   <div class="hdr-top">
     <div class="hdr-title">
       <h1>Jelajahi Banyuwangi</h1>
-      <span id="headerSubtitle">12 destinasi menanti</span>
+      <span id="headerSubtitle">Memuat data cloud...</span>
     </div>
-    <button class="btn-lock">🔐</button>
+    <div style="display:flex; gap:8px;">
+        <button id="btnExport" class="btn-lock" style="display:none; font-size:14px;">💾</button>
+        <button id="btnLogin" class="btn-lock">🔐</button>
+    </div>
   </div>
   
   <div class="search-box">
     <span class="icon-search">🔍</span>
-    <input type="text" id="searchInput" placeholder="Cari nama, kawasan, kategori...">
+    <input type="text" id="searchInput" placeholder="Cari destinasi atau kawasan...">
   </div>
 
   <div class="filters" id="filters">
@@ -170,89 +238,193 @@
     <button class="filter-btn" data-filter="wisata">⛺ Wisata</button>
     <button class="filter-btn" data-filter="penginapan">🏨 Inap</button>
     <button class="filter-btn" data-filter="kuliner">🍜 Kuliner</button>
+    <button class="filter-btn" data-filter="favorit">❤️ Favorit</button>
+    <button class="filter-btn" data-filter="visited">✅ Visited</button>
   </div>
 </header>
 
 <div id="viewExplore">
-  
   <div id="featuredSection">
     <div class="section-title">
       <h2>Destinasi Populer</h2>
-      <a>Lihat semua</a>
     </div>
-    <div class="horizontal-scroll" id="featuredList">
-      </div>
+    <div class="horizontal-scroll" id="featuredList"></div>
   </div>
-
   <div class="list-container">
     <div class="section-title" style="padding: 0; margin-top: 24px;">
       <h2 id="listTitle">Semua Destinasi</h2>
     </div>
-    <div id="mainList">
-      </div>
+    <div id="mainList"></div>
   </div>
 </div>
 
-<div id="viewOther" class="full-view">
-  <div style="font-size: 40px; margin-bottom: 10px;">🚧</div>
-  <h2>Fitur sedang dibangun</h2>
-  <p>Silakan kembali ke tab Jelajah.</p>
+<div id="viewMap" class="full-view" style="padding:0;">
+  <div id="map"></div>
 </div>
 
-<button class="fab" id="fabBtn">+</button>
+<div id="viewItinerary" class="full-view">
+  <div class="summary-card">
+    <div class="summary-title">Estimasi Total Biaya</div>
+    <div class="summary-total" id="itinTotalVal">Rp 0</div>
+    <div class="summary-sub" id="itinCountVal">0 destinasi dalam rute</div>
+    <div class="itin-btn-group">
+      <button class="btn-primary" id="btnShareWA">📱 Bagikan WA</button>
+      <button class="btn-danger" id="btnClearItin">🗑️ Kosongkan</button>
+    </div>
+  </div>
+  <div id="itinListContainer"></div>
+</div>
+
+<div id="viewDash" class="full-view">
+  <div class="dash-grid">
+    <div class="dash-card"><div class="dash-num" id="dTotal" style="color:var(--hi)">0</div><div class="dash-label">Total Data</div></div>
+    <div class="dash-card"><div class="dash-num" id="dWisata" style="color:var(--w-color)">0</div><div class="dash-label">Wisata</div></div>
+    <div class="dash-card"><div class="dash-num" id="dInap" style="color:var(--p-color)">0</div><div class="dash-label">Penginapan</div></div>
+    <div class="dash-card"><div class="dash-num" id="dKuliner" style="color:var(--k-color)">0</div><div class="dash-label">Kuliner</div></div>
+  </div>
+  <div class="dash-progress-box">
+    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+      <div style="font-size:14px; font-weight:700;">Progress Jelajah</div>
+      <div style="font-size:16px; font-weight:800; color:var(--w-color);" id="pctVal">0%</div>
+    </div>
+    <div style="background:#f1f5f9; border-radius:10px; height:12px; overflow:hidden; margin-bottom:8px;">
+      <div id="progressBar" style="height:100%; background:linear-gradient(90deg, #10b981, #34d399); width:0%; transition: width 0.5s ease;"></div>
+    </div>
+    <div style="font-size:12px; color:var(--muted);" id="progressLabel">0 dari 0 wisata</div>
+  </div>
+</div>
+
+<button class="fab" id="fabBtn" style="display:none;">+</button>
 
 <nav class="shifting-nav">
-  <div class="nav-item active" data-view="explore">
-    <div class="nav-pill"><span class="icon">🧭</span><span class="text">Jelajah</span></div>
-  </div>
-  <div class="nav-item" data-view="other">
-    <div class="nav-pill"><span class="icon">🗺️</span><span class="text">Peta</span></div>
-  </div>
-  <div class="nav-item" data-view="other">
-    <div class="nav-pill"><span class="icon">🎒</span><span class="text">Rute</span></div>
-  </div>
-  <div class="nav-item" data-view="other">
-    <div class="nav-pill"><span class="icon">📊</span><span class="text">Stats</span></div>
-  </div>
+  <div class="nav-item active" data-view="explore"><div class="nav-pill"><span class="icon">🧭</span><span class="text">Jelajah</span></div></div>
+  <div class="nav-item" data-view="map"><div class="nav-pill"><span class="icon">🗺️</span><span class="text">Peta</span></div></div>
+  <div class="nav-item" data-view="itinerary"><div class="nav-pill"><span class="icon">🎒</span><span class="text">Rute</span></div></div>
+  <div class="nav-item" data-view="dash"><div class="nav-pill"><span class="icon">📊</span><span class="text">Stats</span></div></div>
 </nav>
 
+<div class="modal" id="modalForm">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="font-size:18px; font-weight:800;" id="modalTitle">Tambah Data</h2>
+      <button id="closeForm" style="background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer;">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kategori</label>
+      <select class="form-input" id="inputTipe">
+        <option value="wisata">Wisata</option>
+        <option value="penginapan">Penginapan</option>
+        <option value="kuliner">Kuliner</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Nama Tempat</label><input class="form-input" type="text" id="inputNama"></div>
+    <div class="form-group"><label class="form-label">URL Foto Latar (Opsional)</label><input class="form-input" type="url" id="inputFoto" placeholder="https://..."></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="form-group"><label class="form-label">Kawasan</label><input class="form-input" type="text" id="inputKawasan"></div>
+      <div class="form-group"><label class="form-label">Harga/HTM (Rp)</label><input class="form-input" type="number" id="inputHarga" value="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Link Maps (Opsional)</label><input class="form-input" type="text" id="inputMaps"></div>
+      <div class="form-group"><label class="form-label">Catatan</label><textarea class="form-input" id="inputCatatan" rows="3"></textarea></div>
+    <button class="btn-submit" id="btnSimpan">Simpan ke Cloud</button>
+  </div>
+</div>
+
+<div class="modal" id="modalLogin">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="font-size:18px; font-weight:800;">Akses Admin</h2>
+      <button id="closeLogin" style="background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer;">✕</button>
+    </div>
+    <div class="form-group"><input type="email" id="loginEmail" class="form-input" placeholder="Email"></div>
+    <div class="form-group"><input type="password" id="loginPass" class="form-input" placeholder="Password"></div>
+    <button id="btnDoLogin" class="btn-submit">Login Sekarang</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script type="module">
-  // --- 1. DATA TIRUAN (SAMPLE) DARI CLAUDE JSX ---
-  // Data ini menjamin UI langsung ter-render cantik meskipun Firebase kosong
-  const SAMPLE = [
-    { id:"w1", type:"wisata", nama:"Kawah Ijen", kategori:"Pegunungan & Kawah", kawasan:"Licin", akses:"Menengah", htm:15000, catatan:"Fenomena Blue Fire dan danau asam murni.", grad:"linear-gradient(135deg,#1a3a2a,#2d6a4f,#40916c)", icon:"🌋" },
-    { id:"w2", type:"wisata", nama:"Taman Nasional Alas Purwo", kategori:"Hutan & Alam", kawasan:"Tegaldlimo", akses:"Menengah", htm:20000, catatan:"Hutan tertua Jawa, Savana Sadengan.", grad:"linear-gradient(135deg,#1b4332,#2d6a4f,#52b788)", icon:"🌿" },
-    { id:"w3", type:"wisata", nama:"Pantai Pulau Merah", kategori:"Pantai", kawasan:"Pesanggaran", akses:"Mulus", htm:15000, catatan:"Ikon bukit/pulau kecil di tengah laut.", grad:"linear-gradient(135deg,#0d3b66,#1565c0,#e65100)", icon:"🌊" },
-    { id:"w4", type:"wisata", nama:"Teluk Hijau (Green Bay)", kategori:"Pantai & Teluk", kawasan:"Pesanggaran", akses:"Ekstrem", htm:20000, catatan:"Air laut hijau jernih berkilau.", grad:"linear-gradient(135deg,#004d40,#00796b,#4db6ac)", icon:"🏝️" },
-    { id:"p1", type:"penginapan",nama:"Jiwa Jawa Ijen Resort", kategori:"Resort & Villa", kawasan:"Licin", akses:"", harga:1500000, catatan:"Resort premium bergaya Jawa klasik di lereng Ijen.", grad:"linear-gradient(135deg,#4a148c,#7b1fa2,#ba68c8)", icon:"🏨" },
-    { id:"k1", type:"kuliner", nama:"Sego Tempong Mbok Wah", kategori:"Makanan Tradisional", kawasan:"Glagah", akses:"", harga:25000, catatan:"Kuliner tempong paling legendaris.", grad:"linear-gradient(135deg,#bf360c,#e64a19,#ff8a65)", icon:"🌶️" }
-  ];
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCHWWjnxX5-Fk9-gRTZVwyC3WDDfnLPh_s",
+    authDomain: "banyuwangi-db.firebaseapp.com",
+    projectId: "banyuwangi-db"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const dbFirestore = getFirestore(app);
+  const colRef = collection(dbFirestore, "places");
+  const auth = getAuth(app);
+
+  let DB = [];
+  let isAdmin = false; 
+  let currentView = 'explore';
+  let currentFilter = 'all';
+  let currentQuery = '';
+  let formMode = 'add';
+  let editTargetId = null;
+  let mapInstance = null;
+  let mapMarkers = [];
+
+  // ── Koordinat per kawasan untuk Map ──
+  const KAWASAN_COORDS = {
+    'Pusat Kota':[-8.2272,114.3691],'Licin':[-8.1456,114.2681],'Licin / Paltuding':[-8.1023,114.2341],
+    'Glagah':[-8.1939,114.3012],'Pesanggaran':[-8.5234,114.0123],'Tegaldlimo':[-8.5678,114.1234],
+    'Banyuwangi':[-8.2272,114.3691]
+  };
+
+  // Local Storage Data
+  let myItin = JSON.parse(localStorage.getItem('bwi_itinerary') || '[]');
+  let myFav = JSON.parse(localStorage.getItem('bwi_favorit') || '[]');
+  let myVisit = JSON.parse(localStorage.getItem('bwi_visited') || '[]');
 
   const META = {
-    wisata: { label: "Wisata", cls: "wisata" },
-    penginapan: { label: "Penginapan", cls: "penginapan" },
-    kuliner: { label: "Kuliner", cls: "kuliner" }
+    wisata: { label: "Wisata", color: "#10b981", cls: "wisata", emoji: "⛺" },
+    penginapan: { label: "Penginapan", color: "#8b5cf6", cls: "penginapan", emoji: "🏨" },
+    kuliner: { label: "Kuliner", color: "#f97316", cls: "kuliner", emoji: "🍜" }
   };
-  const AKSES_COLOR = { Mulus: "akses-mulus", Menengah: "akses-menengah", Ekstrem: "akses-ekstrem" };
 
-  let currentFilter = 'all';
-  
-  // Konversi Angka ke Rupiah
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
   function rupiah(n) { return (!n || n===0) ? 'GRATIS' : 'Rp ' + Number(n).toLocaleString('id-ID'); }
 
-  // --- 2. FUNGSI RENDER KOMPONEN ---
+  function saveLocal() {
+    localStorage.setItem('bwi_itinerary', JSON.stringify(myItin));
+    localStorage.setItem('bwi_favorit', JSON.stringify(myFav));
+    localStorage.setItem('bwi_visited', JSON.stringify(myVisit));
+  }
+
+  function getBgStyle(d) {
+    if (d.foto) return `background-image: url('${d.foto}'); color: transparent;`;
+    if (d.type === 'wisata') return `background: linear-gradient(135deg, #1b4332, #2d6a4f); color:#fff;`;
+    if (d.type === 'penginapan') return `background: linear-gradient(135deg, #311b92, #512da8); color:#fff;`;
+    return `background: linear-gradient(135deg, #bf360c, #e64a19); color:#fff;`;
+  }
+
+  // ── RENDER CARD EXPLORE ──
   function renderPhotoCard(d) {
+    const isFav = myFav.includes(d.id);
     return `
-      <div class="photo-card">
-        <div class="pc-img" style="background: ${d.grad}">
-          <span style="position:absolute; z-index:1;">${d.icon}</span>
-          <button class="pc-fav">🤍</button>
+      <div class="photo-card list-card" data-id="${d.id}">
+        <div class="pc-img" style="${getBgStyle(d)}">
+          <span style="position:absolute; z-index:1;">${d.foto?'':(META[d.type]?.emoji||'📍')}</span>
+          <button class="pc-fav ${isFav?'active':''}" data-fav="${d.id}">${isFav?'❤️':'🤍'}</button>
           <div class="pc-tag">${META[d.type]?.label}</div>
         </div>
         <div class="pc-content">
           <div class="pc-name">${d.nama}</div>
-          <div class="pc-loc">📍 ${d.kawasan}</div>
+          <div class="pc-loc">📍 ${d.kawasan||'Banyuwangi'}</div>
           <div class="pc-price">${rupiah(d.htm || d.harga)}</div>
+        </div>
+        <div class="lc-detail">
+          <p class="lc-notes">${d.catatan||'Belum ada deskripsi.'}</p>
         </div>
       </div>
     `;
@@ -260,78 +432,321 @@
 
   function renderListCard(d) {
     const meta = META[d.type] || META.wisata;
-    const ac = AKSES_COLOR[d.akses];
+    const isFav = myFav.includes(d.id);
+    const isVisit = myVisit.includes(d.id);
+    const inItin = myItin.includes(d.id);
+
+    let adminHTML = isAdmin ? `
+      <div class="admin-tools">
+        <button class="action-btn btn-edit" data-edit="${d.id}">✏️ Edit</button>
+        <button class="action-btn btn-del" data-delete="${d.id}">🗑️ Hapus</button>
+      </div>
+    ` : '';
+
     return `
-      <div class="list-card ${meta.cls}">
+      <div class="list-card ${meta.cls}" data-id="${d.id}">
         <div class="lc-main">
-          <div class="lc-img" style="background: ${d.grad}">
-            <span>${d.icon}</span>
+          <div class="lc-img" style="${getBgStyle(d)}">
+            <span style="z-index:1;">${d.foto?'':meta.emoji}</span>
+            <div class="lc-badges">
+              ${isFav ? '<span class="lc-badge">❤️</span>' : ''}
+              ${isVisit ? '<span class="lc-badge">✅</span>' : ''}
+            </div>
           </div>
           <div class="lc-content">
             <div class="lc-type-row">
               <span class="lc-type">${meta.label}</span>
+              ${inItin ? '<span class="lc-itin-badge">🎒 RUTE</span>' : ''}
             </div>
             <div class="lc-name">${d.nama}</div>
-            <div class="lc-loc">📍 ${d.kawasan}</div>
+            <div class="lc-loc">📍 ${d.kawasan||'Banyuwangi'}</div>
             <div class="lc-bottom">
-              ${d.akses ? `<span class="tag-akses ${ac}">${d.akses}</span>` : '<span></span>'}
               <div class="lc-price">${rupiah(d.htm || d.harga)}</div>
             </div>
           </div>
+        </div>
+        <div class="lc-detail">
+          <p class="lc-notes">${d.catatan || 'Belum ada deskripsi.'}</p>
+          <div class="lc-actions">
+            ${d.maps && d.maps !== '#' ? `<a href="${d.maps}" target="_blank" class="action-btn btn-maps">🗺️ Maps</a>` : ''}
+            <button class="action-btn btn-itin ${inItin?'active':''}" data-itin="${d.id}">${inItin?'🎒 Hapus':'🎒 + Rute'}</button>
+            <button class="action-btn btn-fav ${isFav?'active':''}" data-fav="${d.id}">${isFav?'❤️':'🤍'}</button>
+            <button class="action-btn btn-visit ${isVisit?'active':''}" data-visit="${d.id}">${isVisit?'✅':'☐ Visited'}</button>
+          </div>
+          ${adminHTML}
         </div>
       </div>
     `;
   }
 
-  // --- 3. LOGIKA UPDATE TAMPILAN UTAMA ---
-  function renderUI() {
-    let displayData = SAMPLE; // Gunakan SAMPLE sebagai default
-
-    // Filter Kategori
-    if (currentFilter !== 'all') {
-      displayData = displayData.filter(d => d.type === currentFilter);
-      document.getElementById('featuredSection').style.display = 'none';
-      document.getElementById('listTitle').textContent = META[currentFilter].label;
-    } else {
-      document.getElementById('featuredSection').style.display = 'block';
-      document.getElementById('listTitle').textContent = "Semua Destinasi";
-      // Render Horizontal Cards (Destinasi Populer - 4 teratas wisata)
-      const featured = displayData.filter(d => d.type === 'wisata').slice(0, 4);
-      document.getElementById('featuredList').innerHTML = featured.map(renderPhotoCard).join('');
-    }
-
-    // Render Vertical Cards (Semua Destinasi)
-    document.getElementById('mainList').innerHTML = displayData.map(renderListCard).join('');
+  // ── RENDER ITINERARY ROW ──
+  function renderItinRow(d, index) {
+    const meta = META[d.type] || META.wisata;
+    return `
+      <div class="itin-row">
+        <div class="itin-timeline">
+          <div class="itin-num" style="background:${meta.color}">${index + 1}</div>
+          <div class="itin-line"></div>
+        </div>
+        <div class="itin-card">
+          <div class="itin-img" style="${getBgStyle(d)}">${d.foto?'':meta.emoji}</div>
+          <div class="itin-info">
+            <div style="font-size:14px; font-weight:800; color:#0f172a;">${d.nama}</div>
+            <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">${meta.label} · ${d.kawasan||'BWI'}</div>
+            <div style="font-size:13px; font-weight:800; color:#0f172a;">${rupiah(d.htm || d.harga)}</div>
+          </div>
+          <button data-itin="${d.id}" style="padding:0 16px; background:none; border:none; color:#ef4444; font-size:20px; cursor:pointer;">✕</button>
+        </div>
+      </div>
+    `;
   }
 
-  // --- 4. INTERAKSI TOMBOL ---
-  // Navigasi Filter
-  document.getElementById('filters').addEventListener('click', e => {
-    const btn = e.target.closest('.filter-btn'); if(!btn) return;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); 
-    currentFilter = btn.dataset.filter; 
-    renderUI();
+  // ── RENDER MAP ──
+  function renderMap() {
+    if (!mapInstance) {
+      mapInstance = L.map('map').setView([-8.2272, 114.3691], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(mapInstance);
+    }
+    mapMarkers.forEach(m => m.remove()); mapMarkers = [];
+    
+    DB.forEach(d => {
+      let lat = d.lat, lng = d.lng;
+      if(!lat || !lng) {
+        const c = KAWASAN_COORDS[d.kawasan];
+        if(c){ lat = c[0]+(Math.random()-.5)*0.01; lng = c[1]+(Math.random()-.5)*0.01; }
+        else { lat = -8.2272+(Math.random()-.5)*0.2; lng = 114.3691+(Math.random()-.5)*0.2; }
+      }
+      const color = (META[d.type] || META.wisata).color;
+      const icon = L.divIcon({
+        html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
+        className: ''
+      });
+      const marker = L.marker([lat, lng], {icon}).addTo(mapInstance);
+      marker.bindPopup(`<b>${d.nama}</b><br>${d.kawasan||'Banyuwangi'}`);
+      mapMarkers.push(marker);
+    });
+    setTimeout(() => mapInstance.invalidateSize(), 100);
+  }
+
+  // ── MAIN RENDER LOGIC ──
+  function renderUI() {
+    document.getElementById('headerSubtitle').textContent = `${DB.length} destinasi menanti`;
+    
+    // Sembunyikan semua view
+    ['viewExplore', 'viewMap', 'viewItinerary', 'viewDash'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById('fabBtn').style.display = isAdmin ? 'flex' : 'none';
+    
+    // Header styling per view
+    const header = document.querySelector('header');
+    if(currentView === 'map' || currentView === 'dash' || currentView === 'itinerary') {
+       document.getElementById('filters').style.display = 'none';
+       document.querySelector('.search-box').style.display = 'none';
+    } else {
+       document.getElementById('filters').style.display = 'flex';
+       document.querySelector('.search-box').style.display = 'block';
+    }
+
+    if (currentView === 'explore') {
+      document.getElementById('viewExplore').style.display = 'block';
+
+      const q = currentQuery.toLowerCase();
+      let filtered = DB.filter(d => {
+        if (currentFilter === 'wisata' && d.type !== 'wisata') return false;
+        if (currentFilter === 'penginapan' && d.type !== 'penginapan') return false;
+        if (currentFilter === 'kuliner' && d.type !== 'kuliner') return false;
+        if (currentFilter === 'favorit' && !myFav.includes(d.id)) return false;
+        if (currentFilter === 'visited' && !myVisit.includes(d.id)) return false;
+        if (q && !d.nama.toLowerCase().includes(q) && !(d.kawasan||'').toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      const featSec = document.getElementById('featuredSection');
+      if (currentFilter === 'all' && !q) {
+        featSec.style.display = 'block';
+        const featured = DB.filter(d => d.type === 'wisata').slice(0, 5);
+        document.getElementById('featuredList').innerHTML = featured.map(renderPhotoCard).join('');
+      } else {
+        featSec.style.display = 'none';
+      }
+
+      let title = "Semua Destinasi";
+      if (currentFilter === 'favorit') title = "❤️ Favorit Saya";
+      if (currentFilter === 'visited') title = "✅ Sudah Dikunjungi";
+      document.getElementById('listTitle').textContent = title;
+
+      const listDiv = document.getElementById('mainList');
+      if (filtered.length === 0) {
+        listDiv.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#94a3b8;"><div style="font-size:40px; margin-bottom:10px;">🌾</div>Tidak ada hasil.</div>`;
+      } else {
+        listDiv.innerHTML = filtered.map(renderListCard).join('');
+      }
+    } 
+    else if (currentView === 'map') {
+      document.getElementById('viewMap').style.display = 'block';
+      renderMap();
+    }
+    else if (currentView === 'itinerary') {
+      document.getElementById('viewItinerary').style.display = 'block';
+      let totalCost = 0; const items = [];
+      myItin.forEach(id => {
+        const d = DB.find(x => x.id === id);
+        if (d) { items.push(d); totalCost += (d.type === 'wisata' ? (d.htm||0) : (d.harga||0)); }
+      });
+      document.getElementById('itinTotalVal').textContent = rupiah(totalCost);
+      document.getElementById('itinCountVal').textContent = `${items.length} destinasi dalam rute`;
+      const itinDiv = document.getElementById('itinListContainer');
+      if (items.length === 0) {
+        itinDiv.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#94a3b8;"><div style="font-size:40px; margin-bottom:10px;">🎒</div>Rute kosong.<br>Tambahkan dari tab Jelajah.</div>`;
+      } else {
+        itinDiv.innerHTML = items.map((d, i) => renderItinRow(d, i)).join('');
+      }
+    }
+    else if (currentView === 'dash') {
+      document.getElementById('viewDash').style.display = 'block';
+      const w = DB.filter(d=>d.type==='wisata').length;
+      document.getElementById('dTotal').textContent = DB.length;
+      document.getElementById('dWisata').textContent = w;
+      document.getElementById('dInap').textContent = DB.filter(d=>d.type==='penginapan').length;
+      document.getElementById('dKuliner').textContent = DB.filter(d=>d.type==='kuliner').length;
+      
+      const v = myVisit.filter(id => DB.find(d => d.id===id && d.type==='wisata')).length;
+      const pct = w > 0 ? Math.round((v/w)*100) : 0;
+      document.getElementById('pctVal').textContent = `${pct}%`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+      document.getElementById('progressLabel').textContent = `${v} dari ${w} destinasi wisata dikunjungi`;
+    }
+  }
+
+  // ── EVENTS ──
+  document.body.addEventListener('click', e => {
+    // Buttons Action
+    const btnItin = e.target.closest('[data-itin]');
+    if (btnItin) { e.stopPropagation(); const id = btnItin.dataset.itin; myItin = myItin.includes(id) ? myItin.filter(i=>i!==id) : [...myItin, id]; saveLocal(); renderUI(); toast(myItin.includes(id)?'Masuk Rute':'Dihapus dari Rute'); return; }
+    
+    const btnFav = e.target.closest('[data-fav]');
+    if (btnFav) { e.stopPropagation(); const id = btnFav.dataset.fav; myFav = myFav.includes(id) ? myFav.filter(i=>i!==id) : [...myFav, id]; saveLocal(); renderUI(); return; }
+    
+    const btnVisit = e.target.closest('[data-visit]');
+    if (btnVisit) { e.stopPropagation(); const id = btnVisit.dataset.visit; myVisit = myVisit.includes(id) ? myVisit.filter(i=>i!==id) : [...myVisit, id]; saveLocal(); renderUI(); return; }
+
+    const btnEdit = e.target.closest('[data-edit]');
+    if (btnEdit && isAdmin) { e.stopPropagation(); openEditForm(btnEdit.dataset.edit); return; }
+    
+    const btnDel = e.target.closest('[data-delete]');
+    if (btnDel && isAdmin) { e.stopPropagation(); if(confirm('Hapus data permanen?')) deleteDoc(doc(dbFirestore, "places", btnDel.dataset.delete)); return; }
+
+    // Expand Card
+    const card = e.target.closest('.list-card');
+    if (card && !e.target.closest('button')) card.classList.toggle('open');
   });
 
-  // Navigasi Bawah (Shifting Nav)
+  // Nav Bottom
   document.querySelector('.shifting-nav').addEventListener('click', e => {
     const ni = e.target.closest('.nav-item'); if(!ni) return;
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     ni.classList.add('active'); 
-    
-    if(ni.dataset.view === 'explore') {
-      document.getElementById('viewExplore').style.display = 'block';
-      document.getElementById('viewOther').style.display = 'none';
-    } else {
-      document.getElementById('viewExplore').style.display = 'none';
-      document.getElementById('viewOther').style.display = 'block';
-    }
+    currentView = ni.dataset.view; 
+    renderUI();
   });
 
-  // Eksekusi Render Pertama Kali
-  renderUI();
+  // Filter & Search
+  document.getElementById('filters').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn'); if(!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); currentFilter = btn.dataset.filter; renderUI();
+  });
+  document.getElementById('searchInput').addEventListener('input', e => { currentQuery = e.target.value; renderUI(); });
 
+  // Itinerary Actions
+  document.getElementById('btnClearItin').addEventListener('click', () => { if(confirm('Kosongkan semua rute?')){ myItin=[]; saveLocal(); renderUI(); }});
+  document.getElementById('btnShareWA').addEventListener('click', () => {
+    let text = "*📍 Rencana Touring Banyuwangi*\n\n";
+    let total = 0;
+    myItin.forEach((id, i) => { const d = DB.find(x => x.id === id); if(d) { text += `${i+1}. ${d.nama} (${d.kawasan||'BWI'})\n`; total+=(d.type==='wisata'?d.htm||0:d.harga||0); } });
+    text += `\n*Estimasi Biaya:* ${rupiah(total)}\n_Gas tipis-tipis! 🛵_`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  });
+
+  /* ── FIREBASE & AUTH ── */
+  onSnapshot(colRef, snap => { 
+    DB = []; snap.forEach(ds => DB.push(ds.data())); 
+    renderUI(); 
+  }, err => { toast("Gagal terhubung ke Cloud"); });
+
+  const mLogin = document.getElementById('modalLogin');
+  const mForm = document.getElementById('modalForm');
+  
+  onAuthStateChanged(auth, user => {
+    isAdmin = !!user;
+    document.getElementById('btnLogin').textContent = isAdmin ? '🔓' : '🔐';
+    document.getElementById('btnExport').style.display = isAdmin ? 'block' : 'none';
+    renderUI();
+  });
+
+  document.getElementById('btnLogin').addEventListener('click', () => { isAdmin ? (confirm('Logout dari Admin?') && signOut(auth)) : mLogin.classList.add('open'); });
+  document.getElementById('closeLogin').addEventListener('click', () => mLogin.classList.remove('open'));
+  document.getElementById('btnDoLogin').addEventListener('click', async () => {
+    try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPass').value); mLogin.classList.remove('open'); toast("Admin terhubung"); } 
+    catch (e) { toast('Akses ditolak'); }
+  });
+
+  // Export Data Admin
+  document.getElementById('btnExport').addEventListener('click', () => {
+    if(!isAdmin) return;
+    const out = { wisata_banyuwangi: [], penginapan: [], kuliner_cafe: [] };
+    DB.forEach(d => {
+      const copy = { ...d }; const t = copy.type; delete copy.type; 
+      if (t === 'wisata') out.wisata_banyuwangi.push(copy);
+      else if (t === 'penginapan') out.penginapan.push(copy);
+      else if (t === 'kuliner') out.kuliner_cafe.push(copy);
+    });
+    const a = document.createElement('a');
+    a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(out, null, 2));
+    a.download = "banyuwangi_backup.json"; a.click(); toast("Backup sukses didownload");
+  });
+
+  // Form Tambah/Edit
+  document.getElementById('fabBtn').addEventListener('click', () => {
+    formMode = 'add'; document.getElementById('modalTitle').textContent = 'Tambah Data';
+    ['inputNama','inputFoto','inputKawasan','inputCatatan','inputMaps'].forEach(id=>{if(document.getElementById(id)) document.getElementById(id).value=''});
+    document.getElementById('inputHarga').value='0'; mForm.classList.add('open');
+  });
+  document.getElementById('closeForm').addEventListener('click', () => mForm.classList.remove('open'));
+
+  function openEditForm(id){
+    const d = DB.find(x => x.id === id); if(!d) return;
+    formMode = 'edit'; editTargetId = id; document.getElementById('modalTitle').textContent = 'Edit Data';
+    document.getElementById('inputTipe').value = d.type;
+    document.getElementById('inputNama').value = d.nama||'';
+    document.getElementById('inputFoto').value = d.foto||'';
+    document.getElementById('inputKawasan').value = d.kawasan||'';
+    document.getElementById('inputHarga').value = d.htm || d.harga || 0;
+    document.getElementById('inputMaps').value = d.maps||'';
+    document.getElementById('inputCatatan').value = d.catatan||'';
+    mForm.classList.add('open');
+  }
+
+  document.getElementById('btnSimpan').addEventListener('click', async () => {
+    const nama = document.getElementById('inputNama').value.trim();
+    if(!nama) return toast('Nama wisata belum diisi');
+    const tipe = document.getElementById('inputTipe').value;
+    const payload = {
+      nama, type: tipe, foto: document.getElementById('inputFoto').value.trim(),
+      kawasan: document.getElementById('inputKawasan').value.trim(),
+      maps: document.getElementById('inputMaps').value.trim() || '#',
+      catatan: document.getElementById('inputCatatan').value.trim(),
+    };
+    if(tipe==='wisata') payload.htm = parseInt(document.getElementById('inputHarga').value)||0;
+    else payload.harga = parseInt(document.getElementById('inputHarga').value)||0;
+
+    try {
+      payload.id = formMode === 'edit' ? editTargetId : tipe.charAt(0) + Date.now();
+      await setDoc(doc(dbFirestore, "places", payload.id), payload);
+      toast('Berhasil disimpan ke Cloud!'); mForm.classList.remove('open');
+    } catch(e) { toast('Koneksi terputus.'); }
+  });
 </script>
 </body>
 </html>
