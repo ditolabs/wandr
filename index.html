@@ -241,13 +241,22 @@
     .cta-itin.on{background:var(--hi);color:#fff;border-color:var(--hi) !important}
 
     /* ── MAP ── */
-    #mapView{display:none}
-    #mapContainer{height:calc(100vh - 220px);position:relative}
+    #mapView{display:none;padding:0 12px}
+    #mapContainer{
+      height:calc(100vh - 310px);
+      min-height:280px;
+      position:relative;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:var(--card-shadow);
+      border:1px solid var(--border);
+      margin-bottom:12px;
+    }
     #map{width:100%;height:100%}
     .map-legend{display:flex;gap:14px;padding:10px 20px;justify-content:center}
     .map-legend span{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)}
     .map-legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
-    .map-scroll{display:flex;gap:10px;overflow-x:auto;padding:8px 16px 12px}
+    .map-scroll{display:flex;gap:10px;overflow-x:auto;padding:8px 4px 12px}
     .mcard{flex-shrink:0;width:138px;background:var(--surface);border-radius:14px;
       overflow:hidden;box-shadow:var(--card-shadow);cursor:pointer;
       border:2px solid transparent;transition:all .2s}
@@ -307,7 +316,7 @@
       border-radius:8px;transition:width .6s ease}
     .prog-sub{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
 
-    /* ── MODALS ── */
+      /* ── MODALS ── */
     .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);
       backdrop-filter:blur(4px);z-index:1000;padding:16px;
       align-items:flex-end;justify-content:center}
