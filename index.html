@@ -325,7 +325,7 @@
       border-radius:8px;transition:width .6s ease}
     .prog-sub{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
 
-    /* ── MODALS ── */
+ /* ── MODALS ── */
     .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);
       backdrop-filter:blur(4px);z-index:1000;padding:16px;
       align-items:flex-end;justify-content:center}
@@ -404,6 +404,219 @@
     .empty{text-align:center;padding:50px 20px;color:var(--muted)}
     .empty .ei{font-size:48px;margin-bottom:12px}
     .empty p{font-size:14px}
+
+/* ══════════════════════════════════════
+   DESKTOP LAYOUT (≥ 768px)
+   Split panel: list kiri + peta kanan
+══════════════════════════════════════ */
+@media (min-width: 768px) {
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    padding-bottom: 0;
+    max-width: none;
+  }
+
+  /* Top bar desktop */
+  #desktopTopBar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 24px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 200;
+  }
+  .dtb-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .dtb-logo-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg,#f59e0b,#fb923c);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .dtb-logo-text { font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
+  .dtb-logo-text span { color: var(--hi); }
+  .dtb-search {
+    flex: 1; position: relative; max-width: 400px;
+  }
+  .dtb-search input {
+    width: 100%; padding: 9px 14px 9px 36px;
+    background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 13px;
+    outline: none; font-family: inherit; transition: all .2s;
+  }
+  .dtb-search input:focus { border-color: var(--hi); box-shadow: 0 0 0 3px var(--hi-bg); }
+  .dtb-search .si { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--muted); }
+  .dtb-filters {
+    display: flex; gap: 6px;
+  }
+  .dtb-filter {
+    padding: 7px 14px; border-radius: 16px; font-size: 12px; font-weight: 500;
+    background: var(--surface); color: var(--sub); border: 1px solid var(--border);
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+  }
+  .dtb-filter.active { font-weight: 700; color: #fff; background: var(--hi); border-color: var(--hi); box-shadow: 0 3px 10px rgba(245,158,11,.3); }
+  .dtb-actions { display: flex; gap: 8px; margin-left: auto; align-items: center; }
+  .dtb-btn {
+    padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+    color: var(--sub); transition: all .2s; white-space: nowrap;
+  }
+  .dtb-btn:hover { border-color: var(--hi); color: var(--hi); }
+  .dtb-btn.primary { background: var(--hi); color: #fff; border-color: var(--hi); }
+
+  /* Main split area */
+  #desktopMain {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left panel */
+  #desktopLeft {
+    width: 360px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .dleft-stats {
+    padding: 8px 16px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: monospace;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+  .dleft-sort {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 6px;
+  }
+  .dleft-sort select {
+    flex: 1; background: var(--input-bg); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 8px; border-radius: 8px;
+    font-size: 12px; outline: none; cursor: pointer; font-family: inherit;
+  }
+  #desktopList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px 10px;
+  }
+  .dcard {
+    display: flex; border-radius: 10px; margin-bottom: 7px;
+    overflow: hidden; background: var(--surface);
+    border: 1px solid var(--border); cursor: pointer;
+    transition: all .15s; box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .dcard:hover { border-color: var(--hi); box-shadow: 0 3px 12px rgba(245,158,11,.12); }
+  .dcard.active { border-color: var(--hi); background: #fffbeb; box-shadow: 0 4px 16px rgba(245,158,11,.15); }
+  .dcard-thumb { width: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .dcard-body { flex: 1; padding: 10px 12px; }
+  .dcard-pill { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 2px 7px; border-radius: 7px; margin-bottom: 4px; }
+  .dcard-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; line-height: 1.3; }
+  .dcard-meta { font-size: 10px; color: var(--muted); }
+  .dcard-price { font-size: 12px; font-weight: 700; margin-top: 3px; }
+  .dcard-itin-bar { width: 3px; background: var(--hi); flex-shrink: 0; }
+
+  /* Itin footer */
+  #desktopItinBar {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    background: #fffbeb;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  #desktopItinBar.show { display: flex; }
+  .ditin-total { font-size: 15px; font-weight: 800; }
+  .ditin-sub { font-size: 10px; color: var(--muted); }
+
+  /* Right panel */
+  #desktopRight {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Detail overlay (slides from top) */
+  #desktopDetail {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease;
+    flex-shrink: 0;
+  }
+  #desktopDetail.open { max-height: 210px; }
+  .dd-inner {
+    display: flex; gap: 18px; padding: 18px 22px; align-items: flex-start;
+  }
+  .dd-photo {
+    width: 150px; height: 150px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 52px; flex-shrink: 0;
+  }
+  .dd-content { flex: 1; }
+  .dd-type { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: 3px 10px; border-radius: 10px; margin-bottom: 6px; }
+  .dd-name { font-size: 20px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 3px; line-height: 1.2; }
+  .dd-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .dd-notes { font-size: 12px; color: var(--sub); line-height: 1.6; margin-bottom: 12px; max-width: 500px; }
+  .dd-actions { display: flex; gap: 8px; align-items: center; }
+  .dd-price { font-size: 18px; font-weight: 800; margin-right: 4px; }
+  .dd-close {
+    position: absolute; top: 12px; right: 14px;
+    background: var(--tag-bg); border: none; color: var(--muted);
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    font-size: 14px; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Map iframe */
+  #desktopMap {
+    flex: 1;
+    position: relative;
+  }
+  #desktopMap iframe {
+    width: 100%; height: 100%; border: none; display: block;
+  }
+  .map-overlay-hint {
+    position: absolute; bottom: 16px; left: 16px;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 14px; font-size: 11px; color: var(--sub);
+    pointer-events: none;
+  }
+
+  /* Hide mobile-only elements */
+  header, .snav, .fab,
+  #exploreView, #mapView, #itineraryView, #dashView,
+  #detailPage {
+    display: none !important;
+  }
+
+  /* Show desktop elements */
+  #desktopTopBar, #desktopMain { display: flex !important; }
+}
+
+/* Hide desktop elements on mobile */
+@media (max-width: 767px) {
+  #desktopTopBar, #desktopMain { display: none !important; }
+}
+
   </style>
 </head>
 <body>
@@ -647,8 +860,8 @@ const firebaseConfig={
   appId:"1:973498690850:web:b2d67373174542167a497b"
 };
 // Telegram — buat bot via @BotFather, isi token & chat_id kamu
-const TG_TOKEN   = "8790353983:AAHevFEr6uz6Fn5ez4Yn8g6gGDy4gRy9zqY";       // contoh: "7123456789:AAFxxxxx"
-const TG_CHAT_ID = "454952582";          // contoh: "123456789"
+const TG_TOKEN   = "ISI_BOT_TOKEN_KAMU";       // contoh: "7123456789:AAFxxxxx"
+const TG_CHAT_ID = "ISI_CHAT_ID_KAMU";          // contoh: "123456789"
 const APP_URL    = "https://ditolabs.github.io/bwi-app";
 // ══════════════════════════════════════
 
@@ -674,6 +887,8 @@ document.getElementById('btnDark').addEventListener('click',()=>{
   isDark=!isDark;
   localStorage.setItem('bwi_theme',isDark?'dark':'light');
   applyTheme();
+  const d2=document.getElementById('dtbDark');
+  if(d2) d2.textContent=isDark?'☀️':'🌙';
   toast(isDark?'🌙 Dark mode aktif':'☀️ Light mode aktif');
 });
 
@@ -1053,6 +1268,7 @@ function renderAll(){
 onSnapshot(colRef,snap=>{
   DATA=[];snap.forEach(ds=>DATA.push(ds.data()));
   renderAll();
+  if(isDesktop()) renderDesktop();
 },err=>{
   document.getElementById('countLabel').textContent='Offline / Gagal konek';
   toast('Gagal terhubung ke cloud');
@@ -1066,6 +1282,9 @@ onAuthStateChanged(auth,user=>{
     document.getElementById('navDash').style.display='flex';
     document.getElementById('exportWrap').style.display='block';
     toast('✓ Masuk sebagai Admin');
+    if(document.getElementById('dtbLogin')) document.getElementById('dtbLogin').textContent='🔓 Logout Admin';
+    if(document.getElementById('dtbImport')) document.getElementById('dtbImport').style.display='block';
+    if(document.getElementById('dtbExport')) document.getElementById('dtbExport').style.display='block';
   }else{
     isAdmin=false;
     document.getElementById('btnLogin').textContent='🔐';
@@ -1278,6 +1497,543 @@ document.getElementById('btnOk').addEventListener('click',async()=>{
   catch(e){toast('❌ Gagal: '+e.message);}
   delId=null;
 });
+
+
+// ══════════════════════════════════════
+// DESKTOP LOGIC
+// ══════════════════════════════════════
+
+let dtbFilter   = 'all';
+let dtbQuery    = '';
+let dtbSort     = '';
+let dtbKawasan  = '';
+let dtbSelected = null;
+let importData  = null;
+
+const isDesktop = () => window.innerWidth >= 768;
+
+// ── GOOGLE MAPS IFRAME ──
+function setMapSrc(d) {
+  const frame = document.getElementById('gMapsFrame');
+  const hint  = document.getElementById('mapHint');
+  if (!frame) return;
+  if (d && d.maps && d.maps !== '#') {
+    // Convert maps URL → embed format
+    let url = d.maps;
+    if (!url.includes('output=embed')) {
+      url += (url.includes('?') ? '&' : '?') + 'output=embed';
+    }
+    frame.src = url + '&hl=id';
+    if (hint) hint.style.display = 'none';
+  } else if (d && d.kawasan) {
+    const q = encodeURIComponent(d.nama + ' ' + d.kawasan + ' Banyuwangi');
+    frame.src = `https://maps.google.com/maps?q=${q}&output=embed&hl=id`;
+    if (hint) hint.style.display = 'none';
+  } else {
+    frame.src = 'https://maps.google.com/maps?q=-8.2272,114.3691&z=11&output=embed&hl=id';
+    if (hint) hint.style.display = 'block';
+  }
+}
+
+// ── DESKTOP FILTER ──
+function dtbGetFiltered() {
+  let data = DATA.filter(d => {
+    if (!isAdmin && d.status === 'pending') return false;
+    if (dtbFilter === 'wisata'     && d.type !== 'wisata')     return false;
+    if (dtbFilter === 'penginapan' && d.type !== 'penginapan') return false;
+    if (dtbFilter === 'kuliner'    && d.type !== 'kuliner')    return false;
+    if (dtbKawasan && d.kawasan !== dtbKawasan)                return false;
+    if (dtbQuery) {
+      const q = dtbQuery.toLowerCase();
+      return [d.nama, d.kategori, d.kawasan, d.catatan].some(s => s && s.toLowerCase().includes(q));
+    }
+    return true;
+  });
+  if (dtbSort === 'nama')       data.sort((a,b) => a.nama.localeCompare(b.nama));
+  if (dtbSort === 'harga-asc')  data.sort((a,b) => gp(a) - gp(b));
+  if (dtbSort === 'harga-desc') data.sort((a,b) => gp(b) - gp(a));
+  return data;
+}
+
+// ── POPULATE KAWASAN DESKTOP ──
+function dtbPopulateKawasan() {
+  const sel = document.getElementById('dtbKawasan');
+  if (!sel) return;
+  const cur = sel.value;
+  const areas = [...new Set(DATA.filter(d => d.kawasan && d.kawasan !== '—').map(d => d.kawasan))].sort();
+  sel.innerHTML = '<option value="">📍 Semua Area</option>';
+  areas.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; sel.appendChild(o); });
+  if (cur) sel.value = cur;
+}
+
+// ── RENDER DESKTOP LIST ──
+function renderDesktop() {
+  if (!isDesktop()) return;
+  dtbPopulateKawasan();
+  const filtered = dtbGetFiltered();
+  document.getElementById('dtbCount').textContent  = filtered.length + ' destinasi';
+  const active = DATA.filter(d => d.status !== 'pending' || isAdmin);
+  const w = active.filter(d => d.type==='wisata').length;
+  const p = active.filter(d => d.type==='penginapan').length;
+  const k = active.filter(d => d.type==='kuliner').length;
+  document.getElementById('dtbTotal').textContent = `${active.length} total · ${w}W ${p}I ${k}K`;
+
+  const list = document.getElementById('desktopList');
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--muted)">🌾<br>Tidak ada hasil.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(d => {
+    const t    = TYPE_META[d.type] || TYPE_META.wisata;
+    const [gr, ic] = getGrad(d);
+    const r    = rpStyle(gp(d));
+    const isSel = dtbSelected === d.id;
+    const inI  = myItin.includes(d.id);
+    return `<div class="dcard${isSel?' active':''}" onclick="dtbSelectCard('${d.id}')">
+      <div class="dcard-thumb" style="background:${gr}">${ic}</div>
+      <div class="dcard-body">
+        <div class="dcard-pill" style="background:${t.bg};color:${t.text}">${t.label}</div>
+        <div class="dcard-name">${d.nama}</div>
+        <div class="dcard-meta">📍 ${d.kawasan||'—'}${d.akses?' · '+d.akses:''}</div>
+        <div class="dcard-price" style="color:${r.color}">${r.text}</div>
+      </div>
+      ${inI ? '<div class="dcard-itin-bar"></div>' : ''}
+    </div>`;
+  }).join('');
+
+  // Itinerary bar
+  const itinItems = myItin.map(id => DATA.find(d => d.id===id)).filter(Boolean);
+  const total = itinItems.reduce((s,d) => s+gp(d), 0);
+  const bar = document.getElementById('desktopItinBar');
+  if (bar) {
+    bar.className = myItin.length ? 'show' : '';
+    document.getElementById('dtbItinTotal').textContent = rp(total);
+    document.getElementById('dtbItinSub').textContent   = myItin.length + ' destinasi dalam rute';
+  }
+
+  // Pending badge for admin
+  if (isAdmin) {
+    const pending = DATA.filter(d => d.status === 'pending').length;
+    document.getElementById('dtbImport').style.display = 'block';
+    document.getElementById('dtbExport').style.display = 'block';
+    if (pending > 0) {
+      document.getElementById('dtbLogin').textContent = `🔓 Admin (${pending} pending)`;
+    } else {
+      document.getElementById('dtbLogin').textContent = '🔓 Logout';
+    }
+  }
+}
+
+// ── SELECT CARD ──
+window.dtbSelectCard = function(id) {
+  dtbSelected = dtbSelected === id ? null : id;
+  const d = DATA.find(x => x.id === id);
+  const detail = document.getElementById('desktopDetail');
+  if (!d || !dtbSelected) {
+    if (detail) detail.classList.remove('open');
+    setMapSrc(null);
+    renderDesktop();
+    return;
+  }
+  const t   = TYPE_META[d.type] || TYPE_META.wisata;
+  const [gr, ic] = getGrad(d);
+  const r   = rpStyle(gp(d));
+  const inI = myItin.includes(id);
+
+  document.getElementById('ddPhoto').style.background = gr;
+  document.getElementById('ddPhoto').textContent       = ic;
+  document.getElementById('ddType').textContent        = t.label;
+  document.getElementById('ddType').style.cssText      = `background:${t.bg};color:${t.text}`;
+  document.getElementById('ddName').textContent        = d.nama;
+  document.getElementById('ddMeta').textContent        = `📍 ${d.kawasan||'—'} · ${d.kategori||'—'}`;
+  document.getElementById('ddNotes').textContent       = d.catatan || '—';
+  document.getElementById('ddPrice').textContent       = r.text;
+  document.getElementById('ddPrice').style.color       = r.color;
+
+  const itinBtn = document.getElementById('ddItinBtn');
+  itinBtn.textContent  = inI ? '🎒 Hapus dari Rute' : '🎒 + Tambah Rute';
+  itinBtn.className    = inI ? 'dtb-btn' : 'dtb-btn primary';
+  itinBtn.onclick      = () => { toggleItin(id); dtbSelectCard(id); };
+
+  const mapsLink = document.getElementById('ddMapsLink');
+  if (d.maps && d.maps !== '#') { mapsLink.href = d.maps; mapsLink.style.display = 'inline-block'; }
+  else mapsLink.style.display = 'none';
+
+  if (detail) detail.classList.add('open');
+  setMapSrc(d);
+  renderDesktop();
+};
+
+// Close detail
+document.getElementById('dtbCloseDetail')?.addEventListener('click', () => {
+  dtbSelected = null;
+  document.getElementById('desktopDetail')?.classList.remove('open');
+  setMapSrc(null);
+  renderDesktop();
+});
+
+// ── DESKTOP SEARCH / FILTER / SORT ──
+document.getElementById('dtbSearch')?.addEventListener('input', e => {
+  dtbQuery = e.target.value; renderDesktop();
+});
+document.getElementById('dtbKawasan')?.addEventListener('change', e => {
+  dtbKawasan = e.target.value; renderDesktop();
+});
+document.getElementById('dtbSort')?.addEventListener('change', e => {
+  dtbSort = e.target.value; renderDesktop();
+});
+document.getElementById('dtbFilters')?.addEventListener('click', e => {
+  const btn = e.target.closest('.dtb-filter');
+  if (!btn) return;
+  document.querySelectorAll('.dtb-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  dtbFilter = btn.dataset.f;
+  renderDesktop();
+});
+
+// ── DESKTOP DARK MODE ──
+document.getElementById('dtbDark')?.addEventListener('click', () => {
+  isDark = !isDark;
+  localStorage.setItem('bwi_theme', isDark ? 'dark' : 'light');
+  applyTheme();
+  document.getElementById('dtbDark').textContent = isDark ? '☀️' : '🌙';
+  toast(isDark ? '🌙 Dark mode aktif' : '☀️ Light mode aktif');
+});
+
+// ── DESKTOP LOGIN ──
+document.getElementById('dtbLogin')?.addEventListener('click', () => {
+  if (isAdmin) {
+    if (confirm('Keluar dari mode Admin?')) { signOut(auth); document.getElementById('dtbLogin').textContent = '🔐 Login Admin'; }
+  } else {
+    document.getElementById('modalLogin').classList.add('open');
+  }
+});
+
+// ── DESKTOP EXPORT ──
+document.getElementById('dtbExport')?.addEventListener('click', () => {
+  if (!isAdmin) return;
+  const out = { wisata_banyuwangi:[], penginapan:[], kuliner_cafe:[] };
+  DATA.filter(d => d.status !== 'pending').forEach(d => {
+    const c = {...d}; delete c.type;
+    if (d.type==='wisata')      out.wisata_banyuwangi.push(c);
+    else if (d.type==='penginapan') out.penginapan.push(c);
+    else if (d.type==='kuliner')    out.kuliner_cafe.push(c);
+  });
+  const a = document.createElement('a');
+  a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(out, null, 2));
+  a.download = 'bwi_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); toast('💾 Backup berhasil!');
+});
+
+// ── DESKTOP WA SHARE ──
+document.getElementById('dtbShareWA')?.addEventListener('click', () => {
+  let text = '*📍 Rencana Perjalanan Banyuwangi*\n\n'; let total = 0;
+  myItin.forEach((id,i) => {
+    const d = DATA.find(x => x.id===id);
+    if (d) { text += `${i+1}. ${d.nama}\n   _${TYPE_META[d.type]?.label||''} · ${d.kawasan||''}_\n`; total += gp(d); }
+  });
+  text += `\n*Estimasi Biaya: ${rp(total)}*\n\n_Siapkan fisik prima dan pastikan tangki penuh! 🛵💨_`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text));
+});
+
+document.getElementById('dtbClearItin')?.addEventListener('click', () => {
+  if (confirm('Kosongkan semua rute?')) { myItin = []; saveLS(); renderDesktop(); }
+});
+
+// ══════════════════════════════════════
+// IMPORT JSON
+// ══════════════════════════════════════
+
+document.getElementById('dtbImport')?.addEventListener('click', () => {
+  resetImportModal();
+  document.getElementById('modalImport').classList.add('open');
+});
+document.getElementById('closeImport')?.addEventListener('click', () => {
+  document.getElementById('modalImport').classList.remove('open');
+});
+document.getElementById('modalImport')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('modalImport'))
+    document.getElementById('modalImport').classList.remove('open');
+});
+
+function resetImportModal() {
+  importData = null;
+  document.getElementById('importStep1').style.display = 'block';
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importStep3').style.display = 'none';
+  document.getElementById('dropZone').style.borderColor = 'var(--border)';
+  document.getElementById('fileInput').value = '';
+}
+
+// File input
+document.getElementById('fileInput')?.addEventListener('change', e => {
+  if (e.target.files[0]) processImportFile(e.target.files[0]);
+});
+
+// Drag & drop
+window.handleDrop = function(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = 'var(--border)';
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.json')) processImportFile(file);
+  else toast('File harus berformat .json', 'error');
+};
+
+function processImportFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const json = JSON.parse(e.target.result);
+      // Validate structure
+      const hasOldFlat = Array.isArray(json);
+      const hasNew = json.wisata_banyuwangi || json.penginapan || json.kuliner_cafe;
+      if (!hasOldFlat && !hasNew) throw new Error('Format JSON tidak dikenali');
+
+      // Normalize to arrays
+      let wisata = [], penginapan = [], kuliner = [];
+      if (hasOldFlat) {
+        json.forEach(d => {
+          if (d.type==='wisata')      wisata.push(d);
+          else if (d.type==='penginapan') penginapan.push(d);
+          else if (d.type==='kuliner')    kuliner.push(d);
+        });
+      } else {
+        wisata     = (json.wisata_banyuwangi || []).map(d => ({...d, type:'wisata'}));
+        penginapan = (json.penginapan        || []).map(d => ({...d, type:'penginapan'}));
+        kuliner    = (json.kuliner_cafe      || []).map(d => ({...d, type:'kuliner'}));
+      }
+
+      importData = { wisata, penginapan, kuliner };
+      const total = wisata.length + penginapan.length + kuliner.length;
+
+      // Check duplicates
+      const existingNames = new Set(DATA.map(d => d.nama?.toLowerCase().trim()));
+      const allNew = [...wisata,...penginapan,...kuliner];
+      const newEntries  = allNew.filter(d => !existingNames.has(d.nama?.toLowerCase().trim()));
+      const dupEntries  = allNew.filter(d =>  existingNames.has(d.nama?.toLowerCase().trim()));
+
+      document.getElementById('importPreview').innerHTML =
+        `⛺ Wisata: <strong>${wisata.length}</strong><br>` +
+        `🏨 Penginapan: <strong>${penginapan.length}</strong><br>` +
+        `🍜 Kuliner: <strong>${kuliner.length}</strong><br>` +
+        `📦 Total: <strong>${total}</strong>`;
+
+      document.getElementById('importDupInfo').innerHTML =
+        `✅ <strong>${newEntries.length}</strong> entri baru akan ditambahkan &nbsp;·&nbsp; ` +
+        `⚠️ <strong>${dupEntries.length}</strong> duplikat akan dilewati`;
+
+      document.getElementById('importStep1').style.display = 'none';
+      document.getElementById('importStep2').style.display = 'block';
+      importData._newEntries = newEntries;
+
+    } catch(err) {
+      toast('❌ Gagal parse JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('btnImportBack')?.addEventListener('click', () => {
+  document.getElementById('importStep1').style.display = 'block';
+  document.getElementById('importStep2').style.display = 'none';
+});
+
+document.getElementById('btnImportConfirm')?.addEventListener('click', async () => {
+  if (!importData || !isAdmin) return;
+  const entries = importData._newEntries;
+  if (!entries.length) { toast('Tidak ada entri baru untuk diupload'); return; }
+
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importStep3').style.display = 'block';
+  document.getElementById('importResultIcon').textContent  = '⏳';
+  document.getElementById('importResultTitle').textContent = 'Mengupload ke Firestore...';
+  document.getElementById('importResultSub').textContent   = `0 / ${entries.length} entri`;
+
+  let success = 0, failed = 0;
+  // Upload in chunks (Firestore batch = max 500)
+  for (let i = 0; i < entries.length; i++) {
+    const d = entries[i];
+    try {
+      const id = (d.id && !DATA.find(x => x.id===d.id)) ? d.id : (d.type||'x').charAt(0)+Date.now()+i;
+      await setDoc(doc(dbFs, 'places', id), {
+        ...d, id, status: 'active', source: 'import'
+      });
+      success++;
+    } catch(e) {
+      failed++;
+    }
+    document.getElementById('importResultSub').textContent = `${success} / ${entries.length} entri`;
+    // Small delay to avoid rate limiting
+    if (i % 20 === 19) await new Promise(r => setTimeout(r, 500));
+  }
+
+  document.getElementById('importResultIcon').textContent  = failed===0 ? '✅' : '⚠️';
+  document.getElementById('importResultTitle').textContent = `${success} entri berhasil diupload!`;
+  document.getElementById('importResultSub').textContent   = failed>0 ? `${failed} gagal` : 'Semua berhasil tersimpan ke cloud.';
+  setTimeout(() => {
+    document.getElementById('modalImport').classList.remove('open');
+    toast(`✅ Import selesai: ${success} entri ditambahkan`);
+    resetImportModal();
+  }, 2000);
+});
+
+// ── HOOK: render desktop when DATA updates ──
+const _origOnSnapshot = typeof onSnapshotCallback === 'function' ? onSnapshotCallback : null;
+function onDataUpdate() {
+  if (isDesktop()) renderDesktop();
+}
+
+// Resize handler
+window.addEventListener('resize', () => {
+  if (isDesktop()) renderDesktop();
+});
+
+
 </script>
+
+<!-- ═══════════════════════════════════
+     DESKTOP LAYOUT (hidden on mobile)
+═══════════════════════════════════ -->
+
+<!-- Desktop Top Bar -->
+<div id="desktopTopBar" style="display:none">
+  <div class="dtb-logo">
+    <div class="dtb-logo-icon">🗺️</div>
+    <div>
+      <div class="dtb-logo-text">bwi<span>-app</span></div>
+    </div>
+  </div>
+  <div class="dtb-search">
+    <span class="si">🔍</span>
+    <input type="text" id="dtbSearch" placeholder="Cari destinasi, kawasan...">
+  </div>
+  <div class="dtb-filters" id="dtbFilters">
+    <button class="dtb-filter active" data-f="all">Semua</button>
+    <button class="dtb-filter" data-f="wisata">⛺ Wisata</button>
+    <button class="dtb-filter" data-f="penginapan">🏨 Penginapan</button>
+    <button class="dtb-filter" data-f="kuliner">🍜 Kuliner</button>
+  </div>
+  <div class="dtb-actions">
+    <button class="dtb-btn" id="dtbImport" style="display:none">📥 Import JSON</button>
+    <button class="dtb-btn" id="dtbExport" style="display:none">💾 Export JSON</button>
+    <button class="dtb-btn" id="dtbDark">🌙</button>
+    <button class="dtb-btn" id="dtbLogin">🔐 Login Admin</button>
+  </div>
+</div>
+
+<!-- Desktop Main -->
+<div id="desktopMain" style="display:none">
+
+  <!-- Left: List -->
+  <div id="desktopLeft">
+    <div class="dleft-stats">
+      <span id="dtbCount">Memuat...</span>
+      <span id="dtbTotal"></span>
+    </div>
+    <div class="dleft-sort">
+      <select id="dtbKawasan"><option value="">📍 Semua Area</option></select>
+      <select id="dtbSort">
+        <option value="">⇅ Urutan</option>
+        <option value="nama">A–Z</option>
+        <option value="harga-asc">Harga ↑</option>
+        <option value="harga-desc">Harga ↓</option>
+      </select>
+    </div>
+    <div id="desktopList"></div>
+    <div id="desktopItinBar">
+      <div>
+        <div class="ditin-total" id="dtbItinTotal">Rp 0</div>
+        <div class="ditin-sub" id="dtbItinSub">0 destinasi</div>
+      </div>
+      <button class="btn-wa" id="dtbShareWA" style="font-size:12px;padding:8px 14px">📱 Share WA</button>
+      <button class="dtb-btn" id="dtbClearItin" style="color:#ef4444;border-color:#fecaca">🗑️</button>
+    </div>
+  </div>
+
+  <!-- Right: Map + Detail -->
+  <div id="desktopRight">
+    <!-- Detail panel -->
+    <div id="desktopDetail" style="position:relative">
+      <button class="dd-close" id="dtbCloseDetail">✕</button>
+      <div class="dd-inner">
+        <div class="dd-photo" id="ddPhoto"></div>
+        <div class="dd-content">
+          <div class="dd-type" id="ddType"></div>
+          <div class="dd-name" id="ddName"></div>
+          <div class="dd-meta" id="ddMeta"></div>
+          <div class="dd-notes" id="ddNotes"></div>
+          <div class="dd-actions">
+            <span class="dd-price" id="ddPrice"></span>
+            <button class="dtb-btn primary" id="ddItinBtn">🎒 + Rute</button>
+            <a class="dtb-btn" id="ddMapsLink" href="#" target="_blank" rel="noopener">🗺️ Google Maps</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Google Maps iframe -->
+    <div id="desktopMap">
+      <iframe id="gMapsFrame"
+        src="https://maps.google.com/maps?q=-8.2272,114.3691&z=11&output=embed&hl=id"
+        allowfullscreen loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+      <div class="map-overlay-hint" id="mapHint">
+        📍 Klik destinasi di kiri untuk fokus di peta
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import JSON Modal -->
+<div class="modal" id="modalImport">
+  <div class="mbox center" style="max-width:440px">
+    <div class="mtitle">
+      <span>📥 Import JSON</span>
+      <button class="mc" id="closeImport">✕</button>
+    </div>
+    <div id="importStep1">
+      <p style="font-size:13px;color:var(--sub);margin-bottom:16px;line-height:1.6">
+        Upload file <code style="background:var(--tag-bg);padding:2px 6px;border-radius:4px">data.json</code>
+        dengan format yang sama dengan export. Entri baru akan ditambahkan,
+        entri yang sudah ada akan dilewati.
+      </p>
+      <div style="border:2px dashed var(--border);border-radius:14px;padding:28px;text-align:center;cursor:pointer;transition:all .2s"
+        id="dropZone"
+        onclick="document.getElementById('fileInput').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--hi)'"
+        ondragleave="this.style.borderColor='var(--border)'"
+        ondrop="handleDrop(event)">
+        <div style="font-size:36px;margin-bottom:8px">📂</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Pilih atau drag file JSON</div>
+        <div style="font-size:11px;color:var(--muted)">Format: data.json atau backup export dari app ini</div>
+      </div>
+      <input type="file" id="fileInput" accept=".json" style="display:none">
+    </div>
+    <div id="importStep2" style="display:none">
+      <div style="background:var(--tag-bg);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">📊 Preview data yang akan diimport:</div>
+        <div id="importPreview" style="font-size:12px;color:var(--sub);line-height:2"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="importDupInfo"></div>
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <label style="flex:1;cursor:pointer">
+          <input type="radio" name="importMode" value="merge" checked>
+          <span style="font-size:13px;margin-left:6px"><strong>Merge</strong> — tambah entri baru saja, skip duplikat</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-batal" id="btnImportBack">← Kembali</button>
+        <button class="btn-simpan" id="btnImportConfirm">Upload ke Cloud</button>
+      </div>
+    </div>
+    <div id="importStep3" style="display:none;text-align:center;padding:20px">
+      <div style="font-size:36px;margin-bottom:12px" id="importResultIcon">⏳</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px" id="importResultTitle">Mengupload...</div>
+      <div style="font-size:12px;color:var(--muted)" id="importResultSub"></div>
+    </div>
+  </div>
+</div>
+<input type="file" id="dtbFileInput" accept=".json" style="display:none">
+
 </body>
 </html>
