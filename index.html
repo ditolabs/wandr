@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Wandr — Buat Itinerary Banyuwangi</title>
+  <meta name="description" content="Generate itinerary perjalanan Banyuwangi secara otomatis dengan AI. Masukkan destinasi, pilih kendaraan dan durasi, itinerary langsung jadi.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET & BASE ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      background: #0c1a0c;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      color: #f0e8d8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── LAYOUT ────────────────────────────────────────────────────────── */
+    #app { max-width: 640px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── HEADER ────────────────────────────────────────────────────────── */
+    #header {
+      padding-top: 20px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .logo-icon {
+      width: 30px; height: 30px;
+      background: #e07b39;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .logo-text {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px; font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .logo-badge {
+      font-size: 10px; color: #4a6a4a;
+      background: rgba(74,106,74,.18);
+      padding: 2px 9px; border-radius: 20px; font-weight: 500;
+    }
+
+    /* ── PROGRESS ──────────────────────────────────────────────────────── */
+    #progress-area { margin-bottom: 20px; }
+    .step-labels { display: flex; justify-content: space-between; margin-bottom: 7px; }
+    .step-label { font-size: 10px; font-weight: 400; color: #2a4a2a; letter-spacing: .04em; transition: color .3s; }
+    .step-label.active { font-weight: 700; color: #e07b39; }
+    .step-label.done   { color: #4a7a4a; }
+    .progress-bar { height: 2px; background: rgba(255,255,255,.05); border-radius: 1px; overflow: hidden; }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #c96a2a, #e07b39);
+      border-radius: 1px;
+      transition: width .5s ease;
+    }
+
+    /* ── NAV ───────────────────────────────────────────────────────────── */
+    #nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 0 32px;
+      border-top: 1px solid rgba(255,255,255,.04);
+      margin-top: 4px;
+    }
+    .dest-count { font-size: 11px; color: #3a5a3a; }
+
+    /* ── BUTTONS ───────────────────────────────────────────────────────── */
+    .btn-pri {
+      background: #e07b39; color: #fff; border: none;
+      border-radius: 10px; padding: 12px 22px;
+      font-family: inherit; font-weight: 600; font-size: 15px;
+      cursor: pointer; transition: all .2s;
+      display: inline-flex; align-items: center; gap: 8px;
+      white-space: nowrap;
+    }
+    .btn-pri:hover:not(:disabled) { background: #c96a2a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(224,123,57,.3); }
+    .btn-pri:disabled { opacity: .35; cursor: not-allowed; transform: none !important; }
+    .btn-ghost {
+      background: transparent; color: #8fa08f;
+      border: 1.5px solid rgba(255,255,255,.1);
+      border-radius: 10px; padding: 12px 22px;
+      font-family: inherit; font-weight: 500; font-size: 15px;
+      cursor: pointer; transition: all .2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-ghost:hover  { border-color: rgba(255,255,255,.22); color: #c0d4c0; }
+    .btn-ghost.hidden { visibility: hidden; }
+
+    /* ── STEP TYPOGRAPHY ───────────────────────────────────────────────── */
+    .step-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px; font-weight: 700;
+      margin-bottom: 6px; line-height: 1.3;
+    }
+    .step-sub { color: #6a8a6a; font-size: 14px; margin-bottom: 20px; }
+    .field-label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: #6a8a6a; margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+    .field-wrap { margin-bottom: 20px; }
+
+    /* ── CATEGORY FILTER ───────────────────────────────────────────────── */
+    .cat-filter { display: flex; gap: 7px; margin-bottom: 16px; flex-wrap: wrap; }
+    .cat-btn {
+      background: rgba(255,255,255,.06); color: #8fa08f;
+      border: none; border-radius: 20px; padding: 5px 13px;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      font-family: inherit; transition: all .2s;
+    }
+    .cat-btn.active { background: #e07b39; color: #fff; }
+
+    /* ── DESTINATION GRID ──────────────────────────────────────────────── */
+    .dest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .dest-chip {
+      padding: 13px; border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.08);
+      cursor: pointer; transition: all .2s; user-select: none;
+    }
+    .dest-chip:hover { transform: translateY(-2px); }
+    .dest-chip.selected { background: rgba(224,123,57,.1); border-color: #e07b39; }
+    .dest-chip-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .dest-emoji { font-size: 22px; }
+    .dest-check {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #e07b39;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: white; flex-shrink: 0;
+      opacity: 0; transition: opacity .2s;
+    }
+    .dest-chip.selected .dest-check { opacity: 1; }
+    .dest-name  { font-size: 13px; font-weight: 600; color: #f0e8d8; line-height: 1.3; margin-top: 8px; }
+    .dest-desc  { font-size: 11px; color: #5a7a5a; margin-top: 3px; line-height: 1.4; }
+    .dest-meta  { margin-top: 7px; display: flex; align-items: center; gap: 6px; }
+    .cat-tag    { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+    .cat-tag.alam   { background: rgba(74,144,74,.15);  color: rgba(74,144,74,.95);  border: 1px solid rgba(74,144,74,.4); }
+    .cat-tag.pantai { background: rgba(57,157,224,.15); color: rgba(57,157,224,.95); border: 1px solid rgba(57,157,224,.4); }
+    .cat-tag.diving { background: rgba(57,224,200,.15); color: rgba(57,224,200,.95); border: 1px solid rgba(57,224,200,.4); }
+    .cat-tag.budaya { background: rgba(224,178,57,.15); color: rgba(224,178,57,.95); border: 1px solid rgba(224,178,57,.4); }
+    .best-time  { font-size: 10px; color: #4a6a4a; }
+    .dest-notice {
+      margin-top: 14px; padding: 10px 14px;
+      background: rgba(224,123,57,.07);
+      border: 1px solid rgba(224,123,57,.2);
+      border-radius: 10px; font-size: 12px; color: #b08060;
+      display: none;
+    }
+    .dest-notice.show { display: block; }
+
+    /* ── SELECT & INPUT ────────────────────────────────────────────────── */
+    select, input[type="text"] {
+      background: rgba(255,255,255,.05);
+      border: 1.5px solid rgba(255,255,255,.1);
+      color: #f0e8d8; border-radius: 10px; padding: 11px 14px;
+      font-family: inherit; font-size: 14px;
+      outline: none; transition: border-color .2s;
+      width: 100%; appearance: none; -webkit-appearance: none;
+    }
+    select:focus, input:focus { border-color: rgba(224,123,57,.7); background: rgba(255,255,255,.07); }
+    select option { background: #1a2e1a; color: #f0e8d8; }
+    .select-wrap { position: relative; }
+    .select-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #5a7a5a; font-size: 12px; }
+
+    /* ── CARD OPTIONS ──────────────────────────────────────────────────── */
+    .card-list { display: flex; flex-direction: column; gap: 8px; }
+    .card-opt {
+      padding: 13px 15px; border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.08);
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; gap: 13px;
+    }
+    .card-opt:hover { transform: translateY(-2px); }
+    .card-opt.selected { background: rgba(224,123,57,.1); border-color: #e07b39; }
+    .card-opt.sm { padding: 11px 13px; border-radius: 10px; }
+    .card-opt-icon { font-size: 24px; flex-shrink: 0; }
+    .card-opt.sm .card-opt-icon { font-size: 20px; }
+    .card-opt-title { font-size: 14px; font-weight: 600; color: #f0e8d8; transition: color .2s; }
+    .card-opt.sm .card-opt-title { font-size: 13px; font-weight: 500; }
+    .card-opt.selected .card-opt-title { color: #e07b39; }
+    .card-opt-sub { font-size: 12px; color: #5a7a5a; margin-top: 2px; }
+    .card-opt.sm .card-opt-sub { font-size: 11px; }
+    .card-opt-check { color: #e07b39; font-size: 14px; flex-shrink: 0; margin-left: auto; opacity: 0; transition: opacity .2s; }
+    .card-opt.selected .card-opt-check { opacity: 1; }
+
+    /* ── SEWA LOKAL ────────────────────────────────────────────────────── */
+    .sewa-wrap {
+      overflow: hidden; max-height: 0; opacity: 0;
+      transition: max-height .35s ease, opacity .35s ease;
+    }
+    .sewa-wrap.open { max-height: 420px; opacity: 1; }
+    .sewa-box {
+      padding: 15px; border-radius: 12px;
+      background: rgba(107,159,212,.06);
+      border: 1.5px solid rgba(107,159,212,.2);
+      margin-bottom: 4px;
+    }
+    .sewa-title { font-size: 13px; font-weight: 700; color: #6b9fd4; margin-bottom: 4px; }
+    .sewa-sub   { font-size: 12px; color: #5a7a5a; margin-bottom: 12px; line-height: 1.5; }
+    .card-opt.sewa-sel { background: rgba(107,159,212,.12) !important; border-color: rgba(107,159,212,.6) !important; }
+    .card-opt.sewa-sel .card-opt-title { color: #6b9fd4 !important; }
+    .card-opt.sewa-sel .card-opt-check { opacity: 1 !important; color: #6b9fd4 !important; }
+
+    /* ── PILL OPTIONS ──────────────────────────────────────────────────── */
+    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill-opt {
+      padding: 10px 15px; border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.08);
+      cursor: pointer; transition: all .2s; text-align: center;
+    }
+    .pill-opt:hover { transform: translateY(-1px); }
+    .pill-opt.selected { background: rgba(224,123,57,.13); border-color: #e07b39; }
+    .pill-label { font-size: 13px; font-weight: 700; color: #f0e8d8; transition: color .2s; }
+    .pill-opt.selected .pill-label { color: #e07b39; }
+    .pill-sub { font-size: 10px; color: #5a7a5a; margin-top: 2px; }
+
+    /* ── GAYA CARDS ────────────────────────────────────────────────────── */
+    .gaya-row { display: flex; gap: 10px; }
+    .gaya-card {
+      flex: 1; padding: 15px; border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.08);
+      cursor: pointer; transition: all .2s; text-align: center;
+    }
+    .gaya-card:hover { transform: translateY(-2px); }
+    .gaya-card.selected { background: rgba(224,123,57,.1); border-color: #e07b39; }
+    .gaya-emoji { font-size: 28px; margin-bottom: 8px; }
+    .gaya-label { font-size: 14px; font-weight: 700; color: #f0e8d8; transition: color .2s; }
+    .gaya-card.selected .gaya-label { color: #e07b39; }
+    .gaya-desc  { font-size: 11px; color: #5a7a5a; margin-top: 7px; line-height: 1.6; white-space: pre-line; }
+
+    /* ── COUNTER ───────────────────────────────────────────────────────── */
+    .counter-row { display: flex; align-items: center; gap: 14px; }
+    .cnt-btn {
+      background: rgba(255,255,255,.07); color: #f0e8d8;
+      border: 1.5px solid rgba(255,255,255,.12);
+      border-radius: 8px; width: 36px; height: 36px;
+      font-size: 18px; cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit;
+    }
+    .cnt-btn:hover { background: rgba(255,255,255,.13); }
+    .cnt-val   { font-size: 22px; font-weight: 700; min-width: 30px; text-align: center; }
+    .cnt-label { font-size: 13px; color: #5a7a5a; }
+
+    /* ── LOADING ───────────────────────────────────────────────────────── */
+    .loading-screen { text-align: center; padding: 64px 0; }
+    .loading-icon {
+      font-size: 52px; margin-bottom: 18px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .loading-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px; margin-bottom: 10px; line-height: 1.3;
+    }
+    .loading-sub  { color: #5a7a5a; font-size: 13px; line-height: 1.6; }
+    .loading-tags { display: flex; gap: 7px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+    .loading-tag  { font-size: 11px; color: #4a6a4a; background: rgba(74,106,74,.15); padding: 4px 11px; border-radius: 20px; }
+    .dot { animation: bou 1.4s ease-in-out infinite; display: inline-block; }
+    .dot:nth-child(1) { animation-delay: 0s; }
+    .dot:nth-child(2) { animation-delay: .2s; }
+    .dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes bou { 0%,80%,100%{transform:translateY(0);opacity:.5} 40%{transform:translateY(-7px);opacity:1} }
+
+    /* ── ERROR ─────────────────────────────────────────────────────────── */
+    .error-screen { text-align: center; padding: 64px 0; }
+
+    /* ── RESULT ────────────────────────────────────────────────────────── */
+    .result-summary {
+      padding: 18px;
+      background: rgba(224,123,57,.07);
+      border: 1.5px solid rgba(224,123,57,.2);
+      border-radius: 16px; margin-bottom: 22px;
+    }
+    .result-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .result-title { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-weight: 700; flex: 1; line-height: 1.3; }
+    .result-budget-label { font-size: 10px; color: #6a8a6a; text-align: right; }
+    .result-budget-val   { font-size: 16px; font-weight: 700; color: #e07b39; }
+    .result-desc  { font-size: 13px; color: #a0b090; line-height: 1.6; margin-bottom: 10px; }
+    .highlight-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .highlight-tag  { font-size: 11px; padding: 3px 9px; background: rgba(224,123,57,.1); border: 1px solid rgba(224,123,57,.25); border-radius: 20px; color: #b08060; }
+    .budget-note { font-size: 11px; color: #4a6a4a; }
+
+    /* ── DAY SECTION ───────────────────────────────────────────────────── */
+    .day-section { margin-bottom: 24px; animation: fdi .5s ease both; }
+    @keyframes fdi { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .day-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .day-num {
+      width: 32px; height: 32px; background: #e07b39;
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;
+    }
+    .day-label    { font-size: 10px; color: #5a7a5a; text-transform: uppercase; letter-spacing: .05em; }
+    .day-title-txt { font-family: 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 600; line-height: 1.3; }
+
+    /* ── ACTIVITY ──────────────────────────────────────────────────────── */
+    .act-list { padding-left: 4px; }
+    .act-item { display: flex; gap: 12px; margin-bottom: 12px; animation: sli .45s ease both; }
+    @keyframes sli { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+    .act-timeline { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 22px; }
+    .act-icon { font-size: 15px; }
+    .act-line { width: 1px; flex: 1; background: rgba(255,255,255,.05); margin: 4px 0; min-height: 12px; }
+    .act-body { flex: 1; padding-bottom: 4px; }
+    .act-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .act-time     { font-size: 11px; color: #5a7a5a; font-weight: 500; }
+    .act-duration { font-size: 11px; color: #3d5a3d; margin-left: 7px; }
+    .act-cost     { font-size: 11px; color: #6a8a6a; background: rgba(255,255,255,.04); padding: 2px 7px; border-radius: 6px; flex-shrink: 0; }
+    .act-name     { font-size: 14px; font-weight: 600; color: #f0e8d8; line-height: 1.3; }
+    .act-location { font-size: 11px; color: #4a6a4a; margin-top: 2px; }
+    .act-desc     { font-size: 12px; color: #7a9a7a; line-height: 1.55; margin-top: 4px; }
+    .act-tip      { margin-top: 7px; padding: 6px 10px; border-radius: 7px; font-size: 11px; line-height: 1.5; border-left: 2px solid; }
+
+    /* ── PACKING & NOTES ───────────────────────────────────────────────── */
+    .packing-box  { padding: 15px; background: rgba(255,255,255,.03); border-radius: 12px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,.07); }
+    .packing-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+    .packing-tags  { display: flex; gap: 6px; flex-wrap: wrap; }
+    .packing-tag   { font-size: 11px; padding: 4px 10px; background: rgba(255,255,255,.05); border-radius: 20px; color: #7a9a7a; }
+    .notes-box { padding: 13px; background: rgba(224,178,57,.06); border-radius: 10px; border: 1px solid rgba(224,178,57,.15); margin-bottom: 22px; font-size: 12px; color: #a09040; line-height: 1.5; }
+
+    /* ── SCROLLBAR ─────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+    /* ── RESPONSIVE ────────────────────────────────────────────────────── */
+    @media (max-width: 380px) {
+      .step-title { font-size: 22px; }
+      .dest-grid  { gap: 7px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div class="logo-icon">🗺️</div>
+    <span class="logo-text">Wandr</span>
+    <span class="logo-badge">Banyuwangi</span>
+  </div>
+
+  <div id="progress-area">
+    <div class="step-labels">
+      <span class="step-label active" data-i="0">Destinasi</span>
+      <span class="step-label"        data-i="1">Transport</span>
+      <span class="step-label"        data-i="2">Preferensi</span>
+      <span class="step-label"        data-i="3">Generate</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div id="content"></div>
+
+  <div id="nav">
+    <button class="btn-ghost hidden" id="btn-back">← Kembali</button>
+    <span class="dest-count" id="dest-count"></span>
+    <button class="btn-pri" id="btn-next" disabled>Lanjut →</button>
+  </div>
+
+</div>
+<script>
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
+// Rule-based engine — tidak perlu API key atau Worker
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const DESTINATIONS = [
+  { id:'ijen',         name:'Kawah Ijen',        cat:'alam',   emoji:'🌋', desc:'Blue fire & kawah asam',       bestTime:'dini hari' },
+  { id:'baluran',      name:'TN Baluran',         cat:'alam',   emoji:'🦌', desc:'Afrika van Java',              bestTime:'pagi' },
+  { id:'alas_purwo',   name:'TN Alas Purwo',      cat:'alam',   emoji:'🌿', desc:'Hutan purba tersembunyi',      bestTime:'pagi' },
+  { id:'kawah_wurung', name:'Kawah Wurung',        cat:'alam',   emoji:'🏔️', desc:'Kaldera indah & sunrise',      bestTime:'pagi' },
+  { id:'jagir',        name:'Air Terjun Jagir',   cat:'alam',   emoji:'💧', desc:'Air terjun tiga tingkat',     bestTime:'pagi' },
+  { id:'red_island',   name:'Red Island',         cat:'pantai', emoji:'🏄', desc:'Tebing merah & sunset ikonik', bestTime:'sore' },
+  { id:'green_bay',    name:'Green Bay',          cat:'pantai', emoji:'🌊', desc:'Teluk ijo tersembunyi',        bestTime:'pagi' },
+  { id:'sukamade',     name:'Pantai Sukamade',    cat:'pantai', emoji:'🐢', desc:'Penangkaran penyu hijau',      bestTime:'malam' },
+  { id:'g_land',       name:'G-Land',             cat:'pantai', emoji:'🏄', desc:'Surga peselancar dunia',       bestTime:'pagi' },
+  { id:'menjangan',    name:'Pulau Menjangan',    cat:'diving', emoji:'🤿', desc:'Snorkeling & diving terbaik',  bestTime:'pagi' },
+  { id:'tabuhan',      name:'Pulau Tabuhan',       cat:'diving', emoji:'🏝️', desc:'Pasir putih & snorkeling',     bestTime:'pagi' },
+  { id:'city',         name:'City Tour BWI',       cat:'budaya', emoji:'🏛️', desc:'Kuliner & wisata kota',        bestTime:'sore' },
+];
+
+const KOTA = ['Surabaya','Jakarta','Bali/Denpasar','Malang','Yogyakarta','Semarang','Bandung','Lainnya'];
+
+const DURASI = [
+  { v:'1D',    label:'1 Hari',  sub:'One Day Trip' },
+  { v:'2D1N',  label:'2H 1M',   sub:'Weekend Trip' },
+  { v:'3D2N',  label:'3H 2M',   sub:'Long Weekend' },
+  { v:'4D3N',  label:'4H 3M',   sub:'Mini Vacation' },
+  { v:'5D4N',  label:'5H 4M',   sub:'Full Exploration' },
+];
+
+const PENGINAPAN = [
+  { v:'hotel45',  label:'Hotel Bintang 4–5',   range:'400K–2JT/mlm',  emoji:'🏨' },
+  { v:'hotel3',   label:'Hotel Bintang 3',      range:'200K–400K/mlm', emoji:'🏩' },
+  { v:'hotel12',  label:'Hotel Bintang 1–2',    range:'100K–200K/mlm', emoji:'🏪' },
+  { v:'homestay', label:'Homestay/Guesthouse',  range:'50K–150K/mlm',  emoji:'🏡' },
+  { v:'none',     label:'Tanpa Penginapan',      range:'Day trip only',  emoji:'🚗' },
+];
+
+const ACT_STYLE = {
+  aktivitas:  { color:'#e07b39', bg:'rgba(224,123,57,.1)',  icon:'🎯' },
+  makan:      { color:'#4ab06a', bg:'rgba(74,176,106,.1)',  icon:'🍽️' },
+  transport:  { color:'#6b9fd4', bg:'rgba(107,159,212,.1)', icon:'🚌' },
+  penginapan: { color:'#c47bd4', bg:'rgba(196,123,212,.1)', icon:'🏨' },
+  istirahat:  { color:'#8fa08f', bg:'rgba(143,160,143,.1)', icon:'☕' },
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const S = {
+  step: 0,
+  destinations: new Set(),
+  activeCat: 'semua',
+  kotaAsal: '', kotaAsalCustom: '',
+  transport: '', sewaLokal: new Set(),
+  durasi: '', gayaPerjalanan: '', penginapan: '',
+  jumlahOrang: 2,
+  loading: false, itinerary: null, error: null,
+};
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const fmt = n => {
+  if (!n) return '–';
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'JT';
+  if (n >= 1000)    return Math.round(n/1000) + 'K';
+  return String(n);
+};
+const esc = s => String(s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ─── PROGRESS & NAV ──────────────────────────────────────────────────────────
+function updateProgress() {
+  const pct = S.step === 3 ? 100 : (S.step / 3) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.querySelectorAll('.step-label').forEach(el => {
+    const i = +el.dataset.i;
+    el.className = 'step-label' + (i===S.step?' active': i<S.step?' done':'');
+  });
+  document.getElementById('progress-area').style.display = S.step===3 ? 'none' : '';
+}
+
+function updateNav() {
+  const nav = document.getElementById('nav');
+  if (S.step===3) { nav.style.display='none'; return; }
+  nav.style.display = 'flex';
+  document.getElementById('btn-back').className = 'btn-ghost' + (S.step===0?' hidden':'');
+  document.getElementById('dest-count').textContent = S.destinations.size>0 ? S.destinations.size+' destinasi dipilih' : '';
+  const ok = canNext();
+  document.getElementById('btn-next').disabled = !ok;
+  document.getElementById('btn-next').textContent = S.step===2 ? '✨ Generate Itinerary' : 'Lanjut →';
+}
+
+function canNext() {
+  if (S.step===0) return S.destinations.size > 0;
+  if (S.step===1) return S.kotaAsal && (S.kotaAsal!=='Lainnya'||S.kotaAsalCustom.trim()) && S.transport;
+  if (S.step===2) return S.durasi && S.gayaPerjalanan && S.penginapan;
+  return false;
+}
+
+// ─── RENDER STEP 0 ───────────────────────────────────────────────────────────
+function renderStep0() {
+  const cats = ['semua','alam','pantai','diving','budaya'];
+  const catLabel = { semua:'Semua', alam:'Alam', pantai:'Pantai', diving:'Diving', budaya:'Budaya' };
+  const list = S.activeCat==='semua' ? DESTINATIONS : DESTINATIONS.filter(d=>d.cat===S.activeCat);
+
+  const catBtns = cats.map(c =>
+    `<button class="cat-btn${S.activeCat===c?' active':''}" data-cat="${c}">${catLabel[c]}</button>`
+  ).join('');
+
+  const chips = list.map(d => {
+    const sel = S.destinations.has(d.id);
+    return `
+      <div class="dest-chip${sel?' selected':''}" data-dest="${d.id}">
+        <div class="dest-chip-top">
+          <span class="dest-emoji">${d.emoji}</span>
+          <span class="dest-check">✓</span>
+        </div>
+        <div class="dest-name">${esc(d.name)}</div>
+        <div class="dest-desc">${esc(d.desc)}</div>
+        <div class="dest-meta">
+          <span class="cat-tag ${d.cat}">${catLabel[d.cat]}</span>
+          <span class="best-time">⏰ ${d.bestTime}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <h2 class="step-title">Mau ke mana?</h2>
+    <p class="step-sub">Pilih satu atau beberapa destinasi yang ingin dikunjungi</p>
+    <div class="cat-filter">${catBtns}</div>
+    <div class="dest-grid">${chips}</div>
+    <div class="dest-notice${S.destinations.size>0?' show':''}" id="dest-notice">
+      ✓ ${S.destinations.size} destinasi dipilih · Rute akan dioptimasi otomatis
+    </div>`;
+}
+
+// ─── RENDER STEP 1 ───────────────────────────────────────────────────────────
+function renderStep1() {
+  const transOpts = [
+    { v:'pribadi_motor', label:'Motor Pribadi',   emoji:'🏍️', sub:'Fleksibel, hemat, masuk jalan kecil' },
+    { v:'pribadi_mobil', label:'Mobil Pribadi',   emoji:'🚗', sub:'Nyaman, bawa lebih banyak barang' },
+    { v:'umum',          label:'Kendaraan Umum', emoji:'🚂', sub:'Kereta / Bus / Pesawat ke BWI' },
+  ];
+  const sewaOpts = [
+    { v:'motor',        label:'Sewa Motor',          emoji:'🏍️', sub:'~100K–150K/hari' },
+    { v:'mobil_driver', label:'Sewa Mobil + Driver', emoji:'🚐', sub:'~450K–650K/hari' },
+    { v:'ojek',         label:'Ojek / Online',       emoji:'📱', sub:'Gojek, Grab, ojek pangkalan' },
+  ];
+
+  const kotaOpts = KOTA.map(k =>
+    `<option value="${k}"${S.kotaAsal===k?' selected':''}>${k}</option>`
+  ).join('');
+
+  const transCards = transOpts.map(t =>
+    `<div class="card-opt${S.transport===t.v?' selected':''}" data-transport="${t.v}">
+      <span class="card-opt-icon">${t.emoji}</span>
+      <div><div class="card-opt-title">${t.label}</div><div class="card-opt-sub">${t.sub}</div></div>
+      <span class="card-opt-check">✓</span>
+    </div>`
+  ).join('');
+
+  const sewaCards = sewaOpts.map(s =>
+    `<div class="card-opt sm${S.sewaLokal.has(s.v)?' selected sewa-sel':''}" data-sewa="${s.v}">
+      <span class="card-opt-icon">${s.emoji}</span>
+      <div><div class="card-opt-title">${s.label}</div><div class="card-opt-sub">${s.sub}</div></div>
+      <span class="card-opt-check">✓</span>
+    </div>`
+  ).join('');
+
+  return `
+    <h2 class="step-title">Naik apa?</h2>
+    <p class="step-sub">Pilih kota asal dan kendaraan ke Banyuwangi</p>
+
+    <div class="field-wrap">
+      <label class="field-label">Kota Asal</label>
+      <div class="select-wrap">
+        <select id="sel-kota">
+          <option value="">Pilih kota asal...</option>
+          ${kotaOpts}
+        </select>
+        <span class="select-arrow">▾</span>
+      </div>
+      ${S.kotaAsal==='Lainnya' ? `<input type="text" id="input-kota-custom" placeholder="Tulis kota asal…" value="${esc(S.kotaAsalCustom)}" style="margin-top:8px">` : ''}
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Kendaraan ke Banyuwangi</label>
+      <div class="card-list">${transCards}</div>
+    </div>
+
+    <div class="sewa-wrap${S.transport==='umum'?' open':''}" id="sewa-wrap">
+      <div class="sewa-box">
+        <div class="sewa-title">🚉 Mobilitas Lokal di Banyuwangi</div>
+        <div class="sewa-sub">Pilih kendaraan setelah tiba. Boleh lebih dari satu.</div>
+        <div class="card-list">${sewaCards}</div>
+      </div>
+    </div>`;
+}
+
+// ─── RENDER STEP 2 ───────────────────────────────────────────────────────────
+function renderStep2() {
+  const durasiBtns = DURASI.map(d =>
+    `<div class="pill-opt${S.durasi===d.v?' selected':''}" data-durasi="${d.v}">
+      <div class="pill-label">${d.label}</div>
+      <div class="pill-sub">${d.sub}</div>
+    </div>`
+  ).join('');
+
+  const gayaCards = [
+    { v:'santai',    emoji:'🌴', label:'Santai',    desc:'Maks 2 destinasi/hari\nBanyak waktu menikmati' },
+    { v:'eksplorasi',emoji:'⚡', label:'Eksplorasi', desc:'3–4 destinasi/hari\nEfisien & terpadatkan' },
+  ].map(g =>
+    `<div class="gaya-card${S.gayaPerjalanan===g.v?' selected':''}" data-gaya="${g.v}">
+      <div class="gaya-emoji">${g.emoji}</div>
+      <div class="gaya-label">${g.label}</div>
+      <div class="gaya-desc">${g.desc}</div>
+    </div>`
+  ).join('');
+
+  const penginapanCards = PENGINAPAN.map(p =>
+    `<div class="card-opt sm${S.penginapan===p.v?' selected':''}" data-penginapan="${p.v}">
+      <span class="card-opt-icon">${p.emoji}</span>
+      <div><div class="card-opt-title">${p.label}</div><div class="card-opt-sub">${p.range}</div></div>
+      <span class="card-opt-check">✓</span>
+    </div>`
+  ).join('');
+
+  return `
+    <h2 class="step-title">Preferensi Trip</h2>
+    <p class="step-sub">Sesuaikan dengan gaya traveling kamu</p>
+
+    <div class="field-wrap">
+      <label class="field-label">Durasi Perjalanan</label>
+      <div class="pill-row">${durasiBtns}</div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Gaya Perjalanan</label>
+      <div class="gaya-row">${gayaCards}</div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Penginapan</label>
+      <div class="card-list">${penginapanCards}</div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Jumlah Orang</label>
+      <div class="counter-row">
+        <button class="cnt-btn" id="btn-minus">−</button>
+        <span class="cnt-val" id="cnt-val">${S.jumlahOrang}</span>
+        <button class="cnt-btn" id="btn-plus">+</button>
+        <span class="cnt-label">orang</span>
+      </div>
+    </div>`;
+}
+
+// ─── RENDER STEP 3 ───────────────────────────────────────────────────────────
+function renderStep3() {
+  if (S.loading) return `
+    <div class="loading-screen">
+      <div class="loading-icon">🗺️</div>
+      <h3 class="loading-title">Merencanakan perjalananmu<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h3>
+      <p class="loading-sub">AI sedang mengoptimasi rute, mengecek jam operasional,<br>dan menyusun jadwal terbaik untukmu</p>
+      <div class="loading-tags">
+        <span class="loading-tag">📍 Sorting rute</span>
+        <span class="loading-tag">🕐 Estimasi waktu</span>
+        <span class="loading-tag">💰 Kalkulasi biaya</span>
+        <span class="loading-tag">✨ Finalisasi</span>
+      </div>
+    </div>`;
+
+  if (S.error) return `
+    <div class="error-screen">
+      <div style="font-size:48px;margin-bottom:14px">⚠️</div>
+      <h3 style="font-size:18px;margin-bottom:8px">Gagal generate</h3>
+      <p style="color:#5a7a5a;font-size:13px;margin-bottom:22px">${esc(S.error)}</p>
+      <button class="btn-pri" id="btn-retry">↺ Coba Lagi</button>
+    </div>`;
+
+  if (!S.itinerary) return '';
+
+  const it = S.itinerary;
+
+  const highlights = (it.highlights||[])
+    .map(h => `<span class="highlight-tag">★ ${esc(h)}</span>`)
+    .join('');
+
+  const days = (it.days||[]).map((day, di) => {
+    const acts = (day.activities||[]).map((act, ai) => {
+      const as = ACT_STYLE[act.type] || ACT_STYLE.aktivitas;
+      const isLast = ai === day.activities.length - 1;
+      return `
+        <div class="act-item" style="animation-delay:${di*.12+ai*.07}s">
+          <div class="act-timeline">
+            <span class="act-icon">${as.icon}</span>
+            ${!isLast ? '<div class="act-line"></div>' : ''}
+          </div>
+          <div class="act-body">
+            <div class="act-meta">
+              <div>
+                <span class="act-time">${esc(act.time||'')}</span>
+                ${act.duration ? `<span class="act-duration">· ${esc(act.duration)}</span>` : ''}
+              </div>
+              ${act.estimatedCost>0 ? `<span class="act-cost">~${fmt(act.estimatedCost)}</span>` : ''}
+            </div>
+            <div class="act-name">${esc(act.name)}</div>
+            ${act.location&&act.location!==act.name ? `<div class="act-location">📍 ${esc(act.location)}</div>` : ''}
+            <div class="act-desc">${esc(act.description||'')}</div>
+            ${act.tips ? `<div class="act-tip" style="background:${as.bg};border-color:${as.color};color:${as.color}">💡 ${esc(act.tips)}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="day-section" style="animation-delay:${di*.15}s">
+        <div class="day-header">
+          <div class="day-num">${day.day}</div>
+          <div>
+            <div class="day-label">${esc(day.date_label||'')}</div>
+            <div class="day-title-txt">${esc(day.title||'')}</div>
+          </div>
+        </div>
+        <div class="act-list">${acts}</div>
+      </div>`;
+  }).join('');
+
+  const packingTags = (it.packingTips||[])
+    .map(t => `<span class="packing-tag">${esc(t)}</span>`)
+    .join('');
+
+  return `
+    <div class="result-summary">
+      <div class="result-top">
+        <div class="result-title">Itinerary Banyuwangi ✨</div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="result-budget-label">Est. Budget/org</div>
+          <div class="result-budget-val">${fmt(it.estimatedBudget?.min)}–${fmt(it.estimatedBudget?.max)}</div>
+        </div>
+      </div>
+      <div class="result-desc">${esc(it.summary||'')}</div>
+      <div class="highlight-tags">${highlights}</div>
+      ${it.estimatedBudget?.note ? `<div class="budget-note">ℹ️ ${esc(it.estimatedBudget.note)}</div>` : ''}
+    </div>
+
+    ${days}
+
+    ${packingTags ? `
+      <div class="packing-box">
+        <div class="packing-title">🎒 Perlengkapan yang Perlu Dibawa</div>
+        <div class="packing-tags">${packingTags}</div>
+      </div>` : ''}
+
+    ${it.importantNotes ? `<div class="notes-box">⚠️ ${esc(it.importantNotes)}</div>` : ''}
+
+    <button class="btn-ghost" id="btn-restart" style="width:100%;justify-content:center">
+      ↺ Buat Itinerary Baru
+    </button>`;
+}
+
+// ─── MAIN RENDER ─────────────────────────────────────────────────────────────
+function render() {
+  const c = document.getElementById('content');
+  switch (S.step) {
+    case 0: c.innerHTML = renderStep0(); break;
+    case 1: c.innerHTML = renderStep1(); break;
+    case 2: c.innerHTML = renderStep2(); break;
+    case 3: c.innerHTML = renderStep3(); break;
+  }
+  updateProgress();
+  updateNav();
+  attachListeners();
+}
+
+// ─── LISTENERS ───────────────────────────────────────────────────────────────
+function attachListeners() {
+  const c = document.getElementById('content');
+
+  // Step 0 — category filter
+  c.querySelectorAll('[data-cat]').forEach(el => el.addEventListener('click', () => {
+    S.activeCat = el.dataset.cat;
+    render();
+  }));
+
+  // Step 0 — destination chips (targeted update, no full re-render)
+  c.querySelectorAll('[data-dest]').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.dest;
+    S.destinations.has(id) ? S.destinations.delete(id) : S.destinations.add(id);
+    el.classList.toggle('selected', S.destinations.has(id));
+    const notice = document.getElementById('dest-notice');
+    if (notice) {
+      notice.className = 'dest-notice' + (S.destinations.size>0?' show':'');
+      notice.textContent = `✓ ${S.destinations.size} destinasi dipilih · Rute akan dioptimasi otomatis`;
+    }
+    updateNav();
+  }));
+
+  // Step 1 — kota asal
+  const selKota = document.getElementById('sel-kota');
+  if (selKota) selKota.addEventListener('change', () => {
+    S.kotaAsal = selKota.value;
+    S.kotaAsalCustom = '';
+    render();
+  });
+  const inputKota = document.getElementById('input-kota-custom');
+  if (inputKota) inputKota.addEventListener('input', () => {
+    S.kotaAsalCustom = inputKota.value;
+    updateNav();
+  });
+
+  // Step 1 — transport (targeted: toggle class + sewa section)
+  c.querySelectorAll('[data-transport]').forEach(el => el.addEventListener('click', () => {
+    S.transport = el.dataset.transport;
+    S.sewaLokal.clear();
+    c.querySelectorAll('[data-transport]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.transport===S.transport));
+    const sw = document.getElementById('sewa-wrap');
+    if (sw) sw.classList.toggle('open', S.transport==='umum');
+    // reset sewa visual
+    c.querySelectorAll('[data-sewa]').forEach(e => {
+      e.classList.remove('selected','sewa-sel');
+    });
+    updateNav();
+  }));
+
+  // Step 1 — sewa lokal (targeted)
+  c.querySelectorAll('[data-sewa]').forEach(el => el.addEventListener('click', () => {
+    const v = el.dataset.sewa;
+    S.sewaLokal.has(v) ? S.sewaLokal.delete(v) : S.sewaLokal.add(v);
+    el.classList.toggle('selected', S.sewaLokal.has(v));
+    el.classList.toggle('sewa-sel', S.sewaLokal.has(v));
+  }));
+
+  // Step 2 — durasi (targeted)
+  c.querySelectorAll('[data-durasi]').forEach(el => el.addEventListener('click', () => {
+    S.durasi = el.dataset.durasi;
+    c.querySelectorAll('[data-durasi]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.durasi===S.durasi));
+    updateNav();
+  }));
+
+  // Step 2 — gaya (targeted)
+  c.querySelectorAll('[data-gaya]').forEach(el => el.addEventListener('click', () => {
+    S.gayaPerjalanan = el.dataset.gaya;
+    c.querySelectorAll('[data-gaya]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.gaya===S.gayaPerjalanan));
+    updateNav();
+  }));
+
+  // Step 2 — penginapan (targeted)
+  c.querySelectorAll('[data-penginapan]').forEach(el => el.addEventListener('click', () => {
+    S.penginapan = el.dataset.penginapan;
+    c.querySelectorAll('[data-penginapan]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.penginapan===S.penginapan));
+    updateNav();
+  }));
+
+  // Step 2 — counter
+  const minus = document.getElementById('btn-minus');
+  const plus  = document.getElementById('btn-plus');
+  const cntEl = document.getElementById('cnt-val');
+  if (minus) minus.addEventListener('click', () => {
+    S.jumlahOrang = Math.max(1, S.jumlahOrang-1);
+    if (cntEl) cntEl.textContent = S.jumlahOrang;
+  });
+  if (plus) plus.addEventListener('click', () => {
+    S.jumlahOrang = Math.min(20, S.jumlahOrang+1);
+    if (cntEl) cntEl.textContent = S.jumlahOrang;
+  });
+
+  // Step 3 — retry & restart
+  const retry   = document.getElementById('btn-retry');
+  const restart = document.getElementById('btn-restart');
+  if (retry)   retry.addEventListener('click', () => { S.error=null; generate(); });
+  if (restart) restart.addEventListener('click', () => {
+    Object.assign(S, {
+      step:0, activeCat:'semua', kotaAsal:'', kotaAsalCustom:'',
+      transport:'', durasi:'', gayaPerjalanan:'', penginapan:'',
+      jumlahOrang:2, loading:false, itinerary:null, error:null,
+    });
+    S.destinations.clear();
+    S.sewaLokal.clear();
+    render();
+  });
+}
+
+// ─── STATIC NAV LISTENERS ────────────────────────────────────────────────────
+document.getElementById('btn-back').addEventListener('click', () => {
+  S.step--;
+  render();
+});
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (S.step===2) {
+    S.step=3; S.loading=true; S.itinerary=null; S.error=null;
+    render();
+    generate();
+  } else {
+    S.step++;
+    render();
+  }
+});
+
+// ─── RULE-BASED ENGINE ──────────────────────────────────────────────────────
+
+// Data tambahan per destinasi: zona, tiket, durasi (menit), deskripsi, tips
+const DEST_EXT = {
+  ijen:        { zone:'barat',   tiket:5000,  dur:300, isIjen:true,
+                 desc:'Trekking ke kawah asam berwarna biru misterius, fenomena langka di dunia. Tiba di puncak sebelum matahari terbit untuk menyaksikan blue fire.',
+                 tips:'Wajib bawa masker gas N95. Sewa porter ~150K (opsional). Headlamp adalah mutlak.' },
+  baluran:     { zone:'utara',   tiket:15000, dur:240,
+                 desc:'Jelajahi savana luas "Afrika van Java". Berkendara melalui padang savana untuk melihat banteng, rusa, dan merak liar.',
+                 tips:'Masuk gerbang sebelum jam 06:00 untuk peluang terbaik bertemu satwa. Bawa kamera telephoto.' },
+  alas_purwo:  { zone:'selatan', tiket:5000,  dur:300,
+                 desc:'Menjelajahi hutan purba dengan ekosistem tersier Jawa. Kunjungi Pantai Trianggulasi dan Pura Giri Salaka yang bersejarah.',
+                 tips:'Trek ringan tersedia. Bawa air minum cukup dan repellent nyamuk.' },
+  kawah_wurung:{ zone:'barat',   tiket:5000,  dur:180,
+                 desc:'Kaldera cantik dengan hamparan padang sabana hijau. Sunrise dari sini spektakuler dengan pemandangan 360 derajat.',
+                 tips:'Datang maksimal jam 05:30. Sangat dingin, bawa jaket. Bisa dilanjutkan setelah turun dari Ijen.' },
+  jagir:       { zone:'barat',   tiket:10000, dur:120,
+                 desc:'Air terjun tiga tingkat di tengah hutan pinus yang sejuk. Kolam alami di bawah air terjun cocok untuk berendam.',
+                 tips:'Trek ~1km dari parkir, relatif mudah. Gunakan sandal gunung atau sepatu anti selip.' },
+  red_island:  { zone:'selatan', tiket:10000, dur:180, isSunset:true,
+                 desc:'Pantai dengan tebing merah dramatis yang menjadi ikon Banyuwangi. Sunset di sini adalah yang paling ikonik di Jawa.',
+                 tips:'Datang pukul 15:00 untuk tempat foto terbaik. Gelombang besar, tidak dianjurkan berenang.' },
+  green_bay:   { zone:'selatan', tiket:10000, dur:240,
+                 desc:'Teluk tersembunyi dengan air berwarna hijau toska yang memukau. Snorkeling dan berenang sangat direkomendasikan.',
+                 tips:'Trek 30–40 menit dari parkir melewati hutan. Bawa bekal air minum minimal 1.5L.' },
+  sukamade:    { zone:'selatan', tiket:10000, dur:240, isNight:true,
+                 desc:'Pantai penangkaran penyu hijau terbesar di Indonesia. Saksikan penyu bertelur secara langsung di malam hari.',
+                 tips:'Wajib menginap di sekitar area. Bawa senter dan pakaian berwarna gelap.' },
+  g_land:      { zone:'selatan', tiket:0,     dur:240,
+                 desc:'Pantai legendaris surganya peselancar kelas dunia, berlokasi di dalam kawasan TN Alas Purwo.',
+                 tips:'Akses via perahu dari Pantai Grajagan ~200–300K. Bawa perlengkapan snorkeling.' },
+  menjangan:   { zone:'utara',   tiket:25000, dur:360,
+                 desc:'Pulau dengan terumbu karang terbaik di Banyuwangi. Visibilitas air hingga 30m, ideal untuk snorkeling dan diving.',
+                 tips:'Sewa perahu dari Bangsring ~300–400K/perahu. Bawa tabir surya dan alat snorkel sendiri.' },
+  tabuhan:     { zone:'utara',   tiket:15000, dur:300,
+                 desc:'Pulau pasir putih kecil dengan air berwarna biru jernih. Spot foto yang sangat instagramable.',
+                 tips:'Sewa perahu dari Pantai Bangsring ~200–250K. Perjalanan ~30 menit. Bawa bekal makanan.' },
+  city:        { zone:'kota',    tiket:0,     dur:240, isCity:true,
+                 desc:'Jelajahi pesona kota Banyuwangi: Pantai Boom, Taman Blambangan, Pendopo, dan pusat oleh-oleh khas.',
+                 tips:'Malam hari lebih ramai dan hidup. Cicipi kuliner kaki lima di Jl. PB Sudirman.' },
+};
+
+// Kuliner rekomendasi per zona (berdasarkan pola Yuk Banyuwangi)
+const KULINER_DB = {
+  barat: [
+    { name:'Warung Kopi Osing Kemiren',     menu:'Kopi Osing + Pecel Pitik khas Using', est:35000 },
+    { name:'Warung Bu Yati - Desa Tamansari', menu:'Nasi Tempong Ijen + Tahu Tempe',    est:25000 },
+    { name:'RM Djajag Genteng',              menu:'Rawon Setan + Es Dawet',              est:30000 },
+  ],
+  utara: [
+    { name:'Warung Pesisir Bangsring',  menu:'Ikan Bakar Segar + Plecing Kangkung', est:50000 },
+    { name:'Warung Bu Temu - Ketapang', menu:'Sego Tempong Osing + Sayur Asem',     est:20000 },
+    { name:'RM Kuliner Ketapang',       menu:'Soto Ayam + Kerupuk Ikan',            est:25000 },
+  ],
+  selatan: [
+    { name:'Warung Seafood Muncar',       menu:'Udang Bakar + Tumis Kangkung + Nasi',     est:55000 },
+    { name:'Warung Pinggir Pantai Merah', menu:'Mie Goreng Seafood + Teh Hangat',         est:30000 },
+    { name:'RM Pindang Banyuwangi',       menu:'Pindang Koyong + Nasi Merah + Lalapan',  est:35000 },
+  ],
+  kota: [
+    { name:'Sego Tempong Mbok Wah',        menu:'Sego Tempong Asli + Tahu + Tempe',        est:20000 },
+    { name:'Rujak Soto Jl. PB Sudirman',  menu:'Rujak Soto khas BWI + Es Tape',            est:18000 },
+    { name:'RM Blambangan',               menu:'Pecel Rawon + Jus Buah Segar',             est:28000 },
+    { name:'Warung Kopi Banyuwangi',       menu:'Kopi Osing + Roti Bakar Cokelat',         est:15000 },
+  ],
+};
+
+// Packing tips per destinasi
+const PACKING_DB = {
+  ijen:        ['Masker gas / N95','Headlamp + baterai cadangan','Jaket sangat tebal (suhu <10°C)'],
+  kawah_wurung:['Jaket tebal','Tripod untuk foto sunrise'],
+  menjangan:   ['Peralatan snorkeling','Tabir surya SPF50+','Dry bag'],
+  tabuhan:     ['Peralatan snorkeling','Tabir surya','Sandal air'],
+  sukamade:    ['Senter','Pakaian berwarna gelap','Repellent nyamuk'],
+  green_bay:   ['Sandal gunung','Air minum 1.5L','Camilan'],
+  alas_purwo:  ['Sepatu hiking','Repellent','Air minum cukup'],
+  baluran:     ['Kamera telephoto (untuk satwa)','Air minum','Topi lebar'],
+};
+
+// Jarak zona dari pusat kota BWI (km, perkiraan)
+const ZONE_DIST = { barat:42, utara:65, selatan:72, kota:5 };
+
+// ── Time helpers ─────────────────────────────────────────────────────────────
+function addMin(t, m) {
+  const [h,mn] = t.split(':').map(Number);
+  const tot = h*60+mn+m;
+  return `${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;
+}
+function durLabel(m) {
+  const h=Math.floor(m/60), mn=m%60;
+  return h&&mn?`${h} jam ${mn} menit`:h?`${h} jam`:`${mn} menit`;
+}
+function pickRand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function parseDurasi(v) {
+  return {1D:[1,0],'2D1N':[2,1],'3D2N':[3,2],'4D3N':[4,3],'5D4N':[5,4]}[v]||[2,1];
+}
+
+// ── Build kuliner activity ────────────────────────────────────────────────────
+function buildMakan(waktu, zone) {
+  const db = KULINER_DB[zone] || KULINER_DB.kota;
+  const w  = pickRand(db);
+  const timeMap = { pagi:'07:00', siang:'12:30', malam:'19:00' };
+  const labelMap = { pagi:'Sarapan', siang:'Makan Siang', malam:'Makan Malam' };
+  return {
+    time: timeMap[waktu],
+    name: `${labelMap[waktu]} — ${w.name}`,
+    location: w.name,
+    duration: '1 jam',
+    description: `${labelMap[waktu]} dengan menu ${w.menu}. Warung lokal favorit di kawasan ini.`,
+    tips: 'Datang agak awal kalau ramai. Harga terjangkau, rasa autentik.',
+    estimatedCost: w.est,
+    type: 'makan',
+  };
+}
+
+// ── Day 1: Kedatangan ─────────────────────────────────────────────────────────
+function buildArrivalDay(kota, transport, penginapan) {
+  const pInfo = PENGINAPAN.find(p=>p.v===penginapan) || PENGINAPAN[2];
+  const isUmum = transport === 'umum';
+  const berangkatTime = isUmum ? '07:00' : '09:00';
+  const tibaTime      = isUmum ? '14:00' : '13:00';
+  const durTrans      = isUmum ? '±6–8 jam' : '±4–5 jam';
+  const descTrans     = isUmum
+    ? `Naik kereta (Mutiara Timur / Sri Tanjung) atau bus dari ${kota} menuju Banyuwangi. Istirahat di perjalanan.`
+    : `Berkendara dari ${kota} menuju Banyuwangi. Pastikan kendaraan prima dan tangki penuh.`;
+  const tipsTrans     = isUmum
+    ? 'Pesan tiket kereta minimal H-7. Bawa bekal ringan untuk perjalanan.'
+    : 'Istirahat di rest area setiap 2 jam. Siapkan P3K dan obat-obatan.';
+  return {
+    day:1, date_label:'Hari 1',
+    title: `Kedatangan dari ${kota} ke Banyuwangi`,
+    activities: [
+      { time:berangkatTime, name:`Perjalanan dari ${kota} ke Banyuwangi`,
+        location:kota, duration:durTrans,
+        description:descTrans, tips:tipsTrans,
+        estimatedCost: isUmum?150000:60000, type:'transport' },
+      { time:tibaTime, name:'Tiba & Check-in Penginapan',
+        location:'Penginapan Banyuwangi', duration:'1 jam 30 menit',
+        description:`Check-in ${pInfo.label}. Mandi, istirahat, dan persiapkan perlengkapan untuk hari-hari berikutnya.`,
+        tips:`Area pusat kota BWI ideal untuk akses ke berbagai penjuru. Estimasi harga ${pInfo.range}.`,
+        estimatedCost:0, type:'penginapan' },
+      { time:addMin(tibaTime,100), name:'Eksplorasi Ringan — Pantai Boom & Taman Blambangan',
+        location:'Pusat Kota Banyuwangi', duration:'2 jam',
+        description:'Jalan santai di Pantai Boom atau Taman Blambangan. Nikmati suasana kota tanpa perlu memforsir energi.',
+        tips:'Hari kedatangan idealnya santai. Simpan energi untuk petualangan esok hari.',
+        estimatedCost:5000, type:'aktivitas' },
+      buildMakan('malam','kota'),
+    ],
+  };
+}
+
+// ── Day terakhir: Kepulangan ───────────────────────────────────────────────────
+function buildDepartureDay(dayNum, kota, transport) {
+  const isUmum = transport === 'umum';
+  return {
+    day:dayNum, date_label:`Hari ${dayNum}`,
+    title:'Oleh-oleh & Perjalanan Pulang',
+    activities: [
+      { time:'07:30', name:'Sarapan & Check-out',
+        location:'Penginapan', duration:'1 jam',
+        description:'Sarapan terakhir di Banyuwangi dan check-out penginapan.',
+        tips:'Titipkan koper di resepsionis jika masih mau jalan-jalan sebentar.',
+        estimatedCost:20000, type:'makan' },
+      { time:'09:00', name:'Belanja Oleh-oleh Khas Banyuwangi',
+        location:'Toko Oleh-oleh / Pasar Banyuwangi', duration:'2 jam',
+        description:'Belanja oleh-oleh: Kopi Osing, Batik Gajah Oling, Kerajinan Gedog, Dodol Banyuwangi, dan Peyek khas.',
+        tips:'Toko Oleh-oleh Barokah di Jl. A. Yani atau pasar tradisional untuk harga lebih miring.',
+        estimatedCost:150000, type:'aktivitas' },
+      { time:'11:30', name:'Makan Siang Terakhir di Banyuwangi',
+        location:'Warung Kuliner Lokal', duration:'1 jam',
+        description:'Makan siang terakhir. Jangan lewatkan Sego Tempong atau Rujak Soto sebagai kenangan rasa.',
+        tips:'Ini kesempatan terakhir menikmati kuliner khas. Beli sambal tempong buat dibawa pulang!',
+        estimatedCost:25000, type:'makan' },
+      { time:'13:00', name:`Perjalanan Pulang ke ${kota}`,
+        location:'Banyuwangi', duration: isUmum?'±6–8 jam':'±4–5 jam',
+        description:`Bertolak kembali ke ${kota}. Bawa kenangan indah dan rencana untuk kembali ke Banyuwangi!`,
+        tips:'Sampai jumpa lagi di Banyuwangi! 🌋',
+        estimatedCost: isUmum?150000:60000, type:'transport' },
+    ],
+  };
+}
+
+// ── Build activity day ─────────────────────────────────────────────────────────
+function buildActivityDay(dayNum, spots, zone, form) {
+  const hasIjen = spots.some(s=>s.id==='ijen');
+  const hasSukamade = spots.some(s=>s.id==='sukamade');
+
+  // Sort: normal → sunset → night
+  const sorted = [...spots].sort((a,b) => {
+    const score = s => (DEST_EXT[s.id]?.isSunset?10:0) + (DEST_EXT[s.id]?.isNight?20:0);
+    return score(a)-score(b);
+  });
+
+  const acts = [];
+  const distKm = ZONE_DIST[zone]||30;
+  const transMin = form.transport==='pribadi_motor'
+    ? Math.round(distKm/40*60) : Math.round(distKm/45*60);
+
+  // ── IJEN DAY ──
+  if (hasIjen) {
+    acts.push({ time:'01:30', name:'Berangkat ke Kawah Ijen (Paltuding)',
+      location:'Penginapan → Paltuding', duration:'1 jam 30 menit',
+      description:'Bangun dini hari. Berangkat ke Paltuding — gerbang masuk Kawah Ijen, ~1.5 jam dari kota.',
+      tips:'Siapkan semua perlengkapan malam sebelumnya. Jangan lupa masker gas dan headlamp!',
+      estimatedCost:0, type:'transport' });
+    acts.push({ time:'03:00', name:'Trekking Kawah Ijen — Blue Fire & Sunrise',
+      location:'Kawah Ijen, Banyuwangi', duration:'4 jam',
+      description:'Trekking ~3km (±1.5 jam) menuju puncak. Saksikan fenomena blue fire unik sebelum subuh, dilanjutkan sunrise spektakuler di atas kawah sulfur.',
+      tips:'Ikuti jalur resmi. Sewa masker gas di pos (Rp10K). Jangan turun ke kawah tanpa pemandu resmi.',
+      estimatedCost:5000+10000, type:'aktivitas' });
+    acts.push({ time:'07:00', name:'Turun & Sarapan di Sekitar Paltuding',
+      location:'Warung sekitar Paltuding', duration:'1 jam 30 menit',
+      description:'Turun dari kawah dan sarapan di warung sekitar Paltuding. Istirahat dan nikmati udara segar pegunungan.',
+      tips:'Beli kopi hangat — sangat dibutuhkan setelah trekking dini hari.',
+      estimatedCost:25000, type:'makan' });
+
+    if (form.gayaPerjalanan==='santai') {
+      // Ijen hangover rule: santai = rest the rest of the day
+      acts.push({ time:'09:00', name:'Kembali ke Penginapan — Istirahat Wajib',
+        location:'Penginapan', duration:'5 jam',
+        description:'Kembali ke penginapan untuk istirahat total. Trekking dini hari Ijen sangat menguras energi — pemulihan fisik adalah prioritas.',
+        tips:'Tidur siang adalah pilihan paling bijak. Jangan memforsir tubuh setelah Ijen.',
+        estimatedCost:0, type:'istirahat' });
+    } else {
+      // Eksplorasi: boleh tambah 1 spot searah (Kawah Wurung atau Jagir)
+      const extra = sorted.find(s=>s.id!=='ijen');
+      if (extra) {
+        const ext = DEST_EXT[extra.id]||{};
+        acts.push({ time:'09:30', name: extra.name,
+          location: extra.name+', Banyuwangi', duration: durLabel(ext.dur||120),
+          description: ext.desc||'', tips: ext.tips||'',
+          estimatedCost: ext.tiket||0, type:'aktivitas' });
+      }
+      acts.push({ time:'12:00', name:'Kembali & Istirahat Siang',
+        location:'Penginapan', duration:'3 jam',
+        description:'Kembali ke penginapan. Istirahat setelah Ijen tetap sangat dianjurkan meski gaya eksplorasi.',
+        tips:'Tidur 1–2 jam akan membuat badan jauh lebih segar untuk malam hari.',
+        estimatedCost:0, type:'istirahat' });
+    }
+    acts.push(buildMakan('malam','barat'));
+
+  // ── SUKAMADE DAY ──
+  } else if (hasSukamade) {
+    acts.push(buildMakan('pagi', zone));
+    acts.push({ time:'08:00', name:'Perjalanan Menuju Sukamade',
+      location:'Rute menuju Sukamade', duration:'3–4 jam',
+      description:'Perjalanan panjang menuju Sukamade melewati jalan lintas hutan. Jalur menantang terutama musim hujan.',
+      tips:'Gunakan kendaraan 4WD atau motor trail. Cek kondisi jalan sehari sebelumnya.',
+      estimatedCost:0, type:'transport' });
+    acts.push({ time:'12:00', name:'Tiba & Eksplorasi Pantai Sukamade',
+      location:'Pantai Sukamade', duration:'3 jam',
+      description:'Tiba di Sukamade. Eksplor pantai di siang hari dan check-in penginapan sederhana di kawasan.',
+      tips:'Penginapan sangat terbatas — wajib reservasi jauh-jauh hari.',
+      estimatedCost:10000, type:'aktivitas' });
+    acts.push(buildMakan('siang','selatan'));
+    acts.push({ time:'20:00', name:'Program Malam — Penyu Hijau Bertelur',
+      location:'Pantai Sukamade', duration:'2–3 jam',
+      description:'Dipandu ranger, saksikan penyu hijau raksasa naik ke pantai untuk bertelur. Momen langka dan sangat emosional.',
+      tips:'Ikuti instruksi ranger sepenuhnya. Dilarang menggunakan flash kamera. Gunakan senter dengan filter merah.',
+      estimatedCost:50000, type:'aktivitas' });
+
+  // ── REGULAR DAY ──
+  } else {
+    // Transport to zone
+    if (distKm > 15) {
+      const berangkat = addMin('07:00', -transMin-10);
+      acts.push({ time: berangkat,
+        name:`Berangkat menuju ${ZONE_LABEL_SHORT[zone]||zone}`,
+        location:'Penginapan → Destinasi', duration: durLabel(transMin),
+        description:`Berangkat menuju klaster destinasi hari ini. Jarak ±${distKm}km dari kota, tempuh ±${durLabel(transMin)}.`,
+        tips:'Pastikan bahan bakar penuh. Sarapan ringan dulu sebelum berangkat.',
+        estimatedCost:0, type:'transport' });
+    }
+
+    let cur = '07:00';
+    const mainSpots = sorted.filter(s=>!DEST_EXT[s.id]?.isSunset&&!DEST_EXT[s.id]?.isNight);
+    const sunsetSpots = sorted.filter(s=>DEST_EXT[s.id]?.isSunset);
+
+    mainSpots.forEach((spot, i) => {
+      const ext = DEST_EXT[spot.id]||{};
+      acts.push({ time:cur, name:spot.name,
+        location:spot.name+', Banyuwangi', duration:durLabel(ext.dur||180),
+        description:ext.desc||spot.desc||'', tips:ext.tips||'',
+        estimatedCost:ext.tiket||0, type:'aktivitas' });
+      cur = addMin(cur, (ext.dur||180)+35);
+
+      // Insert lunch roughly in the middle
+      if (i===Math.floor((mainSpots.length-1)/2)) {
+        const makan = buildMakan('siang', zone);
+        makan.time = cur;
+        acts.push(makan);
+        cur = addMin(cur, 70);
+      }
+    });
+
+    // Sunset spots always at 15:00
+    sunsetSpots.forEach(spot => {
+      const ext = DEST_EXT[spot.id]||{};
+      acts.push({ time:'15:00', name:spot.name+' — Sunset',
+        location:spot.name, duration:durLabel(ext.dur||180),
+        description:ext.desc||'', tips:ext.tips||'',
+        estimatedCost:ext.tiket||0, type:'aktivitas' });
+    });
+
+    // If only sunset spots and no lunch added yet
+    if (mainSpots.length===0 && sunsetSpots.length>0) {
+      acts.unshift(buildMakan('siang', zone));
+    }
+
+    acts.push(buildMakan('malam', zone));
+    acts.push({ time:'21:00', name:'Istirahat di Penginapan',
+      location:'Penginapan Banyuwangi', duration:'8 jam',
+      description:'Istirahat yang cukup untuk mempersiapkan energi hari berikutnya.',
+      tips:'Siapkan perlengkapan untuk besok malam ini agar tidak terburu-buru.',
+      estimatedCost:0, type:'penginapan' });
+  }
+
+  // Day title
+  const names = spots.map(s=>s.name);
+  const title = names.length<=2 ? names.join(' & ') : `Eksplorasi ${ZONE_LABEL_SHORT[zone]||zone} (${names.length} Destinasi)`;
+  return { day:dayNum, date_label:`Hari ${dayNum}`, title, activities:acts };
+}
+
+const ZONE_LABEL_SHORT = { barat:'Barat/Ijen', utara:'Utara', selatan:'Selatan', kota:'Kota BWI' };
+
+// ── Budget calculator ─────────────────────────────────────────────────────────
+function calculateBudget(spots, form, totalDays) {
+  const tiket     = spots.reduce((s,d)=>s+(DEST_EXT[d.id]?.tiket||0),0);
+  const makan     = totalDays*3*27000;
+  const nights    = Math.max(0,totalDays-1);
+  const hotelEst  = {hotel45:700000,hotel3:300000,hotel12:150000,homestay:80000,none:0};
+  const hotel     = (hotelEst[form.penginapan]||100000)*nights;
+  const sewaEst   = [...(form.sewaLokal||[])].reduce((s,v)=>s+({motor:120000,mobil_driver:500000,ojek:30000}[v]||0),0)*totalDays;
+  const transPP   = form.transport==='umum' ? 300000 : 80000;
+  const min       = tiket+makan+hotel+sewaEst+transPP;
+  return {
+    min: Math.round(min/1000)*1000,
+    max: Math.round(min*1.45/1000)*1000,
+    note:`Per orang untuk ${totalDays} hari. Belum termasuk oleh-oleh dan pengeluaran pribadi.`,
+  };
+}
+
+// ── Packing tips ──────────────────────────────────────────────────────────────
+function buildPackingTips(spots) {
+  const base = new Set(['Sunscreen SPF50+','Uang tunai (ATM terbatas di lokasi wisata)','Powerbank','Kartu identitas','Obat-obatan pribadi']);
+  spots.forEach(s=>(PACKING_DB[s.id]||[]).forEach(t=>base.add(t)));
+  return [...base].slice(0,8);
+}
+
+// ── Summary & notes ───────────────────────────────────────────────────────────
+function buildSummary(spots, totalDays, gaya, kota) {
+  return `Itinerary ${totalDays} hari dari ${kota} ke ${spots.length} destinasi terbaik Banyuwangi, disusun dengan gaya ${gaya==='santai'?'santai — menikmati setiap momen tanpa terburu-buru':'eksplorasi — efisien namun tetap berkesan'}.`;
+}
+function buildNotes(spots) {
+  const n=[];
+  if(spots.some(s=>s.id==='ijen'))     n.push('Kawah Ijen ditutup saat cuaca ekstrem — selalu cek update terbaru sebelum berangkat.');
+  if(spots.some(s=>s.id==='sukamade')) n.push('Akses Sukamade bisa terputus di musim hujan.');
+  if(spots.some(s=>['menjangan','tabuhan'].includes(s.id))) n.push('Perjalanan ke pulau tergantung kondisi laut.');
+  return n.join(' ')||'Selalu cek kondisi cuaca dan jalan sebelum berangkat. Jaga kebersihan dan hormati alam Banyuwangi.';
+}
+
+// ─── GENERATE (rule-based, no API) ──────────────────────────────────────────
+function generate() {
+  S.loading = true; S.itinerary = null; S.error = null;
+  render();
+
+  setTimeout(() => {
+    try {
+      const selected = DESTINATIONS.filter(d=>S.destinations.has(d.id))
+        .map(d=>({...d,...(DEST_EXT[d.id]||{})}));
+
+      const [totalDays] = parseDurasi(S.durasi);
+      const spotsPerDay = S.gayaPerjalanan==='santai' ? 2 : 3;
+      const kota = S.kotaAsal==='Lainnya' ? S.kotaAsalCustom : S.kotaAsal;
+
+      const days = [];
+
+      // Day 1: Arrival
+      days.push(buildArrivalDay(kota, S.transport, S.penginapan));
+
+      // Group by zone
+      const byZone = {};
+      selected.forEach(d=>{
+        const z=d.zone||'kota';
+        if(!byZone[z]) byZone[z]=[];
+        byZone[z].push(d);
+      });
+      // Sort barat: Ijen first, then Kawah Wurung, then Jagir
+      if(byZone.barat){
+        const ord=['ijen','kawah_wurung','jagir'];
+        byZone.barat.sort((a,b)=>ord.indexOf(a.id)-ord.indexOf(b.id));
+      }
+      // Sort selatan: Sukamade last (night activity)
+      if(byZone.selatan){
+        byZone.selatan.sort((a,b)=>(a.id==='sukamade'?1:0)-(b.id==='sukamade'?1:0));
+      }
+
+      let dayNum = 2;
+      const lastDay = totalDays > 1 ? totalDays : totalDays;
+      const actDayLimit = totalDays > 1 ? totalDays-1 : totalDays;
+
+      ['barat','utara','selatan','kota'].forEach(zone=>{
+        if(!byZone[zone]||dayNum>actDayLimit) return;
+        const spots = byZone[zone];
+
+        if(zone==='barat' && spots.some(s=>s.id==='ijen')) {
+          // Ijen day: Ijen + 1 optional (eksplorasi only)
+          const ijenSpot = spots.find(s=>s.id==='ijen');
+          const others   = spots.filter(s=>s.id!=='ijen');
+          const ijenGroup= S.gayaPerjalanan==='eksplorasi'&&others.length
+            ? [ijenSpot, others[0]] : [ijenSpot];
+          if(dayNum<=actDayLimit) { days.push(buildActivityDay(dayNum++,ijenGroup,zone,S)); }
+          const remaining = S.gayaPerjalanan==='eksplorasi' ? others.slice(1) : others;
+          for(let i=0;i<remaining.length;i+=spotsPerDay){
+            if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,remaining.slice(i,i+spotsPerDay),zone,S));
+          }
+          return;
+        }
+
+        if(spots.some(s=>s.id==='sukamade')) {
+          // Sukamade: its own day
+          const sukamade = spots.find(s=>s.id==='sukamade');
+          const others   = spots.filter(s=>s.id!=='sukamade');
+          for(let i=0;i<others.length;i+=spotsPerDay){
+            if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,others.slice(i,i+spotsPerDay),zone,S));
+          }
+          if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,[sukamade],zone,S));
+          return;
+        }
+
+        for(let i=0;i<spots.length;i+=spotsPerDay){
+          if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,spots.slice(i,i+spotsPerDay),zone,S));
+        }
+      });
+
+      // Last day: Departure
+      if(totalDays>1) days.push(buildDepartureDay(totalDays,kota,S.transport));
+
+      S.itinerary = {
+        summary: buildSummary(selected,totalDays,S.gayaPerjalanan,kota),
+        totalDays,
+        highlights: selected.slice(0,3).map(d=>d.name),
+        estimatedBudget: calculateBudget(selected,S,totalDays),
+        days: days.slice(0,totalDays),
+        packingTips: buildPackingTips(selected),
+        importantNotes: buildNotes(selected),
+      };
+    } catch(e) {
+      S.error = 'Terjadi kesalahan: '+e.message;
+      console.error(e);
+    } finally {
+      S.loading = false;
+      render();
+    }
+  }, 800); // Loading animation agar terasa proses
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
