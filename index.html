@@ -459,7 +459,7 @@ function showLoadingDest() {
 async function loadDestinations() {
   showLoadingDest();
   try {
-    const snap = await db.collection('places').where('type','==','wisata').get();
+    const snap = await db.collection('places').where('status','==','active').get();
     const loaded = snap.docs
       .map(doc => mapToWandr(doc.id, doc.data()))
       .filter(Boolean);
