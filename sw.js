@@ -1,5 +1,5 @@
 // BWI-App Service Worker
-const CACHE = 'bwi-v1';
+const CACHE = 'bwi-v5';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
