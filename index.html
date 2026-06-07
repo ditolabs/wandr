@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -885,8 +885,7 @@ function renderStep0() {
 
     <div style="position:relative;margin-bottom:14px">
       <input type="text" id="dest-input"
-        dir="ltr" inputmode="text"
-        placeholder="Contoh: Kawah Ijen, Red Island, Baluran"
+        dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
         value="${esc(S.destInput)}"
         style="padding-right:42px;font-size:15px">
       ${S.destInput ? `<span id="btn-clear-input" style="position:absolute;right:12px;top:50%;
@@ -894,27 +893,26 @@ function renderStep0() {
         padding:4px">✕</span>` : ''}
     </div>
 
-    ${matched.length>0 ? `
-      <div style="margin-bottom:16px">
-        <div style="font-size:11px;color:#5a7a5a;margin-bottom:6px;
-          text-transform:uppercase;letter-spacing:.05em">✓ Destinasi dikenali:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">${tags}</div>
-      </div>` : ''}
+    <div id="dest-tags-area" style="${matched.length>0?'':'display:none'};margin-bottom:16px">
+      <div style="font-size:11px;color:#5a7a5a;margin-bottom:6px;
+        text-transform:uppercase;letter-spacing:.05em">✓ Destinasi dikenali:</div>
+      <div id="dest-tags-list" style="display:flex;flex-wrap:wrap;gap:4px">${tags}</div>
+    </div>
 
-    ${unmatched.length>0 && S.destInput ? `
-      <div style="padding:10px 14px;background:rgba(255,200,50,.06);
-        border:1px solid rgba(255,200,50,.2);border-radius:10px;
-        font-size:12px;color:#a09040;margin-bottom:14px">
-        ⚠️ Tidak ditemukan: <em>${unmatched.join(', ')}</em><br>
-        <span style="color:#6a8a6a">Coba: Kawah Ijen, TN Baluran, Red Island, Green Bay, TN Alas Purwo, Kawah Wurung…</span>
-      </div>` : ''}
+    <div id="dest-warn-area" style="${unmatched.length>0&&S.destInput?'':'display:none'};
+      padding:10px 14px;background:rgba(255,200,50,.06);
+      border:1px solid rgba(255,200,50,.2);border-radius:10px;
+      font-size:12px;color:#a09040;margin-bottom:14px">
+      ${unmatched.length>0&&S.destInput?`⚠️ Tidak ditemukan: <em>${unmatched.join(', ')}</em><br>
+        <span style="color:#6a8a6a">Coba: Kawah Ijen, TN Baluran, Red Island, Green Bay, TN Alas Purwo, Kawah Wurung…</span>`:''}
+    </div>
 
     <div style="margin-bottom:6px">
-      <div style="font-size:11px;color:#4a6a4a;margin-bottom:8px;
+      <div id="dest-suggest-label" style="font-size:11px;color:#4a6a4a;margin-bottom:8px;
         text-transform:uppercase;letter-spacing:.05em">
         ${matched.length>0?'Tambah lagi:':'Atau pilih dari sini:'}
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${suggestions}</div>
+      <div id="dest-suggestions" style="display:flex;flex-wrap:wrap;gap:6px">${suggestions}</div>
     </div>
 
     ${matched.length>0 ? `
@@ -923,7 +921,7 @@ function renderStep0() {
         Ada kuliner yang sudah diincar? <span style="color:#5a7a5a;font-weight:400">(opsional)</span>
       </div>
       <input type="text" id="input-kuliner-custom"
-        dir="ltr" inputmode="text"
+        dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
         placeholder="Contoh: Sego Tempong Mbok Wah, Rujak Soto Blambangan..."
         value="${esc(S.kulinerCustom)}"
         style="margin-top:8px">
@@ -976,7 +974,7 @@ function renderStep1() {
         </select>
         <span class="select-arrow">▾</span>
       </div>
-      ${S.kotaAsal==='Lainnya' ? `<input type="text" id="input-kota-custom" dir="ltr" inputmode="text" placeholder="Tulis kota asal…" value="${esc(S.kotaAsalCustom)}" style="margin-top:8px">` : ''}
+      ${S.kotaAsal==='Lainnya' ? `<input type="text" id="input-kota-custom" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Tulis kota asal…" value="${esc(S.kotaAsalCustom)}" style="margin-top:8px">` : ''}
     </div>
 
     <div class="field-wrap">
@@ -1103,7 +1101,7 @@ function renderStep2() {
       <div style="margin-top:12px">
         <label style="display:block;font-size:12px;color:#6a8a6a;margin-bottom:6px">Atau ketik nama penginapan pilihanmu:</label>
         <input type="text" id="input-penginapan-custom"
-          dir="ltr" inputmode="text"
+          dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
           placeholder="Contoh: Aston Banyuwangi, Ketapang Indah Hotel..."
           value="${esc(S.penginapanCustom)}">
       </div>
@@ -1231,7 +1229,117 @@ function renderStep3() {
     </button>`;
 }
 
-// ─── MAIN RENDER ─────────────────────────────────────────────────────────────
+// ─── PARTIAL UPDATE STEP 0 ───────────────────────────────────────────────────
+// Dipanggil saat user mengetik — update feedback tanpa re-render input,
+// supaya cursor tidak loncat ke awal (penyebab teks terbalik di Android)
+function updateDestFeedback() {
+  const matched   = DESTINATIONS.filter(d=>S.destinations.has(d.id));
+  const terms     = S.destInput.split(',').map(s=>s.trim()).filter(Boolean);
+  const unmatched = terms.filter(t =>
+    !DESTINATIONS.some(d=>d.name.toLowerCase().includes(t.toLowerCase())
+      || t.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]))
+  );
+
+  // 1. Tags destinasi yang dikenali
+  const tagsEl = document.getElementById('dest-tags-area');
+  if (tagsEl) {
+    if (matched.length > 0) {
+      tagsEl.style.display = '';
+      const tags = matched.map(d => `
+        <div style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;
+          background:rgba(224,123,57,.12);border:1.5px solid rgba(224,123,57,.4);
+          border-radius:20px;margin:3px">
+          <span>${d.emoji}</span>
+          <span style="font-size:13px;font-weight:600;color:#e07b39">${esc(d.name)}</span>
+          <span data-remove="${d.id}" style="cursor:pointer;color:#8fa08f;font-size:11px;
+            margin-left:2px;padding:1px 3px;border-radius:50%">✕</span>
+        </div>`).join('');
+      document.getElementById('dest-tags-list').innerHTML = tags;
+      // Re-attach remove listeners
+      document.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => {
+        const id = el.dataset.remove;
+        S.destinations.delete(id);
+        const d = DESTINATIONS.find(x=>x.id===id);
+        if (d) {
+          const parts = S.destInput.split(',').map(s=>s.trim())
+            .filter(s=>!s.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]));
+          S.destInput = parts.join(', ');
+          const inp = document.getElementById('dest-input');
+          if (inp) inp.value = S.destInput;
+        }
+        updateDestFeedback();
+        updateNav();
+      }));
+    } else {
+      tagsEl.style.display = 'none';
+    }
+  }
+
+  // 2. Warning "tidak ditemukan"
+  const warnEl = document.getElementById('dest-warn-area');
+  if (warnEl) {
+    warnEl.style.display = (unmatched.length > 0 && S.destInput) ? '' : 'none';
+    if (unmatched.length > 0 && S.destInput) {
+      warnEl.innerHTML = `⚠️ Tidak ditemukan: <em>${unmatched.join(', ')}</em><br>
+        <span style="color:#6a8a6a">Coba: Kawah Ijen, TN Baluran, Red Island, Green Bay, TN Alas Purwo, Kawah Wurung…</span>`;
+    }
+  }
+
+  // 3. Label "Atau pilih" / "Tambah lagi"
+  const lblEl = document.getElementById('dest-suggest-label');
+  if (lblEl) lblEl.textContent = matched.length > 0 ? 'Tambah lagi:' : 'Atau pilih dari sini:';
+
+  // 4. Suggestions — hapus yang sudah dipilih
+  const sugEl = document.getElementById('dest-suggestions');
+  if (sugEl) {
+    const suggestions = DESTINATIONS
+      .filter(d=>!S.destinations.has(d.id))
+      .slice(0,6)
+      .map(d=>`<button data-suggest="${d.id}" style="background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.1);color:#8fa08f;border-radius:16px;
+        padding:5px 11px;font-size:11px;cursor:pointer;font-family:inherit;
+        transition:all .2s;white-space:nowrap">${d.emoji} ${d.name}</button>`).join('');
+    sugEl.innerHTML = suggestions;
+    // Re-attach suggest listeners
+    sugEl.querySelectorAll('[data-suggest]').forEach(el => el.addEventListener('click', () => {
+      const d = DESTINATIONS.find(x=>x.id===el.dataset.suggest);
+      if (!d) return;
+      S.destinations.add(d.id);
+      S.destInput = S.destInput ? S.destInput.trimEnd().replace(/,$/,'')+', '+d.name : d.name;
+      const inp = document.getElementById('dest-input');
+      if (inp) inp.value = S.destInput;
+      parseDestInput(S.destInput);
+      updateDestFeedback();
+      updateNav();
+    }));
+  }
+
+  // 5. Tombol clear (✕ di dalam input)
+  const clearBtn = document.getElementById('btn-clear-input');
+  if (S.destInput && !clearBtn) {
+    // Tambahkan clear button jika belum ada
+    const wrap = document.getElementById('dest-input')?.parentElement;
+    if (wrap) {
+      const sp = document.createElement('span');
+      sp.id = 'btn-clear-input';
+      sp.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#5a7a5a;font-size:16px;padding:4px';
+      sp.textContent = '✕';
+      sp.addEventListener('click', () => {
+        S.destInput = ''; S.destinations.clear();
+        const inp = document.getElementById('dest-input');
+        if (inp) { inp.value = ''; inp.focus(); }
+        updateDestFeedback(); updateNav();
+        const cb = document.getElementById('btn-clear-input');
+        if (cb) cb.remove();
+      });
+      wrap.appendChild(sp);
+    }
+  } else if (!S.destInput && clearBtn) {
+    clearBtn.remove();
+  }
+}
+
+
 function render() {
   const c = document.getElementById('content');
   switch (S.step) {
@@ -1257,32 +1365,37 @@ function render() {
 function attachListeners() {
   const c = document.getElementById('content');
 
-  // Step 0 — text input
+  // Step 0 — text input (PARTIAL UPDATE — tidak re-render agar cursor tidak reset)
   const destInput = document.getElementById('dest-input');
   if (destInput) {
     destInput.addEventListener('input', () => {
       S.destInput = destInput.value;
       parseDestInput(S.destInput);
-      render(); // re-render untuk update tags
+      updateDestFeedback(); // partial update, bukan render()
+      updateNav();
     });
     destInput.focus();
   }
   // Clear button
   const btnClear = document.getElementById('btn-clear-input');
   if (btnClear) btnClear.addEventListener('click', () => {
-    S.destInput=''; S.destinations.clear(); render();
+    S.destInput=''; S.destinations.clear();
+    const inp = document.getElementById('dest-input');
+    if (inp) { inp.value = ''; inp.focus(); }
+    updateDestFeedback(); updateNav();
   });
   // Remove tag
   c.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => {
     const id = el.dataset.remove;
     S.destinations.delete(id);
-    // Hapus dari destInput juga
     const d = DESTINATIONS.find(x=>x.id===id);
     if (d) {
       const parts = S.destInput.split(',').map(s=>s.trim()).filter(s=>!s.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]));
       S.destInput = parts.join(', ');
+      const inp = document.getElementById('dest-input');
+      if (inp) inp.value = S.destInput;
     }
-    render();
+    updateDestFeedback(); updateNav();
   }));
   // Suggestion pills
   c.querySelectorAll('[data-suggest]').forEach(el => el.addEventListener('click', () => {
@@ -1290,7 +1403,10 @@ function attachListeners() {
     if (!d) return;
     S.destinations.add(d.id);
     S.destInput = S.destInput ? S.destInput.trimEnd().replace(/,$/,'')+', '+d.name : d.name;
-    render();
+    const inp = document.getElementById('dest-input');
+    if (inp) inp.value = S.destInput;
+    parseDestInput(S.destInput);
+    updateDestFeedback(); updateNav();
   }));
 
   // Step 1 — kota asal
