@@ -800,12 +800,41 @@ function parseDestInput(text) {
   S.destinations.clear();
   const terms = text.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
   terms.forEach(term => {
-    // Exact atau partial match pada nama destinasi
-    const match = DESTINATIONS.find(d => {
+    if (!term) return;
+
+    // Cari match terbaik — score-based supaya "TN Alas Purwo" tidak salah match ke "TN Baluran"
+    let bestMatch = null, bestScore = 0;
+
+    DESTINATIONS.forEach(d => {
       const n = d.name.toLowerCase();
-      return n.includes(term) || term.includes(n.split(' ')[0]);
+      let score = 0;
+
+      if (n === term) {
+        score = 100; // exact match
+      } else if (n.includes(term) && term.length >= 3) {
+        score = 80;  // nama mengandung term
+      } else if (term.includes(n) && n.length >= 4) {
+        score = 75;  // term mengandung nama penuh (minimal 4 karakter)
+      } else {
+        // Hitung berapa kata yang cocok (word-level match)
+        const nWords    = n.split(' ').filter(w => w.length > 1);
+        const termWords = term.split(' ').filter(w => w.length > 1);
+        const matched   = termWords.filter(tw => nWords.some(nw => nw.startsWith(tw) || tw.startsWith(nw)));
+        if (matched.length > 0) {
+          // Score proporsional — lebih banyak kata cocok = lebih tinggi
+          // Tapi "TN" saja (1 kata pendek) tidak cukup untuk match
+          const meaningful = matched.filter(w => w.length > 2);
+          score = meaningful.length > 0
+            ? Math.round((meaningful.length / Math.max(nWords.length, termWords.length)) * 60)
+            : 0;
+        }
+      }
+
+      if (score > bestScore) { bestScore = score; bestMatch = d; }
     });
-    if (match) S.destinations.add(match.id);
+
+    // Threshold minimum 40 — hindari false positive dari kata pendek seperti "TN" saja
+    if (bestMatch && bestScore >= 40) S.destinations.add(bestMatch.id);
   });
 }
 
@@ -854,12 +883,24 @@ async function loadKulinerNearPenginapan(lat, lng) {
 }
 
 // ─── RENDER STEP 0 ───────────────────────────────────────────────────────────
+// Helper: cek apakah satu term cocok dengan salah satu destinasi (konsisten dengan parseDestInput)
+function isTermMatched(term) {
+  const t = term.toLowerCase().trim();
+  if (!t) return true;
+  return DESTINATIONS.some(d => {
+    const n = d.name.toLowerCase();
+    if (n === t || n.includes(t) && t.length >= 3 || t.includes(n) && n.length >= 4) return true;
+    const nWords    = n.split(' ').filter(w => w.length > 1);
+    const termWords = t.split(' ').filter(w => w.length > 1);
+    const meaningful = termWords.filter(tw => nWords.some(nw => nw.startsWith(tw) || tw.startsWith(nw)) && tw.length > 2);
+    return meaningful.length > 0 && meaningful.length / Math.max(nWords.length, termWords.length) >= 0.4;
+  });
+}
+
 function renderStep0() {
   const matched = DESTINATIONS.filter(d=>S.destinations.has(d.id));
   const terms   = S.destInput.split(',').map(s=>s.trim()).filter(Boolean);
-  const unmatched = terms.filter(t =>
-    !DESTINATIONS.some(d=>d.name.toLowerCase().includes(t.toLowerCase())||t.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]))
-  );
+  const unmatched = terms.filter(t => !isTermMatched(t));
 
   const tags = matched.map(d => `
     <div style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;
@@ -1235,10 +1276,7 @@ function renderStep3() {
 function updateDestFeedback() {
   const matched   = DESTINATIONS.filter(d=>S.destinations.has(d.id));
   const terms     = S.destInput.split(',').map(s=>s.trim()).filter(Boolean);
-  const unmatched = terms.filter(t =>
-    !DESTINATIONS.some(d=>d.name.toLowerCase().includes(t.toLowerCase())
-      || t.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]))
-  );
+  const unmatched = terms.filter(t => !isTermMatched(t));
 
   // 1. Tags destinasi yang dikenali
   const tagsEl = document.getElementById('dest-tags-area');
