@@ -545,6 +545,11 @@ function onLogin(email) {
   hideLogin();
   document.getElementById('tb-user').textContent = email;
   loadTab('wisata');
+  
+  // ─── SELIPKAN BARIS INI ───
+  pasangTombolPembersih();
+}
+
 }
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
@@ -898,16 +903,28 @@ document.getElementById('btn-import-push').addEventListener('click', async () =>
     };
     if (rest.lat) data.lat = parseFloat(rest.lat);
     if (rest.lng) data.lng = parseFloat(rest.lng);
-    try {
-      // Cek duplikat berdasarkan nama + type
-      const dup = await db.collection('places')
-        .where('nama','==',data.nama).where('type','==',_type).limit(1).get();
-      if (!dup.empty) {
-        log.innerHTML += `<span style="color:var(--muted)">⊘ Skip (duplikat): ${data.nama}</span>\n`;
-      } else {
-        await db.collection('places').add(data);
-        log.innerHTML += `<span style="color:var(--accent)">✓ ${data.nama}</span>\n`;
+        try {
+      if (Id) {
+        // Jika ada ID asli (seperti k1, w1) dari JSON, pakai ID tersebut dan paksa Timpa (Update)
+        await db.collection('places').doc(String(Id)).set(data, { merge: true });
+        log.innerHTML += `<span style="color:var(--blue)">✓ Tersimpan (Update): ${data.nama}</span>\n`;
         done++;
+      } else {
+        // Jika tidak ada ID bawaan, cek duplikat nama
+        const dup = await db.collection('places')
+          .where('nama','==',data.nama).where('type','==',_type).limit(1).get();
+        if (!dup.empty) {
+          // Update data jika nama sudah ada
+          const docId = dup.docs[0].id;
+          await db.collection('places').doc(docId).update(data);
+          log.innerHTML += `<span style="color:var(--blue)">↻ Update: ${data.nama}</span>\n`;
+          done++;
+        } else {
+          // Tambah baru jika benar-benar belum ada
+          await db.collection('places').add(data);
+          log.innerHTML += `<span style="color:var(--accent)">✓ Tambah Baru: ${data.nama}</span>\n`;
+          done++;
+        }
       }
     } catch(e) {
       log.innerHTML += `<span style="color:var(--red)">✗ ${data.nama}: ${e.message}</span>\n`;
@@ -960,6 +977,51 @@ document.getElementById('btn-export-kuliner').addEventListener('click', () => ex
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function capitalize(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+// ─── SCRIPT PEMBERSIH DATABASE OTOMATIS (Bisa dihapus jika sudah selesai) ───
+async function jalankanPembersihan(tombol) {
+  try {
+    tombol.textContent = '⏳ Memproses...';
+    tombol.disabled = true;
+
+    const snap = await db.collection('places').get();
+    let jumlahTerhapus = 0;
+
+    for (const doc of snap.docs) {
+      // Filter aman: ID acak Firebase panjangnya 20 karakter, ID asli kita <= 4 karakter
+      if (doc.id.length > 10) {
+        await doc.ref.delete();
+        jumlahTerhapus++;
+      }
+    }
+
+    alert(`🎉 Sukses! Berhasil membersihkan ${jumlahTerhapus} data kotor ber-ID acak.`);
+    window.location.reload();
+  } catch (e) {
+    alert('Gagal membersihkan database: ' + e.message);
+    tombol.textContent = '🧹 Bersihkan Data Kotor';
+    tombol.disabled = false;
+  }
+}
+
+function pasangTombolPembersih() {
+  const container = document.querySelector('.tb-right');
+  if (!container || document.getElementById('btnCleanKotor')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'btnCleanKotor';
+  btn.textContent = '🧹 Bersihkan Data Kotor';
+  btn.style.cssText = 'font-size: 11px; color: #fff; background: rgba(239,68,68,.85); border: 1px solid rgba(239,68,68,.3); padding: 4px 12px; border-radius: 20px; cursor: pointer; margin-right: 8px; font-family: inherit; font-weight: 500;';
+  
+  btn.addEventListener('click', () => {
+    if (confirm('Apakah Anda yakin ingin menghapus SEMUA data ganda ber-ID acak panjang? Data asli (w1, p1, k1, dll) dijamin aman dan tidak akan terhapus.')) {
+      jalankanPembersihan(btn);
+    }
+  });
+
+  container.insertBefore(btn, container.firstChild);
+}
+
 </script>
 </body>
 </html>
