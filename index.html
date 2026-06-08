@@ -345,6 +345,40 @@
     .sortable-drag    { cursor: grabbing !important; z-index: 9999 !important; background: #1a2e1a !important; border: 1px solid #e07b39 !important; box-shadow: 0 15px 35px rgba(0,0,0,.7) !important; opacity: 1 !important; will-change: transform, left, top !important; pointer-events: none !important; transition: none !important; }
     .drag-item        { cursor: grab; user-select: none; -webkit-user-select: none; touch-action: pan-y; }
 
+    /* ── PLANNING BOARD ────────────────────────────────────────────────── */
+    .planning-board   { display: flex; flex-direction: column; gap: 10px; }
+    .plan-col         { border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
+                        background: rgba(255,255,255,.02); overflow: hidden; }
+    .plan-col.locked  { opacity: .6; }
+    .plan-col-header  { display: flex; align-items: center; gap: 8px;
+                        padding: 11px 14px; font-size: 13px; font-weight: 600;
+                        color: #7a9a7a; border-bottom: 1px solid rgba(255,255,255,.05);
+                        background: rgba(255,255,255,.02); }
+    .plan-col-body    { padding: 8px; display: flex; flex-direction: column; gap: 6px;
+                        min-height: 48px; }
+    .plan-day-badge   { width: 22px; height: 22px; border-radius: 50%;
+                        background: #3a5a3a; color: #a0c090; font-size: 11px;
+                        font-weight: 700; display: flex; align-items: center;
+                        justify-content: center; flex-shrink: 0; }
+    .plan-warn        { font-size: 11px; color: #a07840; background: rgba(255,180,50,.07);
+                        padding: 6px 12px; border-left: 2px solid rgba(255,180,50,.3); }
+    .plan-empty       { font-size: 12px; color: #3a5a3a; text-align: center;
+                        padding: 14px; font-style: italic; }
+
+    /* ── DRAG CARD ─────────────────────────────────────────────────────── */
+    .drag-item        { display: flex; align-items: center; gap: 10px;
+                        padding: 10px 12px; border-radius: 10px;
+                        border: 1px solid rgba(255,255,255,.08);
+                        background: rgba(255,255,255,.03);
+                        transition: background .15s, border-color .15s; }
+    .drag-handle      { font-size: 16px; color: #3a5a3a; flex-shrink: 0;
+                        line-height: 1; padding: 2px; }
+    .drag-emoji       { font-size: 22px; flex-shrink: 0; line-height: 1; }
+    .drag-info        { flex: 1; min-width: 0; }
+    .drag-title       { font-size: 13px; font-weight: 600; color: #c8d8b8;
+                        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drag-zone        { font-size: 11px; color: #5a7a5a; margin-top: 2px; }
+
     /* ── AUTH — LOGIN MODAL (pola bwi-app-v3) ─────────────────────────── */
     #loginEmail:focus, #loginPass:focus {
       border-color: rgba(224,123,57,.7) !important;
@@ -615,7 +649,20 @@ function mapToWandr(id, d) {
   const isNight=nama.includes('sukamade'), isCity=nama.includes('city tour');
   let bestTime='pagi';
   if(isSunset) bestTime='sore'; if(isNight) bestTime='malam'; if(isIjen) bestTime='dini hari';
-  const zone = KAWASAN_ZONE[d.kawasan]||'kota';
+  // Zone dari kawasan mapping, dengan override berbasis nama untuk yang sering salah
+  const NAMA_ZONE_OVERRIDE = {
+    'kawah wurung':'barat','kawah ijen':'barat','ijen':'barat','lider':'barat',
+    'telunjuk':'barat','jagir':'barat','malangsari':'barat','beji':'barat',
+    'baluran':'utara','menjangan':'utara','tabuhan':'utara','wongsorejo':'utara',
+    'sukamade':'selatan','alas purwo':'selatan','red island':'selatan',
+    'pulau merah':'selatan','green bay':'selatan','teluk ijo':'selatan',
+    'g-land':'selatan','grajagan':'selatan','wedi ireng':'selatan',
+  };
+  let zone = KAWASAN_ZONE[d.kawasan] || 'kota';
+  // Override jika nama mengandung keyword zona
+  for (const [key, z] of Object.entries(NAMA_ZONE_OVERRIDE)) {
+    if (nama.includes(key)) { zone = z; break; }
+  }
   const dur  = isIjen?300:cat==='diving'?360:kat.includes('terjun')?120:180;
   return { id, name:d.nama, cat, emoji, desc:d.catatan||d.kategori||'', bestTime,
     zone, tiket:d.htm||0, dur, isIjen, isSunset, isNight, isCity,
@@ -637,8 +684,7 @@ const DESTINATIONS_FALLBACK = [
   { id:'alas_purwo',   name:'TN Alas Purwo',            cat:'alam',   emoji:'🌿', desc:'Hutan purba tersembunyi',         bestTime:'pagi',      zone:'selatan', tiket:5000,  dur:300,
     aliases:['alas purwo','tn alas purwo','taman nasional alas purwo','purwo'] },
   { id:'kawah_wurung', name:'Kawah Wurung',              cat:'alam',   emoji:'🏔️', desc:'Kaldera indah & sunrise',         bestTime:'pagi',      zone:'barat',   tiket:5000,  dur:180,
-    aliases:['kawah wurung','wurung'] },
-  { id:'jagir',        name:'Air Terjun Jagir',         cat:'alam',   emoji:'💧', desc:'Air terjun tiga tingkat',         bestTime:'pagi',      zone:'barat',   tiket:10000, dur:120,
+    aliases:['kawah wurung','wurung'] },  { id:'jagir',        name:'Air Terjun Jagir',         cat:'alam',   emoji:'💧', desc:'Air terjun tiga tingkat',         bestTime:'pagi',      zone:'barat',   tiket:10000, dur:120,
     aliases:['jagir','air terjun jagir','curug jagir'] },
   { id:'red_island',   name:'Red Island',               cat:'pantai', emoji:'🏄', desc:'Tebing merah & sunset ikonik',    bestTime:'sore',      zone:'selatan', tiket:10000, dur:180, isSunset:true,
     aliases:['red island','pulau merah','pantai pulau merah'] },
@@ -2136,26 +2182,28 @@ function renderPlanningBoard() {
   function destCard(id) {
     const d = DESTINATIONS.find(x=>x.id===id);
     if (!d) return '';
+    const ext  = DEST_EXT[id] || {};
+    const zone = ext.zone || d.zone || '';
     return `<div class="drag-item" data-id="${id}">
       <span class="drag-handle">≡</span>
-      <span style="font-size:20px">${d.emoji||'🗺️'}</span>
-      <div style="flex:1;min-width:0">
+      <span class="drag-emoji">${d.emoji||'🗺️'}</span>
+      <div class="drag-info">
         <div class="drag-title">${esc(d.name)}</div>
-        <div class="drag-zone">⏰ ${d.bestTime||''} · ${DEST_EXT[id]?.zone||d.zone||''}</div>
+        <div class="drag-zone">⏰ ${d.bestTime||'pagi'} · ${zone}</div>
       </div>
-      ${id==='ijen'?'<span style="font-size:12px">⚠️</span>':''}
+      ${id==='ijen'?'<span style="font-size:11px;color:#e07b39" title="Perlu persiapan khusus">⚠️</span>':''}
     </div>`;
   }
 
-  // Kartu hotel check-in (dari Gemini) — bisa di-drag ke hari manapun
+  // Kartu hotel check-in
   function hotelCard(idx, name) {
     return `<div class="drag-item" data-id="hotel_checkin_${idx}"
-      style="border-color:rgba(196,123,212,.5);background:rgba(196,123,212,.08)">
-      <span class="drag-handle">≡</span>
-      <span style="font-size:20px">🏨</span>
-      <div style="flex:1;min-width:0">
+      style="border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06)">
+      <span class="drag-handle" style="color:#7a4a8a">≡</span>
+      <span class="drag-emoji">🏨</span>
+      <div class="drag-info">
         <div class="drag-title" style="color:#c47bd4">Check-in: ${esc(name)}</div>
-        <div class="drag-zone" style="color:#c47bd4">📍 Akomodasi</div>
+        <div class="drag-zone" style="color:#8a5a9a">📍 Akomodasi</div>
       </div>
     </div>`;
   }
