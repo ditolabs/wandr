@@ -828,8 +828,9 @@ const S = {
   kulinerOptions: [],
   kulinerCustom: '',                 // kuliner incaran (opsional)
   jumlahOrang: 2,
-  planDays: [],      // [[id,id,...], [...]] hasil susun user
-  planBacklog: [],   // destinasi belum dijadwalkan
+  planDays: [],          // [[id,id,...], [...]] hasil susun user
+  planBacklog: [],       // destinasi belum dijadwalkan
+  planArrivalExtras: [], // destinasi opsional di hari kedatangan
   loading: false, itinerary: null, error: null,
 };
 
@@ -1987,6 +1988,30 @@ function buildArrivalDay(kota, transport, penginapan) {
   return { day:1, date_label:'Hari 1', title:`Kedatangan dari ${kota}`, activities:acts };
 }
 
+// Tambah destinasi ekstra dari arrival bucket ke hari 1
+function injectArrivalExtras(arrivalDay) {
+  const extras = (S.planArrivalExtras||[])
+    .map(id => DESTINATIONS.find(d=>d.id===id))
+    .filter(Boolean);
+  if (extras.length === 0) return arrivalDay;
+  // Sisipkan setelah aktivitas terakhir sebelum makan malam
+  const insertBefore = arrivalDay.activities.findIndex(a=>a.type==='kuliner'&&a.name.toLowerCase().includes('malam'));
+  const extraActs = extras.map((d,i) => {
+    const ext = DEST_EXT[d.id]||{};
+    return { time: addMin('15:30', i*60),
+      name: d.name, location: d.name+', Banyuwangi',
+      duration: durLabel(ext.dur||120),
+      description: ext.desc||d.desc||'',
+      tips: ext.tips||'', estimatedCost: ext.tiket||d.tiket||0, type:'aktivitas' };
+  });
+  if (insertBefore >= 0) {
+    arrivalDay.activities.splice(insertBefore, 0, ...extraActs);
+  } else {
+    arrivalDay.activities.push(...extraActs);
+  }
+  return arrivalDay;
+}
+
 // ── Day terakhir: Kepulangan ───────────────────────────────────────────────────
 function buildDepartureDay(dayNum, kota, transport) {
   const isUmum = transport === 'umum';
@@ -2216,7 +2241,15 @@ function buildNotes(spots) {
 // Inisialisasi planDays dari auto-suggestion zone clustering
 function initPlanDays() {
   const [totalDays] = parseDurasi(S.durasi);
-  const actDays = Math.max(1, totalDays - (totalDays > 1 ? 2 : 0));
+  // actDays = hari aktif untuk drag (exclude hari 1 kedatangan dan hari terakhir kepulangan)
+  // Tapi juga pastikan cukup slot untuk semua destinasi
+  const selected  = DESTINATIONS.filter(d => S.destinations.has(d.id));
+  const spotsPerDay = S.gayaPerjalanan === 'santai' ? 2 : 3;
+  const minActDays  = Math.ceil(selected.length / spotsPerDay);
+  const naturalAct  = Math.max(1, totalDays - (totalDays > 1 ? 2 : 0));
+  // Pakai yang lebih besar antara natural dan minimum yang dibutuhkan
+  // tapi tidak melebihi totalDays - 1 (sisakan 1 hari kepulangan)
+  const actDays = Math.min(Math.max(naturalAct, minActDays), Math.max(1, totalDays - 1));
   S.planDays    = Array.from({length: actDays}, () => []);
   S.planBacklog = [];
   const selected    = DESTINATIONS.filter(d => S.destinations.has(d.id));
@@ -2257,11 +2290,18 @@ function readPlanFromDOM() {
     const el = document.getElementById(`bucket-day${i}`);
     return el ? [...el.querySelectorAll('.drag-item')].map(c=>c.dataset.id) : [];
   });
+  // Baca juga arrival day (opsional)
+  const arrEl = document.getElementById('bucket-day-arrival');
+  S.planArrivalExtras = arrEl
+    ? [...arrEl.querySelectorAll('.drag-item')]
+        .map(c=>c.dataset.id)
+        .filter(id => !id.startsWith('hotel_checkin_'))
+    : [];
   const bEl = document.getElementById('bucket-unassigned');
   S.planBacklog = bEl
     ? [...bEl.querySelectorAll('.drag-item')]
         .map(c=>c.dataset.id)
-        .filter(id => !id.startsWith('hotel_checkin_'))  // hotel cards di backlog tidak disimpan ke planBacklog
+        .filter(id => !id.startsWith('hotel_checkin_'))
     : [];
 }
 
@@ -2318,10 +2358,13 @@ function renderPlanningBoard() {
     </div>` : '';
 
   const arrivalHTML = `
-    <div class="plan-col locked">
+    <div class="plan-col" style="border-color:rgba(255,255,255,.06)">
       <div class="plan-col-header">
-        <span class="plan-day-badge">1</span> Hari 1 — Kedatangan 🔒
-        <span style="font-size:10px;color:#3a5a3a;margin-left:auto">Otomatis</span>
+        <span class="plan-day-badge">1</span> Hari 1 — Kedatangan
+        <span style="font-size:10px;color:#3a5a3a;margin-left:auto">Check-in otomatis</span>
+      </div>
+      <div class="plan-col-body" id="bucket-day-arrival">
+        <div class="plan-empty" style="font-size:11px">Opsional: tambah destinasi sore hari kedatangan</div>
       </div>
     </div>`;
 
@@ -2350,7 +2393,7 @@ function renderPlanningBoard() {
   }).join('');
 
   const depHTML = totalDays > 1 ? `
-    <div class="plan-col locked" style="border-color:rgba(74,122,74,.3)">
+    <div class="plan-col locked" style="border-color:rgba(74,122,74,.2);opacity:.5">
       <div class="plan-col-header">
         <span class="plan-day-badge" style="background:#4a7a4a">${totalDays}</span>
         Hari ${totalDays} — Kepulangan 🔒
@@ -2389,6 +2432,8 @@ function initSortableBoard() {
 
   const containers = document.querySelectorAll('.plan-col-body');
   containers.forEach(col => {
+    // Skip: locked departure day tidak perlu SortableJS
+    if (col.closest('.plan-col.locked')) return;
     const inst = new Sortable(col, {
       group:            'wandr-board',
       animation:        280,
@@ -2432,7 +2477,7 @@ function generate() {
       const days = [];
 
       // Day 1: Arrival
-      days.push(buildArrivalDay(kota, S.transport, S.penginapan));
+      days.push(injectArrivalExtras(buildArrivalDay(kota, S.transport, S.penginapan)));
 
       // Group by zone
       const byZone = {};
@@ -2522,7 +2567,7 @@ function generateFromPlan() {
     const days = [];
 
     // Hari 1: Kedatangan (selalu)
-    days.push(buildArrivalDay(kota, S.transport, S.penginapan));
+    days.push(injectArrivalExtras(buildArrivalDay(kota, S.transport, S.penginapan)));
 
     // Hari dari planning board
     S.planDays.forEach((allIds, i) => {
