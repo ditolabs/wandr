@@ -585,11 +585,20 @@ document.getElementById('btnDoLogin').addEventListener('click', async () => {
   try {
     if (auth) {
       await auth.signInWithEmailAndPassword(email, pass);
+      
+      // ─── TAMBAHKAN BARIS INI UNTUK DIALIKKAN KE ADMIN ───
+      window.location.href = 'admin.html';
+      
       document.getElementById('modalLogin').style.display = 'none';
       document.getElementById('loginEmail').value = '';
       document.getElementById('loginPass').value = '';
     } else {
+      // Mode offline fallback (jika Firebase tidak aktif saat testing)
       setAdmin(true, email);
+      
+      // ─── TAMBAHKAN JUGA DI SINI UNTUK MODE OFFLINE ───
+      window.location.href = 'admin.html';
+      
       document.getElementById('modalLogin').style.display = 'none';
     }
   } catch(e) {
@@ -600,6 +609,7 @@ document.getElementById('btnDoLogin').addEventListener('click', async () => {
     errEl.style.display = 'block';
   } finally { btn.textContent = 'Masuk'; btn.disabled = false; }
 });
+
 
 // User dropdown menu
 document.getElementById('user-menu').addEventListener('click', (e) => e.stopPropagation());
