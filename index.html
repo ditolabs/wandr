@@ -1282,33 +1282,33 @@ function renderStep2() {
           ? filteredHotels.map(p => {
               const sel = S.penginapanId === p.id;
               const distTxt = p.dist!=null?(p.dist<1?Math.round(p.dist*1000)+'m':p.dist.toFixed(1)+'km'):'';
-              return \`<div class="autocomplete-item\${sel?' active':''}" data-penginapan-ac="\${p.id}">
+              return `<div class="autocomplete-item\${sel?' active':''}" data-penginapan-ac="\${p.id}">
                 <span style="font-size:20px">🏨</span>
                 <div>
                   <div class="autocomplete-item-name">\${esc(p.nama)}\${sel?' ✓':''}</div>
                   <div class="autocomplete-item-sub">\${p.kawasan||''}\${distTxt?' · ~'+distTxt+' dari destinasi':''}\${p.harga?' · Rp'+p.harga:''}</div>
                 </div>
-              </div>\`;
+              </div>`;
             }).join('')
-          : \`<div class="autocomplete-empty">Tidak ditemukan — coba kata kunci lain</div>\`
+          : `<div class="autocomplete-empty">Tidak ditemukan — coba kata kunci lain</div>`
         }
       </div>
     </div>
     ${S.penginapanId ? (() => {
         const sel = (S.allPenginapan||[]).find(p=>p.id===S.penginapanId) || (S.penginapanOptions||[]).find(p=>p.id===S.penginapanId);
         if (!sel) return '';
-        return \`<div class="card-opt sm selected" style="margin-bottom:10px;pointer-events:none">
+        return `<div class="card-opt sm selected" style="margin-bottom:10px;pointer-events:none">
           <span class="card-opt-icon">🏨</span>
           <div style="flex:1;min-width:0">
             <div class="card-opt-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\${esc(sel.nama)}</div>
             <div class="card-opt-sub">\${sel.kawasan||''}\${sel.harga?' · Rp'+sel.harga:''}</div>
           </div>
           <span class="card-opt-check">✓</span>
-        </div>\`;
+        </div>`;
       })() : ''}
-    ${!S.penginapanId && !hotelQuery && S.penginapanOptions.length > 0 ? \`
+    ${!S.penginapanId && !hotelQuery && S.penginapanOptions.length > 0 ? `
       <div style="font-size:11px;color:#4a6a4a;margin-bottom:8px">📍 Terdekat dari destinasimu:</div>
-      <div class="card-list" id="hotel-suggestions">\${hotelSuggestions}</div>\` : ''}
+      <div class="card-list" id="hotel-suggestions">\${hotelSuggestions}</div>` : ''}
     ${allHotels.length === 0 ? `
       <div class="card-list">
         ${PENGINAPAN.map(p =>
