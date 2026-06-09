@@ -420,12 +420,23 @@
     </div>
     <div class="form-grid">
       <div class="form-row">
-        <label class="form-label">Latitude</label>
-        <input type="number" class="form-input" id="f-lat" placeholder="-8.2xxx" step="0.0001">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Latitude</span>
+          <button type="button" id="btn-auto-geocode" onclick="autoGeocode()"
+            style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(99,179,237,.15);
+            border:1px solid rgba(99,179,237,.35);color:#63b3ed;cursor:pointer;font-family:inherit;
+            white-space:nowrap;transition:all .2s">
+            📍 Auto
+          </button>
+        </label>
+        <input type="number" class="form-input" id="f-lat" placeholder="-8.2xxx" step="0.000001">
       </div>
       <div class="form-row">
-        <label class="form-label">Longitude</label>
-        <input type="number" class="form-input" id="f-lng" placeholder="114.3xxx" step="0.0001">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Longitude</span>
+          <span id="geocode-status" style="font-size:10px;color:#5a7a5a"></span>
+        </label>
+        <input type="number" class="form-input" id="f-lng" placeholder="114.3xxx" step="0.000001">
       </div>
     </div>
     <div class="form-row">
@@ -446,7 +457,93 @@
 <div id="toast"></div>
 
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+// ── AUTO GEOCODE ──────────────────────────────────────────────────────────────
+async function autoGeocode() {
+  const btn    = document.getElementById('btn-auto-geocode');
+  const status = document.getElementById('geocode-status');
+  const latEl  = document.getElementById('f-lat');
+  const lngEl  = document.getElementById('f-lng');
+  const nama   = document.getElementById('f-nama')?.value?.trim() || '';
+  const kawasan= document.getElementById('f-kawasan')?.value?.trim() || '';
+  const mapsUrl= document.getElementById('f-maps')?.value?.trim() || '';
+
+  // Coba extract koordinat dari Maps URL dulu
+  const fromUrl = extractCoordsFromUrl(mapsUrl);
+  if (fromUrl) {
+    latEl.value = fromUrl.lat;
+    lngEl.value = fromUrl.lng;
+    setGeocodeStatus('✓ Dari URL Maps', '#48bb78');
+    return;
+  }
+
+  // Fallback: geocode via Photon API
+  if (!nama) {
+    setGeocodeStatus('⚠ Isi nama dulu', '#e07b39');
+    return;
+  }
+
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  setGeocodeStatus('Mencari...', '#63b3ed');
+
+  const query = encodeURIComponent(`${nama} ${kawasan} Banyuwangi`);
+  const url   = `https://photon.komoot.io/api/?q=${query}&limit=5`;
+
+  try {
+    const res  = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const data = await res.json();
+
+    const LAT_MIN = -8.8, LAT_MAX = -7.9, LNG_MIN = 113.9, LNG_MAX = 114.5;
+    const features = data.features || [];
+
+    // Prioritas: hasil yang masuk bbox Banyuwangi
+    let best = features.find(f => {
+      const [lng, lat] = f.geometry.coordinates;
+      return lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX;
+    }) || features[0];
+
+    if (best) {
+      const [lng, lat] = best.geometry.coordinates;
+      latEl.value = lat.toFixed(6);
+      lngEl.value = lng.toFixed(6);
+      const displayName = best.properties?.name || '';
+      const inBbox = lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX;
+      setGeocodeStatus(
+        inBbox ? `✓ ${displayName.slice(0,25)}` : `⚠ Di luar Banyuwangi`,
+        inBbox ? '#48bb78' : '#e07b39'
+      );
+    } else {
+      setGeocodeStatus('✗ Tidak ditemukan', '#fc8181');
+    }
+  } catch(e) {
+    setGeocodeStatus('✗ Error: ' + e.message.slice(0,30), '#fc8181');
+  } finally {
+    btn.textContent = '📍 Auto';
+    btn.disabled = false;
+  }
+}
+
+function extractCoordsFromUrl(url) {
+  if (!url) return null;
+  // Format: maps.google.com/.../@lat,lng,zoom
+  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format: maps.google.com/?q=lat,lng
+  m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format: ll=lat,lng
+  m = url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  return null;
+}
+
+function setGeocodeStatus(msg, color) {
+  const el = document.getElementById('geocode-status');
+  if (el) { el.textContent = msg; el.style.color = color; }
+}
+
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
