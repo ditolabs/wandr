@@ -544,10 +544,29 @@ function hideLogin()  { document.getElementById('login-screen').classList.add('h
 function onLogin(email) {
   hideLogin();
   document.getElementById('tb-user').textContent = email;
-  loadTab('wisata');
-  
-  // ─── SELIPKAN BARIS INI ───
+  loadAllTabs();
   pasangTombolPembersih();
+}
+
+async function loadAllTabs() {
+  if (!db) { ['wisata','penginapan','kuliner'].forEach(t => renderTable(t)); return; }
+  try {
+    const all = await fetchAllDocs(true);
+    const typeMap = {
+      wisata:     ['wisata'],
+      penginapan: ['penginapan','hotel','homestay'],
+      kuliner:    ['kuliner','kuliner_cafe','cafe','restoran'],
+    };
+    for (const type of ['wisata','penginapan','kuliner']) {
+      state.data[type] = all.filter(d => typeMap[type].includes((d.type||'').toLowerCase()));
+      state.loaded[type] = true;
+    }
+    updateStats();
+    renderTable('wisata');
+  } catch(e) {
+    toast('Gagal load data: ' + e.message, 'err');
+    console.error(e);
+  }
 }
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-item').forEach(el => {
@@ -566,25 +585,35 @@ document.querySelectorAll('.nav-item').forEach(el => {
 });
 
 // ─── LOAD FROM FIREBASE ───────────────────────────────────────────────────────
-async function loadTab(type) {
+// Cache semua data sekali dari Firebase, filter di client
+let _allDocsCache = null;
+let _allDocsCacheTime = 0;
+
+async function fetchAllDocs(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && _allDocsCache && (now - _allDocsCacheTime) < 30000) {
+    return _allDocsCache; // cache 30 detik
+  }
+  const snap = await db.collection('places').get();
+  _allDocsCache = snap.docs.map(doc => ({ _id: doc.id, ...doc.data(), _source: 'firebase' }));
+  _allDocsCacheTime = now;
+  return _allDocsCache;
+}
+
+async function loadTab(type, forceRefresh = false) {
   if (!db) { renderTable(type); return; }
   try {
-    const fbType = type === 'kuliner' ? 'kuliner' : type;
-    // Query by type field
-    let snap;
-    if (type === 'wisata') {
-      snap = await db.collection('places').where('type','==','wisata').get();
-    } else if (type === 'penginapan') {
-      snap = await db.collection('places').where('type','==','penginapan').get();
-    } else {
-      snap = await db.collection('places').where('type','==','kuliner').get();
-    }
-    state.data[type] = snap.docs.map(doc => ({ _id: doc.id, ...doc.data(), _source:'firebase' }));
+    const all = await fetchAllDocs(forceRefresh);
+    // Filter by type — handle semua variasi nilai type di Firestore
+    const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
+    const validTypes = typeMap[type] || [type];
+    state.data[type] = all.filter(d => validTypes.includes((d.type||'').toLowerCase()));
     state.loaded[type] = true;
     updateStats();
     renderTable(type);
   } catch(e) {
-    toast('Gagal load '+type+': '+e.message, 'err');
+    toast('Gagal load ' + type + ': ' + e.message, 'err');
+    console.error('loadTab error:', e);
     renderTable(type);
   }
 }
@@ -939,32 +968,41 @@ document.getElementById('btn-import-push').addEventListener('click', async () =>
   toast(`Push selesai: ${done} data berhasil`, done>0?'ok':'err');
   document.getElementById('btn-import-push').disabled = false;
   document.getElementById('btn-import-local').disabled = false;
-  // Reload semua tab
+  // Reload semua tab — force refresh cache
+  _allDocsCache = null;
   state.loaded = { wisata:false, penginapan:false, kuliner:false };
-  loadTab('wisata');
+  loadTab('wisata', true);
 });
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
 async function exportData(types) {
   if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
   toast('Mengambil data dari Firebase...', 'info');
-  const result = {};
-  for (const type of types) {
-    const snap = await db.collection('places').where('type','==',type).get();
-    const key = type === 'wisata' ? 'wisata_banyuwangi' : type === 'kuliner' ? 'kuliner_cafe' : type;
-    result[key] = snap.docs.map(doc => {
-      const d = doc.data();
-      return { Id:doc.id, Nama:d.nama, Kawasan:d.kawasan, Kategori:d.kategori,
-        Akses:d.akses, Catatan:d.catatan, Maps:d.maps, Status:d.status,
-        ...(d.lat?{lat:d.lat}:{}), ...(d.lng?{lng:d.lng}:{}) };
-    });
+  try {
+    const all = await fetchAllDocs(true); // selalu fresh saat export
+    const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
+    const result = {};
+    for (const type of types) {
+      const validTypes = typeMap[type] || [type];
+      const docs = all.filter(d => validTypes.includes((d.type||'').toLowerCase()));
+      const key = type === 'wisata' ? 'wisata_banyuwangi' : type === 'kuliner' ? 'kuliner_cafe' : type;
+      result[key] = docs.map(d => ({
+        Id: d._id, Nama: d.nama, Kawasan: d.kawasan, Kategori: d.kategori,
+        Akses: d.akses, Catatan: d.catatan, Maps: d.maps, Status: d.status,
+        ...(d.lat ? {lat: d.lat} : {}), ...(d.lng ? {lng: d.lng} : {})
+      }));
+    }
+    const ts   = new Date().toISOString().slice(0,10);
+    const blob = new Blob([JSON.stringify(result, null, 2)], {type:'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `bwi-db-export-${ts}.json`;
+    a.click(); URL.revokeObjectURL(url);
+    const total = Object.values(result).reduce((s,arr) => s+arr.length, 0);
+    toast(`Export ${total} records berhasil ✓`);
+  } catch(e) {
+    toast('Gagal export: ' + e.message, 'err');
   }
-  const blob = new Blob([JSON.stringify(result, null, 2)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = `bwi-db-export-${Date.now()}.json`;
-  a.click(); URL.revokeObjectURL(url);
-  toast('Export berhasil diunduh ✓');
 }
 
 document.getElementById('btn-export-all').addEventListener('click', () => exportData(['wisata','penginapan','kuliner']));
