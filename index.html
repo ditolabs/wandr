@@ -585,20 +585,11 @@ document.getElementById('btnDoLogin').addEventListener('click', async () => {
   try {
     if (auth) {
       await auth.signInWithEmailAndPassword(email, pass);
-      
-      // ─── TAMBAHKAN BARIS INI UNTUK DIALIKKAN KE ADMIN ───
-      window.location.href = 'admin.html';
-      
       document.getElementById('modalLogin').style.display = 'none';
       document.getElementById('loginEmail').value = '';
       document.getElementById('loginPass').value = '';
     } else {
-      // Mode offline fallback (jika Firebase tidak aktif saat testing)
       setAdmin(true, email);
-      
-      // ─── TAMBAHKAN JUGA DI SINI UNTUK MODE OFFLINE ───
-      window.location.href = 'admin.html';
-      
       document.getElementById('modalLogin').style.display = 'none';
     }
   } catch(e) {
@@ -609,7 +600,6 @@ document.getElementById('btnDoLogin').addEventListener('click', async () => {
     errEl.style.display = 'block';
   } finally { btn.textContent = 'Masuk'; btn.disabled = false; }
 });
-
 
 // User dropdown menu
 document.getElementById('user-menu').addEventListener('click', (e) => e.stopPropagation());
@@ -771,10 +761,12 @@ async function loadDestinations() {
     return;
   }
   try {
-    // Timeout 8 detik — kalau lebih lama, pakai fallback
-    const timeout = new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 8000));
-    const query   = db.collection('places').where('type','==','wisata').get();
+    // Fetch semua places tanpa filter — hindari kebutuhan Firestore composite index
+    const timeout = new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 10000));
+    const query   = db.collection('places').get();
     const snap    = await Promise.race([query, timeout]);
+    // Cache untuk dipakai loadPenginapanOptions (hindari fetch ulang)
+    window._placesCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     const loaded = snap.docs
       .map(doc => mapToWandr(doc.id, doc.data()))
@@ -782,14 +774,14 @@ async function loadDestinations() {
 
     if (loaded.length > 0) {
       DESTINATIONS = loaded;
-      console.log(`✓ Firebase: ${loaded.length} destinasi dimuat`);
+      console.log(`✓ Firebase: ${loaded.length} destinasi wisata dimuat dari ${snap.docs.length} total records`);
     } else {
       DESTINATIONS = DESTINATIONS_FALLBACK;
       console.warn('Firebase kosong atau semua pending, pakai fallback');
     }
   } catch(e) {
     DESTINATIONS = DESTINATIONS_FALLBACK;
-    console.warn('Firebase gagal ('+e.message+'), pakai fallback');
+    console.warn('Firebase gagal (' + e.message + '), pakai fallback');
   }
 }
 
@@ -916,7 +908,7 @@ function parseDestInput(text) {
       const score = matchScore(term, d);
       if (score > bestScore) { bestScore = score; bestMatch = d; }
     });
-    if (bestMatch && bestScore >= 40) S.destinations.add(bestMatch.id);
+    if (bestMatch && bestScore >= 50) S.destinations.add(bestMatch.id);
   });
 }
 
@@ -924,20 +916,45 @@ function parseDestInput(text) {
 function matchScore(term, d) {
   const t = term.toLowerCase().trim();
   const n = d.name.toLowerCase();
-  // 1. Alias match — paling reliable
-  if (d.aliases && d.aliases.some(a => a === t || t === a || t.includes(a) || a.includes(t))) return 95;
-  // 2. Exact
+
+  // 1. Exact name match
   if (n === t) return 100;
-  // 3. Nama mengandung term (min 3 karakter)
-  if (t.length >= 3 && n.includes(t)) return 80;
-  // 4. Term mengandung nama penuh (min 4 karakter)
-  if (n.length >= 4 && t.includes(n)) return 75;
-  // 5. Word-level — kata bermakna (>2 char) yang cocok
-  const nWords    = n.split(' ').filter(w => w.length > 2);
-  const termWords = t.split(' ').filter(w => w.length > 2);
+
+  // 2. Alias match — hanya kalau alias cukup spesifik (minimal 4 karakter dan bukan substring pendek)
+  if (d.aliases) {
+    for (const a of d.aliases) {
+      if (a.length < 4) continue; // skip alias terlalu pendek
+      if (a === t) return 98;
+      // Alias sama persis dengan term atau term sama persis dengan alias
+      if (t === a) return 98;
+      // Alias mengandung term (term lebih spesifik)
+      if (a.includes(t) && t.length >= 5) return 90;
+      // Term mengandung alias — hanya kalau alias panjang (>=8 char) supaya tidak false positive
+      // "alas purwo" (10 char) boleh, tapi "jepang" (6 char) jangan match "taman nasional alas purwo"
+      if (t.includes(a) && a.length >= 8) return 85;
+    }
+  }
+
+  // 3. Nama mengandung term (min 4 karakter)
+  if (t.length >= 4 && n.includes(t)) return 80;
+
+  // 4. Term mengandung nama penuh (min 5 karakter)
+  if (n.length >= 5 && t.includes(n)) return 75;
+
+  // 5. Word-level — hitung kata bermakna yang cocok
+  const skipWords = new Set(['dan','yang','ke','di','dari','untuk','dengan','atau','taman','nasional','pantai','air','goa','gua','pulau','bukit','gunung','perkebunan']);
+  const nWords    = n.split(' ').filter(w => w.length > 2 && !skipWords.has(w));
+  const termWords = t.split(' ').filter(w => w.length > 2 && !skipWords.has(w));
   if (!nWords.length || !termWords.length) return 0;
-  const hits = termWords.filter(tw => nWords.some(nw => nw.startsWith(tw) || tw.startsWith(nw)));
-  return hits.length ? Math.round((hits.length / Math.max(nWords.length, termWords.length)) * 60) : 0;
+
+  const hits = termWords.filter(tw => nWords.some(nw => nw === tw || nw.startsWith(tw) || tw.startsWith(nw)));
+
+  // Hitung coverage: berapa banyak kata nama yang ter-cover oleh term
+  const coverage = hits.length / nWords.length;
+  const precision = hits.length / termWords.length;
+  // Pakai harmonic mean (F1-score style) supaya harus cocok di kedua sisi
+  const f1 = coverage + precision > 0 ? 2 * coverage * precision / (coverage + precision) : 0;
+  return f1 >= 0.5 ? Math.round(f1 * 60) : 0;
 }
 
 
@@ -945,12 +962,20 @@ function matchScore(term, d) {
 async function loadPenginapanOptions() {
   if (!db) { S.penginapanOptions = []; S.allPenginapan = []; return; }
   try {
-    const snap = await db.collection('places').where('type','==','penginapan').get();
-    const all  = snap.docs
-      .map(doc => ({ id:doc.id, ...doc.data() }))
-      .filter(d => d.nama);
+    // Pakai cache dari loadDestinations kalau ada, hindari fetch ulang
+    let allDocs;
+    if (window._placesCache) {
+      allDocs = window._placesCache;
+    } else {
+      const snap = await db.collection('places').get();
+      allDocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      window._placesCache = allDocs;
+    }
 
-    // Cache semua penginapan untuk search
+    const all = allDocs.filter(d => {
+      const t = (d.type||'').toLowerCase();
+      return ['penginapan','hotel','homestay','villa','guesthouse'].includes(t);
+    });
     S.allPenginapan = all;
 
     // Hitung terdekat dari destinasi terpilih (jika ada koordinat)
@@ -1001,7 +1026,7 @@ async function loadKulinerNearPenginapan(lat, lng) {
 function isTermMatched(term) {
   const t = term.toLowerCase().trim();
   if (!t) return true;
-  return DESTINATIONS.some(d => matchScore(t, d) >= 40);
+  return DESTINATIONS.some(d => matchScore(t, d) >= 50);
 }
 
 function renderStep0() {
@@ -2001,7 +2026,7 @@ function buildArrivalDay(kota, transport, penginapan) {
       tips:'', estimatedCost:0, type:'penginapan' });
   }
 
-  return { day:1, date_label:'Hari 1', title:`Kedatangan dari ${kota}`, activities:acts };
+  return { day:1, date_label:'Hari 1', title:`Kedatangan dari ${kota}`, activities:sortActivities(acts) };
 }
 
 // Tambah destinasi ekstra dari arrival bucket ke hari 1
@@ -2025,6 +2050,8 @@ function injectArrivalExtras(arrivalDay) {
   } else {
     arrivalDay.activities.push(...extraActs);
   }
+  // Sort ulang setelah inject
+  arrivalDay.activities = sortActivities(arrivalDay.activities);
   return arrivalDay;
 }
 
@@ -2208,7 +2235,19 @@ function buildActivityDay(dayNum, spots, zone, form) {
   // Day title
   const names = spots.map(s=>s.name);
   const title = names.length<=2 ? names.join(' & ') : `Eksplorasi ${ZONE_LABEL_SHORT[zone]||zone} (${names.length} Destinasi)`;
-  return { day:dayNum, date_label:`Hari ${dayNum}`, title, activities:acts };
+  return { day:dayNum, date_label:`Hari ${dayNum}`, title, activities:sortActivities(acts) };
+}
+
+// Convert "HH:MM" ke menit untuk sorting
+function timeToMin(t) {
+  if (!t || typeof t !== 'string') return 9999;
+  const [h, m] = t.split(':').map(Number);
+  return (h||0)*60 + (m||0);
+}
+
+// Sort activities dalam satu hari berdasarkan waktu
+function sortActivities(acts) {
+  return [...acts].sort((a,b) => timeToMin(a.time) - timeToMin(b.time));
 }
 
 const ZONE_LABEL_SHORT = { barat:'Barat/Ijen', utara:'Utara', selatan:'Selatan', kota:'Kota BWI' };
@@ -2608,7 +2647,7 @@ function generateFromPlan() {
           duration: '1 jam', description: 'Check-in penginapan. Taruh barang dan istirahat sejenak.',
           tips: 'Siapkan dokumen booking.', estimatedCost: 0, type: 'penginapan',
         }));
-        days.push({ day:dayNum, date_label:`Hari ${dayNum}`, title:'Check-in Penginapan', activities:act });
+        days.push({ day:dayNum, date_label:`Hari ${dayNum}`, title:'Check-in Penginapan', activities:sortActivities(act) });
         return;
       }
       if (spots.length === 0) return;
@@ -2623,7 +2662,7 @@ function generateFromPlan() {
           duration: '1 jam', description: 'Check-in penginapan baru.',
           tips: '', estimatedCost: 0, type: 'penginapan',
         }));
-        builtDay.activities = [...builtDay.activities, ...checkinActs];
+        builtDay.activities = sortActivities([...builtDay.activities, ...checkinActs]);
       }
 
       days.push(builtDay);
