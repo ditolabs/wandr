@@ -512,7 +512,7 @@ function showLogin()  { document.getElementById('login-screen').classList.remove
 function hideLogin()  { document.getElementById('login-screen').classList.add('hidden'); }
 function onLogin(email) {
   hideLogin();
-  document.getElementById('tb-user').textContent = email;
+  const _tb = document.getElementById('tb-user'); if(_tb) _tb.textContent = email;
   loadAllTabs();
   pasangTombolPembersih();
 }
@@ -590,12 +590,13 @@ async function loadTab(type, forceRefresh = false) {
 function updateStats() {
   const all = [...state.data.wisata, ...state.data.penginapan, ...state.data.kuliner];
   const localAll = [...state.local.wisata, ...state.local.penginapan, ...state.local.kuliner];
-  document.getElementById('stat-total').textContent   = all.filter(d=>d.status==='approved'||!d.status).length;
-  document.getElementById('stat-pending').textContent = all.filter(d=>d.status==='pending').length;
-  document.getElementById('stat-local').textContent   = localAll.length;
-  document.getElementById('cnt-wisata').textContent      = state.data.wisata.length + state.local.wisata.length;
-  document.getElementById('cnt-penginapan').textContent  = state.data.penginapan.length + state.local.penginapan.length;
-  document.getElementById('cnt-kuliner').textContent     = state.data.kuliner.length + state.local.kuliner.length;
+  const _s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  _s('stat-total',   all.filter(d=>d.status==='approved'||!d.status).length);
+  _s('stat-pending', all.filter(d=>d.status==='pending').length);
+  _s('stat-local',   localAll.length);
+  setEl('cnt-wisata',     state.data.wisata.length + state.local.wisata.length);
+  setEl('cnt-penginapan', state.data.penginapan.length + state.local.penginapan.length);
+  setEl('cnt-kuliner',    state.data.kuliner.length + state.local.kuliner.length);
 }
 
 // ─── RENDER TABLE ─────────────────────────────────────────────────────────────
