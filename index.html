@@ -4,81 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Wandr — Buat Itinerary Banyuwangi</title>
-  <meta name="description" content="Generate itinerary perjalanan Banyuwangi secara otomatis dengan AI. Masukkan destinasi, pilih kendaraan dan durasi, itinerary langsung jadi.">
-  
+  <meta name="description" content="Generate itinerary perjalanan Banyuwangi secara otomatis dengan AI.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
+    window.tailwind = { config: {
       theme: {
         extend: {
-          colors: {
-            beige: '#F4EFEA',      // Latar luar
-            appBg: '#FAFAFA',      // Latar dalam app
-            dark: '#1C1C1E',       // Hitam elegan
-            grayLight: '#F3F4F6',  // Abu-abu terang
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            serif: ['Playfair Display', 'serif'],
-          }
+          colors: { beige:'#F4EFEA', appBg:'#FAFAFA', dark:'#1C1C1E', grayLight:'#F3F4F6' },
+          fontFamily: { sans:['Inter','sans-serif'], serif:['Playfair Display','serif'] }
         }
       }
-    }
+    }};
   </script>
-
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* ── RESET & BASE ──────────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; scroll-behavior: smooth; }
-    body { background-color: #E5DFD3; -webkit-font-smoothing: antialiased; }
-    ::-webkit-scrollbar { display: none; }
-    
-    /* ── KELAS CSS KHUSUS YANG DIMANIPULASI OLEH JAVASCRIPT (JANGAN DIHAPUS) ── */
-    /* Karena JS menggunakan `className = '...'`, kita harus mempertahankan nama kelas ini */
-    
-    .step-labels { display: flex; justify-content: space-between; margin-bottom: 12px; padding: 0 4px; }
-    .step-label { font-size: 10px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s; }
-    .step-label.active { color: #1C1C1E; font-weight: 800; }
-    .step-label.done   { color: #1C1C1E; opacity: 0.5; }
-    
-    .progress-bar { height: 4px; background: #E5E7EB; border-radius: 4px; overflow: hidden; margin-bottom: 30px; }
-    .progress-fill { height: 100%; background: #1C1C1E; border-radius: 4px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-
-    .btn-pri {
-      background: #1C1C1E; color: white; border: none; border-radius: 9999px; padding: 14px 28px;
-      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px;
-      cursor: pointer; transition: all 0.2s; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
-    }
-    .btn-pri:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    .btn-pri:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; transform: none; }
-    
-    .btn-ghost {
-      background: transparent; color: #6B7280; border: none; padding: 14px 0;
-      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px;
-      cursor: pointer; transition: color 0.2s;
-    }
-    .btn-ghost:hover { color: #1C1C1E; }
-    .btn-ghost.hidden { visibility: hidden; display: none !important; }
-
-    /* ── ANIMASI & DRAG AND DROP ── */
-    @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-    .sortable-chosen { background: #F3F4F6 !important; border-color: #1C1C1E !important; transform: scale(1.02); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-    .sortable-ghost { opacity: 0.3; border: 2px dashed #1C1C1E !important; background: transparent !important; }
-
-    /* Fix input focus outline & RTL bug in Android */
-    input, select, textarea { direction: ltr !important; text-align: left !important; outline: none !important; }
-    input:focus, select:focus, textarea:focus { border-color: #1C1C1E !important; ring: 1px !important; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;scroll-behavior:smooth}
+    body{background-color:#E5DFD3;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{display:none}
+    .step-labels{display:flex;justify-content:space-between;margin-bottom:12px;padding:0 4px}
+    .step-label{font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em;transition:all .3s}
+    .step-label.active{color:#1C1C1E;font-weight:800}
+    .step-label.done{color:#1C1C1E;opacity:.5}
+    .progress-bar{height:4px;background:#E5E7EB;border-radius:4px;overflow:hidden;margin-bottom:30px}
+    .progress-fill{height:100%;background:#1C1C1E;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+    .btn-pri{background:#1C1C1E;color:white;border:none;border-radius:9999px;padding:14px 28px;font-family:'Inter',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;box-shadow:0 10px 25px rgba(0,0,0,.1);display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+    .btn-pri:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
+    .btn-pri:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+    .btn-ghost{background:transparent;color:#6B7280;border:none;padding:14px 0;font-family:'Inter',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:color .2s}
+    .btn-ghost:hover{color:#1C1C1E}
+    .btn-ghost.hidden{visibility:hidden;display:none!important}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .animate-fade-in{animation:fadeIn .3s ease-out}
+    .animate-slide-up{animation:slideUp .4s ease-out}
+    .sortable-chosen{background:#F3F4F6!important;border-color:#1C1C1E!important;transform:scale(1.02);box-shadow:0 10px 25px rgba(0,0,0,.05)}
+    .sortable-ghost{opacity:.3;border:2px dashed #1C1C1E!important;background:transparent!important}
+    input,select,textarea{direction:ltr!important;text-align:left!important;outline:none!important}
+    input:focus,select:focus,textarea:focus{border-color:#1C1C1E!important}
+    /* Autocomplete light theme */
+    .autocomplete-wrap{position:relative}
+    .autocomplete-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100;background:white;border:1.5px solid #E5E7EB;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.08);max-height:260px;overflow-y:auto}
+    .autocomplete-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #F9FAFB;transition:background .15s;display:flex;align-items:center;gap:10px}
+    .autocomplete-item:last-child{border-bottom:none}
+    .autocomplete-item:hover,.autocomplete-item.active{background:#F3F4F6}
+    .autocomplete-item-name{font-size:13px;font-weight:600;color:#1C1C1E}
+    .autocomplete-item-sub{font-size:11px;color:#9CA3AF;margin-top:1px}
+    .autocomplete-empty{padding:14px;text-align:center;font-size:12px;color:#9CA3AF;font-style:italic}
   </style>
 </head>
 <body class="flex justify-center items-center min-h-screen font-sans text-dark">
 
-<div id="modalLogin" style="display:none;position:fixed;inset:0;background:rgba(28, 28, 30, 0.4);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:24px;">
+<div id="modalLogin" style="display:none;position:fixed;inset:0;background:rgba(28,28,30,0.4);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:24px;">
   <div class="bg-white rounded-[30px] w-full max-w-[360px] p-8 shadow-2xl">
     <div class="flex justify-between items-start mb-8">
       <div>
@@ -105,16 +85,11 @@
     <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Logged in as</div>
     <div id="menu-username" class="font-bold text-sm text-dark truncate mt-1">Admin</div>
   </div>
-  <div onclick="window.location.href='admin.html'" class="px-4 py-3 text-sm font-semibold text-dark hover:bg-grayLight rounded-xl cursor-pointer transition flex items-center gap-3">
-    <span>📊</span> Dashboard
-  </div>
-  <div id="menu-logout" class="px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl cursor-pointer transition mt-1 flex items-center gap-3">
-    <span>🚪</span> Sign Out
-  </div>
+  <div onclick="window.location.href='admin.html'" class="px-4 py-3 text-sm font-semibold text-dark hover:bg-grayLight rounded-xl cursor-pointer transition flex items-center gap-3"><span>📊</span> Dashboard</div>
+  <div id="menu-logout" class="px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl cursor-pointer transition mt-1 flex items-center gap-3"><span>🚪</span> Sign Out</div>
 </div>
 
 <div id="app" class="w-full max-w-[414px] bg-appBg min-h-screen sm:min-h-[850px] sm:h-[850px] sm:rounded-[40px] sm:shadow-2xl overflow-x-hidden relative flex flex-col mx-auto">
-
   <div id="header" class="pt-12 pb-6 px-6 flex justify-between items-center bg-appBg z-10 relative">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 bg-white border border-gray-100 rounded-[14px] flex items-center justify-center text-xl shadow-sm">🗺️</div>
@@ -123,40 +98,34 @@
         <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Banyuwangi</div>
       </div>
     </div>
-    <button id="btnLogin" title="Login admin" class="w-10 h-10 flex items-center justify-center bg-white border border-gray-100 rounded-full text-lg shadow-sm hover:bg-gray-50 transition">
-      🔐
-    </button>
+    <button id="btnLogin" title="Login admin" class="w-10 h-10 flex items-center justify-center bg-white border border-gray-100 rounded-full text-lg shadow-sm hover:bg-gray-50 transition">🔐</button>
   </div>
-
-  <div id="progress-area" class="px-6">
+  <div id="progress-area" class="px-6" style="display:none">
     <div class="step-labels">
       <span class="step-label active" data-i="0">Destinasi</span>
-      <span class="step-label"        data-i="1">Transport</span>
-      <span class="step-label"        data-i="2">Preferensi</span>
-      <span class="step-label"        data-i="3">Susun</span>
+      <span class="step-label" data-i="1">Transport</span>
+      <span class="step-label" data-i="2">Preferensi</span>
+      <span class="step-label" data-i="3">Susun</span>
     </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
   </div>
-
-  <div id="content" class="flex-1 px-6 pb-28 overflow-y-auto no-scrollbar"></div>
-
+  <div id="content" class="flex-1 px-6 pb-28 overflow-y-auto" style="-ms-overflow-style:none;scrollbar-width:none"></div>
   <div id="nav" class="absolute bottom-0 left-0 right-0 px-6 py-5 bg-white/80 backdrop-blur-md border-t border-gray-100 flex justify-between items-center sm:rounded-b-[40px] z-20">
     <button class="btn-ghost hidden" id="btn-back">← Kembali</button>
     <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest" id="dest-count"></span>
     <button class="btn-pri" id="btn-next" disabled>Lanjut →</button>
   </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+<!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-// ── FIREBASE CONFIG ──
+// ─── FIREBASE CONFIG ─────────────────────────────────────────────────────────
 let db = null, auth = null;
 try {
   if (typeof firebase !== 'undefined') {
@@ -173,151 +142,604 @@ try {
     db   = firebase.firestore();
     auth = firebase.auth();
   }
-} catch(e) { db = null; auth = null; }
+} catch(e) {
+  console.warn('Firebase init gagal:', e.message);
+  db = null; auth = null;
+}
 
-// ── AUTH LOGIC ──
+// ─── AUTH — POLA BWI-APP-V3 (email + password) ───────────────────────────────
 let isAdmin = false;
+
 function setAdmin(val, email) {
   isAdmin = val;
   const btn = document.getElementById('btnLogin');
   if (val) {
     btn.textContent = '🔓';
-    btn.classList.replace('bg-white', 'bg-dark');
-    btn.classList.replace('text-gray-500', 'text-white');
+    btn.title = 'Keluar dari Admin';
+    btn.style.color = '#e07b39';
+    btn.style.borderColor = 'rgba(224,123,57,.4)';
     document.getElementById('menu-username').textContent = email || 'Admin';
   } else {
     btn.textContent = '🔐';
-    btn.classList.replace('bg-dark', 'bg-white');
-    btn.classList.replace('text-white', 'text-gray-500');
+    btn.title = 'Login admin';
+    btn.style.color = '#6a8a6a';
+    btn.style.borderColor = 'rgba(255,255,255,.08)';
   }
 }
 
+// Buka/tutup modal — persis pola bwi-app-v3
 document.getElementById('btnLogin').addEventListener('click', (e) => {
   e.stopPropagation();
-  if (isAdmin) { document.getElementById('user-menu').style.display = document.getElementById('user-menu').style.display === 'block' ? 'none' : 'block'; } 
-  else { document.getElementById('modalLogin').style.display = 'flex'; setTimeout(() => document.getElementById('loginEmail').focus(), 100); }
+  if (isAdmin) {
+    document.getElementById('user-menu').classList.toggle('open');
+  } else {
+    const m = document.getElementById('modalLogin');
+    m.style.display = 'flex';
+    setTimeout(() => document.getElementById('loginEmail').focus(), 100);
+  }
 });
-document.getElementById('closeLogin').addEventListener('click', () => { document.getElementById('modalLogin').style.display = 'none'; });
+document.getElementById('closeLogin').addEventListener('click', () => {
+  document.getElementById('modalLogin').style.display = 'none';
+  document.getElementById('loginErr').style.display = 'none';
+});
+document.getElementById('modalLogin').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modalLogin'))
+    document.getElementById('modalLogin').style.display = 'none';
+});
+document.getElementById('loginPass').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btnDoLogin').click();
+});
+
+// Tombol Masuk
 document.getElementById('btnDoLogin').addEventListener('click', async () => {
-  const email = document.getElementById('loginEmail').value.trim(), pass = document.getElementById('loginPass').value, errEl = document.getElementById('loginErr'), btn = document.getElementById('btnDoLogin');
-  errEl.style.display = 'none'; if (!email || !pass) { errEl.textContent = 'Required'; errEl.style.display = 'block'; return; }
-  btn.textContent = 'Memproses...'; btn.disabled = true;
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const btn   = document.getElementById('btnDoLogin');
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  if (!email || !pass) { errEl.textContent = 'Email & password wajib diisi'; errEl.style.display = 'block'; return; }
+  btn.textContent = '⏳ Memproses...'; btn.disabled = true;
   try {
-    if (auth) { await auth.signInWithEmailAndPassword(email, pass); document.getElementById('modalLogin').style.display = 'none'; } 
-    else { setAdmin(true, email); document.getElementById('modalLogin').style.display = 'none'; }
-  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; } 
-  finally { btn.textContent = 'Masuk Workspace'; btn.disabled = false; }
+    if (auth) {
+      await auth.signInWithEmailAndPassword(email, pass);
+      document.getElementById('modalLogin').style.display = 'none';
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPass').value = '';
+    } else {
+      setAdmin(true, email);
+      document.getElementById('modalLogin').style.display = 'none';
+    }
+  } catch(e) {
+    errEl.textContent = e.code === 'auth/wrong-password' ? '❌ Password salah'
+      : e.code === 'auth/user-not-found'  ? '❌ Email tidak ditemukan'
+      : e.code === 'auth/invalid-email'   ? '❌ Format email tidak valid'
+      : '❌ ' + e.message;
+    errEl.style.display = 'block';
+  } finally { btn.textContent = 'Masuk'; btn.disabled = false; }
 });
-document.addEventListener('click', () => { const m = document.getElementById('user-menu'); if(m) m.style.display='none'; });
-document.getElementById('menu-logout').addEventListener('click', async () => { if(auth) await auth.signOut(); else setAdmin(false); });
-if (auth) { auth.onAuthStateChanged(user => { if (user) setAdmin(true, user.email || user.displayName); else setAdmin(false); }); }
 
-// ── APP LOGIC & DATA ──
-const KAWASAN_ZONE = { 'Licin':'barat','Wongsorejo':'utara','Pesanggaran':'selatan','Pusat Kota':'kota' }; 
-function mapToWandr(id, d) {
-  if (d.type !== 'wisata' || d.status === 'pending') return null;
-  const nama = (d.nama||'').toLowerCase(), kat = (d.kategori||'').toLowerCase();
-  let cat = 'alam'; if(kat.includes('pantai')||kat.includes('teluk')) cat='pantai'; if(kat.includes('snork')) cat='diving'; if(kat.includes('kota')) cat='budaya';
-  const emojiBase = {alam:'🌿',pantai:'🌊',diving:'🤿',budaya:'🏛️'}, emojiOvr = {'ijen':'🌋','air terjun':'💧','sukamade':'🐢','red island':'🏄'};
-  let emoji = emojiBase[cat]||'🗺️'; for (const [k,v] of Object.entries(emojiOvr)) { if(nama.includes(k)){emoji=v;break;} }
-  const isIjen=nama.includes('ijen'), isSunset=nama.includes('pulau merah'), isNight=nama.includes('sukamade'), isCity=nama.includes('city');
-  let bestTime='pagi'; if(isSunset) bestTime='sore'; if(isNight) bestTime='malam'; if(isIjen) bestTime='dini hari';
-  let zone = KAWASAN_ZONE[d.kawasan] || 'kota';
-  const namaWords = nama.split(' ').filter(w => w.length > 2); const autoAliases = new Set([nama]);
-  return { id, name:d.nama, cat, emoji, desc:d.catatan||d.kategori||'', bestTime, zone, tiket:d.htm||0, dur: isIjen?300:180, isIjen, isSunset, isNight, isCity, aliases: [...autoAliases], tips:d.catatan||'', lat:d.lat||null, lng:d.lng||null };
+// User dropdown menu
+document.getElementById('user-menu').addEventListener('click', (e) => e.stopPropagation());
+document.addEventListener('click', () => document.getElementById('user-menu').classList.remove('open'));
+document.getElementById('menu-logout').addEventListener('click', async () => {
+  if (auth) await auth.signOut();
+  else setAdmin(false);
+  document.getElementById('user-menu').classList.remove('open');
+});
+
+// onAuthStateChanged — persis pola bwi-app-v3
+if (auth) {
+  auth.onAuthStateChanged(user => {
+    if (user) setAdmin(true, user.email || user.displayName);
+    else      setAdmin(false);
+  });
 }
+</script>
 
-let DESTINATIONS = [];
-const DESTINATIONS_FALLBACK = [
-  { id:'ijen', name:'Kawah Ijen', cat:'alam', emoji:'🌋', desc:'Blue fire', bestTime:'dini hari', zone:'barat', tiket:5000, dur:300, isIjen:true, aliases:['ijen','kawah ijen'] },
-  { id:'baluran', name:'TN Baluran', cat:'alam', emoji:'🦌', desc:'Afrika van Java', bestTime:'pagi', zone:'utara', tiket:15000, dur:240, aliases:['baluran'] },
-  { id:'red_island', name:'Red Island', cat:'pantai', emoji:'🏄', desc:'Sunset', bestTime:'sore', zone:'selatan', tiket:10000, dur:180, isSunset:true, aliases:['red island'] },
-];
-
-function showLoadingDest() {
-  document.getElementById('content').innerHTML = `<div class="text-center py-20"><div class="text-5xl mb-6" style="animation: float 3s ease-in-out infinite;">🌿</div><div class="font-serif text-2xl font-bold text-dark mb-2">Memuat data...</div></div>`;
-  document.getElementById('nav').style.display='none'; document.getElementById('progress-area').style.display='none';
-}
-
-async function loadDestinations() {
-  showLoadingDest();
-  if (!db) { DESTINATIONS = DESTINATIONS_FALLBACK; return; }
-  try {
-    const snap = await db.collection('places').get(); window._placesCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const loaded = snap.docs.map(doc => mapToWandr(doc.id, doc.data())).filter(Boolean);
-    DESTINATIONS = loaded.length > 0 ? loaded : DESTINATIONS_FALLBACK;
-  } catch(e) { DESTINATIONS = DESTINATIONS_FALLBACK; }
-}
-
-const KOTA = ['Surabaya','Jakarta','Bali','Malang','Lainnya'];
-const DURASI = [ { v:'1D', label:'1 Hari', sub:'One Day' }, { v:'2D1N', label:'2H 1M', sub:'Weekend' }, { v:'3D2N', label:'3H 2M', sub:'Long Weekend' } ];
-const PENGINAPAN = [ { v:'hotel45', label:'Hotel 4-5', range:'400K+', emoji:'🏨' }, { v:'hotel12', label:'Budget Hotel', range:'100K+', emoji:'🏪' } ];
-const ACT_STYLE = {
-  aktivitas:  { color:'text-green-600', bg:'bg-green-50',  icon:'🎯' },
-  makan:      { color:'text-orange-600', bg:'bg-orange-50',  icon:'🍽️' },
-  transport:  { color:'text-blue-600', bg:'bg-blue-50', icon:'🚌' },
-  penginapan: { color:'text-purple-600', bg:'bg-purple-50', icon:'🏨' },
-  istirahat:  { color:'text-gray-600', bg:'bg-gray-100', icon:'☕' },
+<script>
+// ─── KAWASAN → ZONE MAPPING ───────────────────────────────────────────────────
+const KAWASAN_ZONE = {
+  'Licin':'barat','Licin / Paltuding':'barat','Kalibendo':'barat',
+  'Kalibaru':'barat','Songgon':'barat','Kemiren':'barat','Glenmore':'barat',
+  'Wongsorejo':'utara','Banyuputih':'utara','Kalipuro':'utara',
+  'Pesanggaran':'selatan','Tegaldlimo':'selatan','Purwoharjo':'selatan',
+  'Muncar':'selatan','Benculuk':'selatan','Grajagan':'selatan',
+  'Pusat Kota':'kota','Glagah':'kota','Rogojampi':'kota','Banyuwangi':'kota',
 };
 
-const S = { step: 0, destinations: new Set(), destInput: '', kotaAsal: '', kotaAsalCustom: '', transport: '', subTransport: '', waktuTiba: '10:00', waktuPulang: '13:00', sewaLokal: new Set(), durasi: '', gayaPerjalanan: '', penginapan: '', penginapanId: '', penginapanData: null, penginapanCustom: '', penginapanSearchQuery: '', penginapanOptions: [], allPenginapan: [], kulinerOptions: [], kulinerCustom: '', jumlahOrang: 2, planDays: [], planBacklog: [], planArrivalExtras: [], loading: false, itinerary: null, error: null };
-const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const fmt = n => n>=1000?Math.round(n/1000)+'K':String(n);
+// ─── FIRESTORE DOC → WANDR DESTINATION ───────────────────────────────────────
+function mapToWandr(id, d) {
+  if (d.type !== 'wisata' || d.status === 'pending') return null;
+  const nama = (d.nama||'').toLowerCase();
+  const kat  = (d.kategori||'').toLowerCase();
+  let cat = 'alam';
+  if (kat.includes('pantai')||kat.includes('beach')||kat.includes('teluk')) cat='pantai';
+  if (kat.includes('snorkel')||kat.includes('diving')||kat.includes('pulau')) cat='diving';
+  if (kat.includes('kota')||kat.includes('budaya')||kat.includes('sejarah')) cat='budaya';
+  const emojiBase = {alam:'🌿',pantai:'🌊',diving:'🤿',budaya:'🏛️'};
+  const emojiOvr  = {'kawah ijen':'🌋','ijen':'🌋','air terjun':'💧','baluran':'🦌',
+    'sukamade':'🐢','red island':'🏄','g-land':'🏄','menjangan':'🤿',
+    'tabuhan':'🏝️','kawah wurung':'🏔️','green bay':'🌊','city tour':'🏛️'};
+  let emoji = emojiBase[cat]||'🗺️';
+  for (const [k,v] of Object.entries(emojiOvr)) { if(nama.includes(k)){emoji=v;break;} }
+  const isIjen=nama.includes('ijen'), isSunset=nama.includes('red island')||nama.includes('pulau merah');
+  const isNight=nama.includes('sukamade'), isCity=nama.includes('city tour');
+  let bestTime='pagi';
+  if(isSunset) bestTime='sore'; if(isNight) bestTime='malam'; if(isIjen) bestTime='dini hari';
+  // Zone dari kawasan mapping, dengan override berbasis nama untuk yang sering salah
+  const NAMA_ZONE_OVERRIDE = {
+    'kawah wurung':'barat','kawah ijen':'barat','ijen':'barat','lider':'barat',
+    'telunjuk':'barat','jagir':'barat','malangsari':'barat','beji':'barat',
+    'baluran':'utara','menjangan':'utara','tabuhan':'utara','wongsorejo':'utara',
+    'sukamade':'selatan','alas purwo':'selatan','red island':'selatan',
+    'pulau merah':'selatan','green bay':'selatan','teluk ijo':'selatan',
+    'g-land':'selatan','grajagan':'selatan','wedi ireng':'selatan',
+  };
+  let zone = KAWASAN_ZONE[d.kawasan] || 'kota';
+  // Override jika nama mengandung keyword zona
+  for (const [key, z] of Object.entries(NAMA_ZONE_OVERRIDE)) {
+    if (nama.includes(key)) { zone = z; break; }
+  }
+  const dur  = isIjen?300:cat==='diving'?360:kat.includes('terjun')?120:180;
 
+  // Auto-generate aliases dari nama Firestore supaya matching lebih toleran
+  // Contoh: "Pura Beji Antaboga" → aliases: ['pura beji antaboga','beji antaboga','beji','antaboga']
+  const namaWords = nama.split(' ').filter(w => w.length > 2);
+  const autoAliases = new Set([nama]);
+  // Tambah sub-kombinasi kata (tanpa kata depan seperti "pura","taman","air","pantai")
+  const skipWords = new Set(['pura','taman','nasional','pantai','air','gua','goa','pulau','kebun','perkebunan','padang']);
+  const meaningfulWords = namaWords.filter(w => !skipWords.has(w));
+  if (meaningfulWords.length > 0) {
+    autoAliases.add(meaningfulWords.join(' '));
+    meaningfulWords.forEach(w => autoAliases.add(w));
+    // Kombinasi dua kata berurutan
+    for (let i = 0; i < meaningfulWords.length - 1; i++) {
+      autoAliases.add(meaningfulWords[i] + ' ' + meaningfulWords[i+1]);
+    }
+  }
+
+  return { id, name:d.nama, cat, emoji, desc:d.catatan||d.kategori||'', bestTime,
+    zone, tiket:d.htm||0, dur, isIjen, isSunset, isNight, isCity,
+    aliases: [...autoAliases],
+    tips:d.catatan?`Akses ${d.akses||''}. ${d.catatan}`.trim():'', maps:d.maps||'',
+    lat:d.lat||null, lng:d.lng||null };
+}
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
+// Rule-based engine + Firebase Firestore
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+// Data dimuat dari Firebase. Fallback hardcoded jika offline.
+let DESTINATIONS = [];
+
+const DESTINATIONS_FALLBACK = [
+  { id:'ijen',         name:'Kawah Ijen',              cat:'alam',   emoji:'🌋', desc:'Blue fire & kawah asam',          bestTime:'dini hari', zone:'barat',   tiket:5000,  dur:300, isIjen:true,
+    aliases:['ijen','kawah ijen','blue fire'] },
+  { id:'baluran',      name:'TN Baluran',               cat:'alam',   emoji:'🦌', desc:'Afrika van Java',                 bestTime:'pagi',      zone:'utara',   tiket:15000, dur:240,
+    aliases:['baluran','taman nasional baluran','tn baluran'] },
+  { id:'alas_purwo',   name:'TN Alas Purwo',            cat:'alam',   emoji:'🌿', desc:'Hutan purba tersembunyi',         bestTime:'pagi',      zone:'selatan', tiket:5000,  dur:300,
+    aliases:['alas purwo','tn alas purwo','taman nasional alas purwo','purwo'] },
+  { id:'kawah_wurung', name:'Kawah Wurung',              cat:'alam',   emoji:'🏔️', desc:'Kaldera indah & sunrise',         bestTime:'pagi',      zone:'barat',   tiket:5000,  dur:180,
+    aliases:['kawah wurung','wurung'] },  { id:'jagir',        name:'Air Terjun Jagir',         cat:'alam',   emoji:'💧', desc:'Air terjun tiga tingkat',         bestTime:'pagi',      zone:'barat',   tiket:10000, dur:120,
+    aliases:['jagir','air terjun jagir','curug jagir'] },
+  { id:'red_island',   name:'Red Island',               cat:'pantai', emoji:'🏄', desc:'Tebing merah & sunset ikonik',    bestTime:'sore',      zone:'selatan', tiket:10000, dur:180, isSunset:true,
+    aliases:['red island','pulau merah','pantai pulau merah'] },
+  { id:'green_bay',    name:'Green Bay',                cat:'pantai', emoji:'🌊', desc:'Teluk ijo tersembunyi',           bestTime:'pagi',      zone:'selatan', tiket:10000, dur:240,
+    aliases:['green bay','teluk ijo','teluk hijau'] },
+  { id:'sukamade',     name:'Pantai Sukamade',          cat:'pantai', emoji:'🐢', desc:'Penangkaran penyu hijau',         bestTime:'malam',     zone:'selatan', tiket:10000, dur:240, isNight:true,
+    aliases:['sukamade','pantai sukamade'] },
+  { id:'g_land',       name:'G-Land',                   cat:'pantai', emoji:'🏄', desc:'Surga peselancar dunia',          bestTime:'pagi',      zone:'selatan', tiket:0,     dur:240,
+    aliases:['g-land','grajagan','g land'] },
+  { id:'menjangan',    name:'Pulau Menjangan',          cat:'diving', emoji:'🤿', desc:'Snorkeling & diving terbaik',     bestTime:'pagi',      zone:'utara',   tiket:25000, dur:360,
+    aliases:['menjangan','pulau menjangan'] },
+  { id:'tabuhan',      name:'Pulau Tabuhan',            cat:'diving', emoji:'🏝️', desc:'Pasir putih & snorkeling',        bestTime:'pagi',      zone:'utara',   tiket:15000, dur:300,
+    aliases:['tabuhan','pulau tabuhan'] },
+  { id:'city',         name:'City Tour BWI',            cat:'budaya', emoji:'🏛️', desc:'Kuliner & wisata kota',           bestTime:'sore',      zone:'kota',    tiket:0,     dur:240, isCity:true,
+    aliases:['city tour','banyuwangi kota','kota banyuwangi','city tour bwi'] },
+  // Destinasi tambahan yang sering dicari
+  { id:'beji_antaboga',  name:'Beji Antaboga',          cat:'budaya', emoji:'🛕', desc:'Pura Hindu di lereng Raung',     bestTime:'pagi',      zone:'barat',   tiket:5000,  dur:120,
+    aliases:['beji antaboga','beji','antaboga','pura antaboga'] },
+  { id:'perkebunan_kopi', name:'Perkebunan Kopi Malangsari', cat:'alam', emoji:'🌿', desc:'Wisata kopi di lereng Raung', bestTime:'pagi',     zone:'barat',   tiket:10000, dur:180,
+    aliases:['kopi malangsari','malangsari','perkebunan kopi','kebun kopi'] },
+  { id:'kawah_wurung2',  name:'Padang Savana Sadengan', cat:'alam',   emoji:'🌿', desc:'Padang rumput luas di Baluran', bestTime:'pagi',      zone:'utara',   tiket:0,     dur:120,
+    aliases:['sadengan','padang savana','savana sadengan','savana baluran'] },
+  { id:'goa_mayangkoro', name:'Goa Mayangkoro',         cat:'budaya', emoji:'🏛️', desc:'Goa bersejarah di Banyuwangi', bestTime:'pagi',      zone:'kota',    tiket:5000,  dur:90,
+    aliases:['mayangkoro','goa mayangkoro'] },
+  { id:'goa_padepokan',  name:'Goa Padepokan',          cat:'budaya', emoji:'🏛️', desc:'Goa budaya Banyuwangi',        bestTime:'pagi',      zone:'kota',    tiket:5000,  dur:90,
+    aliases:['padepokan','goa padepokan'] },
+  { id:'goa_songgo',     name:'Goa Songgo Langit',      cat:'budaya', emoji:'🏛️', desc:'Goa unik Banyuwangi',          bestTime:'pagi',      zone:'kota',    tiket:5000,  dur:90,
+    aliases:['songgo langit','goa songgo','songgo'] },
+  { id:'pantai_wedi',    name:'Pantai Wedi Ireng',      cat:'pantai', emoji:'🌊', desc:'Pantai pasir hitam eksotis',   bestTime:'pagi',      zone:'selatan', tiket:10000, dur:150,
+    aliases:['wedi ireng','pantai wedi ireng','wedi'] },
+  { id:'pantai_boom',    name:'Pantai Boom',            cat:'pantai', emoji:'🌊', desc:'Pantai bersejarah Banyuwangi', bestTime:'sore',      zone:'kota',    tiket:5000,  dur:120,
+    aliases:['boom','pantai boom'] },
+  { id:'telunjuk_raung', name:'Air Terjun Telunjuk Raung', cat:'alam', emoji:'💧', desc:'Air terjun eksotis Raung',    bestTime:'pagi',      zone:'barat',   tiket:10000, dur:180,
+    aliases:['telunjuk raung','telunjuk','air terjun telunjuk'] },
+  { id:'lider',          name:'Air Terjun Lider',       cat:'alam',   emoji:'💧', desc:'Air terjun tertinggi di BWI',  bestTime:'pagi',      zone:'barat',   tiket:10000, dur:240,
+    aliases:['lider','air terjun lider'] },
+];
+
+// Tampilkan loading sebelum Firebase siap
+function showLoadingDest() {
+  const c = document.getElementById('content');
+  c.innerHTML = `<div style="text-align:center;padding:50px 0;color:#4a6a4a">
+    <div style="font-size:36px;margin-bottom:12px;animation:float 2s ease-in-out infinite">🌿</div>
+    <div style="font-size:14px">Memuat data destinasi...</div>
+  </div>`;
+  document.getElementById('nav').style.display='none';
+  document.getElementById('progress-area').style.display='none';
+}
+
+// Load dari Firestore, fallback ke hardcoded jika gagal
+async function loadDestinations() {
+  showLoadingDest();
+  if (!db) {
+    console.warn('db null — pakai fallback');
+    DESTINATIONS = DESTINATIONS_FALLBACK;
+    return;
+  }
+  try {
+    // Fetch semua places tanpa filter — hindari kebutuhan Firestore composite index
+    const timeout = new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 10000));
+    const query   = db.collection('places').get();
+    const snap    = await Promise.race([query, timeout]);
+    // Cache untuk dipakai loadPenginapanOptions (hindari fetch ulang)
+    window._placesCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const loaded = snap.docs
+      .map(doc => mapToWandr(doc.id, doc.data()))
+      .filter(Boolean);
+
+    if (loaded.length > 0) {
+      DESTINATIONS = loaded;
+      console.log(`✓ Firebase: ${loaded.length} destinasi wisata dimuat dari ${snap.docs.length} total records`);
+    } else {
+      DESTINATIONS = DESTINATIONS_FALLBACK;
+      console.warn('Firebase kosong atau semua pending, pakai fallback');
+    }
+  } catch(e) {
+    DESTINATIONS = DESTINATIONS_FALLBACK;
+    console.warn('Firebase gagal (' + e.message + '), pakai fallback');
+  }
+}
+
+const KOTA = ['Surabaya','Jakarta','Bali/Denpasar','Malang','Yogyakarta','Semarang','Bandung','Lainnya'];
+
+const DURASI = [
+  { v:'1D',    label:'1 Hari',  sub:'One Day Trip' },
+  { v:'2D1N',  label:'2H 1M',   sub:'Weekend Trip' },
+  { v:'3D2N',  label:'3H 2M',   sub:'Long Weekend' },
+  { v:'4D3N',  label:'4H 3M',   sub:'Mini Vacation' },
+  { v:'5D4N',  label:'5H 4M',   sub:'Full Exploration' },
+];
+
+const PENGINAPAN = [
+  { v:'hotel45',  label:'Hotel Bintang 4–5',   range:'400K–2JT/mlm',  emoji:'🏨' },
+  { v:'hotel3',   label:'Hotel Bintang 3',      range:'200K–400K/mlm', emoji:'🏩' },
+  { v:'hotel12',  label:'Hotel Bintang 1–2',    range:'100K–200K/mlm', emoji:'🏪' },
+  { v:'homestay', label:'Homestay/Guesthouse',  range:'50K–150K/mlm',  emoji:'🏡' },
+  { v:'none',     label:'Tanpa Penginapan',      range:'Day trip only',  emoji:'🚗' },
+];
+
+const ACT_STYLE = {
+  aktivitas:  { color:'text-green-600',  bg:'bg-green-50',  icon:'🎯' },
+  makan:      { color:'text-orange-600', bg:'bg-orange-50', icon:'🍽️' },
+  transport:  { color:'text-blue-600',   bg:'bg-blue-50',   icon:'🚌' },
+  penginapan: { color:'text-purple-600', bg:'bg-purple-50', icon:'🏨' },
+  belanja:    { color:'text-amber-600',  bg:'bg-amber-50',  icon:'🛍️' },
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const S = {
+  step: 0,
+  destinations: new Set(),
+  destInput: '',
+  kotaAsal: '', kotaAsalCustom: '',
+  transport: '', subTransport: '',   // kereta/pesawat/bus jika umum
+  waktuTiba: '10:00',                // jam tiba di Banyuwangi
+  waktuPulang: '13:00',              // jam pulang dari Banyuwangi
+  sewaLokal: new Set(),
+  durasi: '', gayaPerjalanan: '',
+  penginapan: '', penginapanId: '', penginapanData: null,
+  penginapanIds: [],                 // array id penginapan terpilih (multi)
+  penginapanDataList: [],            // array data penginapan terpilih
+  penginapanCustom: '',              // nama penginapan ketik manual
+  penginapanSearchQuery: '',         // query search penginapan
+  penginapanOptions: [],             // terdekat dari destinasi
+  allPenginapan: [],                 // semua penginapan dari Firebase
+  kulinerOptions: [],
+  kulinerCustom: '',                 // kuliner incaran (opsional)
+  jumlahOrang: 2,
+  planDays: [],          // [[id,id,...], [...]] hasil susun user
+  planBacklog: [],       // destinasi belum dijadwalkan
+  planArrivalExtras: [], // destinasi opsional di hari kedatangan
+  loading: false, itinerary: null, error: null,
+};
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const fmt = n => {
+  if (!n) return '–';
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'JT';
+  if (n >= 1000)    return Math.round(n/1000) + 'K';
+  return String(n);
+};
+const esc = s => String(s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ─── PROGRESS & NAV ──────────────────────────────────────────────────────────
 function updateProgress() {
-  document.getElementById('progress-fill').style.width = (S.step >= 4 ? 100 : (S.step / 4) * 100) + '%';
-  document.querySelectorAll('.step-label').forEach(el => el.className = 'step-label' + (+el.dataset.i===S.step?' active': +el.dataset.i<S.step?' done':''));
-  document.getElementById('progress-area').style.display = (S.step===3 && (S.loading || S.itinerary)) ? 'none' : '';
+  const pct = S.step >= 4 ? 100 : (S.step / 4) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.querySelectorAll('.step-label').forEach(el => {
+    const i = +el.dataset.i;
+    el.className = 'step-label' + (i===S.step?' active': i<S.step?' done':'');
+  });
+  // Sembunyikan progress bar saat loading/result tampil
+  document.getElementById('progress-area').style.display =
+    (S.step===3 && (S.loading || S.itinerary)) ? 'none' : '';
 }
 
 function updateNav() {
-  const nav = document.getElementById('nav'); if (S.step===3 && (S.loading || S.itinerary)) { nav.style.display='none'; return; } nav.style.display = 'flex';
+  const nav = document.getElementById('nav');
+  // Sembunyikan nav saat loading atau itinerary sudah tampil
+  if (S.step===3 && (S.loading || S.itinerary)) { nav.style.display='none'; return; }
+  nav.style.display = 'flex';
   document.getElementById('btn-back').className = 'btn-ghost' + (S.step===0?' hidden':'');
-  document.getElementById('dest-count').textContent = S.destinations.size>0 ? S.destinations.size+' DESTINASI' : '';
-  document.getElementById('btn-next').disabled = !canNext(); document.getElementById('btn-next').textContent = S.step===3 ? '✨ Generate' : 'Lanjut →';
+  document.getElementById('dest-count').textContent = S.destinations.size>0 ? S.destinations.size+' destinasi dipilih' : '';
+  const ok = canNext();
+  document.getElementById('btn-next').disabled = !ok;
+  document.getElementById('btn-next').textContent = S.step===3 ? '✨ Generate Itinerary' : 'Lanjut →';
 }
 
 function canNext() {
   if (S.step===0) return S.destinations.size > 0;
-  if (S.step===1) return S.kotaAsal && S.transport && (S.transport==='umum' ? !!S.subTransport : true);
-  if (S.step===2) return S.durasi && S.gayaPerjalanan && (S.penginapan || S.penginapanId || S.penginapanCustom.trim());
-  return true;
+  if (S.step===1) { const ok = S.kotaAsal && (S.kotaAsal!=='Lainnya'||S.kotaAsalCustom.trim()) && S.transport; return S.transport==='umum' ? ok && !!S.subTransport : ok; }
+  if (S.step===2) return S.durasi && S.gayaPerjalanan && (S.penginapan || S.penginapanId || (S.penginapanIds&&S.penginapanIds.length>0) || S.penginapanCustom.trim());
+  if (S.step===3) return true; // Planning board: selalu bisa lanjut
+  return false;
 }
 
-function matchScore(term, d) { return d.name.toLowerCase().includes(term.toLowerCase().trim()) ? 100 : 0; }
-function parseDestInput(text) { S.destinations.clear(); text.split(',').map(s=>s.trim()).filter(Boolean).forEach(t => { DESTINATIONS.forEach(d => { if(matchScore(t, d) > 50) S.destinations.add(d.id); }); }); }
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function getFinalHotelName() {
+  if (S.penginapanDataList?.length > 0) return S.penginapanDataList[0].nama;
+  if (S.penginapanCustom.trim()) return S.penginapanCustom.split(',')[0].trim();
+  if (S.penginapanData?.nama) return S.penginapanData.nama;
+  return 'Penginapan Banyuwangi';
+}
+// Ekstrak array nama penginapan dari input multi (pisah koma) — dari Gemini
+function getHotelNames() {
+  // Multi-penginapan dari Firebase
+  if (S.penginapanDataList && S.penginapanDataList.length > 0) {
+    return S.penginapanDataList.map(p => p.nama).filter(Boolean);
+  }
+  // Custom input (pisah koma)
+  if (S.penginapanCustom.trim()) {
+    return S.penginapanCustom.split(',').map(s=>s.trim()).filter(Boolean);
+  }
+  return ['Penginapan Banyuwangi'];
+}
+function haversineKm(lat1,lng1,lat2,lng2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
 
-// ── RENDER ENGINE DENGAN KELAS TAILWIND ──
+// Fuzzy match teks ke DESTINATIONS — split koma, cari tiap kata
+function parseDestInput(text) {
+  S.destinations.clear();
+  const terms = text.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  terms.forEach(term => {
+    if (!term) return;
+    let bestMatch = null, bestScore = 0;
+    DESTINATIONS.forEach(d => {
+      const score = matchScore(term, d);
+      if (score > bestScore) { bestScore = score; bestMatch = d; }
+    });
+    if (bestMatch && bestScore >= 50) S.destinations.add(bestMatch.id);
+  });
+}
+
+// Score matching satu term ke satu destinasi
+function matchScore(term, d) {
+  const t = term.toLowerCase().trim();
+  const n = d.name.toLowerCase();
+
+  // 1. Exact name match
+  if (n === t) return 100;
+
+  // 2. Alias match — hanya kalau alias cukup spesifik (minimal 4 karakter dan bukan substring pendek)
+  if (d.aliases) {
+    for (const a of d.aliases) {
+      if (a.length < 4) continue; // skip alias terlalu pendek
+      if (a === t) return 98;
+      // Alias sama persis dengan term atau term sama persis dengan alias
+      if (t === a) return 98;
+      // Alias mengandung term (term lebih spesifik)
+      if (a.includes(t) && t.length >= 5) return 90;
+      // Term mengandung alias — hanya kalau alias panjang (>=8 char) supaya tidak false positive
+      // "alas purwo" (10 char) boleh, tapi "jepang" (6 char) jangan match "taman nasional alas purwo"
+      if (t.includes(a) && a.length >= 8) return 85;
+    }
+  }
+
+  // 3. Nama mengandung term (min 4 karakter)
+  if (t.length >= 4 && n.includes(t)) return 80;
+
+  // 4. Term mengandung nama penuh (min 5 karakter)
+  if (n.length >= 5 && t.includes(n)) return 75;
+
+  // 5. Word-level — hitung kata bermakna yang cocok
+  const skipWords = new Set(['dan','yang','ke','di','dari','untuk','dengan','atau','taman','nasional','pantai','air','goa','gua','pulau','bukit','gunung','perkebunan']);
+  const nWords    = n.split(' ').filter(w => w.length > 2 && !skipWords.has(w));
+  const termWords = t.split(' ').filter(w => w.length > 2 && !skipWords.has(w));
+  if (!nWords.length || !termWords.length) return 0;
+
+  const hits = termWords.filter(tw => nWords.some(nw => nw === tw || nw.startsWith(tw) || tw.startsWith(nw)));
+
+  // Hitung coverage: berapa banyak kata nama yang ter-cover oleh term
+  const coverage = hits.length / nWords.length;
+  const precision = hits.length / termWords.length;
+  // Pakai harmonic mean (F1-score style) supaya harus cocok di kedua sisi
+  const f1 = coverage + precision > 0 ? 2 * coverage * precision / (coverage + precision) : 0;
+  return f1 >= 0.5 ? Math.round(f1 * 60) : 0;
+}
+
+
+// Load penginapan terdekat dari Firebase berdasarkan destinasi terpilih
+async function loadPenginapanOptions() {
+  if (!db) { S.penginapanOptions = []; S.allPenginapan = []; return; }
+  try {
+    // Pakai cache dari loadDestinations kalau ada, hindari fetch ulang
+    let allDocs;
+    if (window._placesCache) {
+      allDocs = window._placesCache;
+    } else {
+      const snap = await db.collection('places').get();
+      allDocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      window._placesCache = allDocs;
+    }
+
+    const all = allDocs.filter(d => {
+      const t = (d.type||'').toLowerCase();
+      return ['penginapan','hotel','homestay','villa','guesthouse'].includes(t);
+    });
+    S.allPenginapan = all;
+
+    // Hitung terdekat dari destinasi terpilih (jika ada koordinat)
+    if (S.destinations.size > 0) {
+      const selDests = DESTINATIONS.filter(d=>S.destinations.has(d.id));
+      const lats = selDests.map(d=>d.lat).filter(Boolean);
+      const lngs = selDests.map(d=>d.lng).filter(Boolean);
+      if (lats.length > 0) {
+        const cLat = lats.reduce((a,b)=>a+b,0)/lats.length;
+        const cLng = lngs.reduce((a,b)=>a+b,0)/lngs.length;
+        S.penginapanOptions = all
+          .filter(d => d.lat && d.lng)
+          .map(d => ({ ...d, dist: haversineKm(cLat,cLng,d.lat,d.lng) }))
+          .sort((a,b)=>a.dist-b.dist)
+          .slice(0, 6);
+      } else {
+        S.penginapanOptions = all.slice(0, 6);
+      }
+    } else {
+      S.penginapanOptions = all.slice(0, 6);
+    }
+  } catch(e) {
+    console.warn('loadPenginapanOptions gagal:', e.message);
+    S.penginapanOptions = []; S.allPenginapan = [];
+  }
+}
+
+// Load kuliner dalam radius 1km dari penginapan terpilih
+async function loadKulinerNearPenginapan(lat, lng) {
+  if (!db) { S.kulinerOptions = []; return; }
+  try {
+    const snap = await db.collection('places').where('type','==','kuliner').get();
+    S.kulinerOptions = snap.docs
+      .map(doc => ({ id:doc.id, ...doc.data() }))
+      .filter(d => d.lat && d.lng && d.nama)
+      .map(d => ({ ...d, dist: haversineKm(lat,lng,d.lat,d.lng) }))
+      .filter(d => d.dist <= 1.0)   // dalam 1km
+      .sort((a,b)=>a.dist-b.dist)
+      .slice(0, 5);
+    console.log(`Kuliner terdekat (≤1km): ${S.kulinerOptions.length} ditemukan`);
+  } catch(e) {
+    S.kulinerOptions = [];
+  }
+}
+
+// ─── RENDER STEP 0 ───────────────────────────────────────────────────────────
+// Helper: cek apakah satu term cocok dengan salah satu destinasi
+function isTermMatched(term) {
+  const t = term.toLowerCase().trim();
+  if (!t) return true;
+  return DESTINATIONS.some(d => matchScore(t, d) >= 50);
+}
+
 function renderStep0() {
-  const matched = DESTINATIONS.filter(d=>S.destinations.has(d.id));
-  const tags = matched.map(d => `<div class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full m-1 shadow-sm"><span class="text-lg">${d.emoji}</span><span class="text-xs font-bold text-dark">${esc(d.name)}</span><span data-remove="${d.id}" class="cursor-pointer text-gray-400 hover:text-red-500 text-xs ml-1 font-bold">✕</span></div>`).join('');
-  const suggestions = DESTINATIONS.filter(d=>!S.destinations.has(d.id)).slice(0,6).map(d=>`<button data-suggest="${d.id}" class="bg-transparent border border-gray-200 text-gray-500 hover:bg-white hover:text-dark hover:border-gray-300 rounded-full px-4 py-2 text-xs font-bold cursor-pointer m-1 transition-colors">${d.emoji} ${d.name}</button>`).join('');
+  const matched   = DESTINATIONS.filter(d=>S.destinations.has(d.id));
+  const terms     = S.destInput.split(',').map(s=>s.trim()).filter(Boolean);
+  const unmatched = terms.filter(t => !isTermMatched(t));
+
+  const tags = matched.map(d => `
+    <div class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full m-1 shadow-sm">
+      <span class="text-lg">${d.emoji}</span>
+      <span class="text-xs font-bold text-dark">${esc(d.name)}</span>
+      <span data-remove="${d.id}" class="cursor-pointer text-gray-400 hover:text-red-500 text-xs ml-1 font-bold">✕</span>
+    </div>`).join('');
+
+  const suggestions = DESTINATIONS
+    .filter(d => !S.destinations.has(d.id))
+    .slice(0, 8)
+    .map(d => `<button data-suggest="${d.id}" class="bg-transparent border border-gray-200 text-gray-500 hover:bg-white hover:text-dark hover:border-gray-300 rounded-full px-4 py-2 text-xs font-bold cursor-pointer m-1 transition-colors">${d.emoji} ${d.name}</button>`)
+    .join('');
+
+  const unmatchedWarn = unmatched.length ? `
+    <div class="mt-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs font-medium text-amber-700">
+      ⚠ Tidak dikenal: <b>${unmatched.join(', ')}</b>
+    </div>` : '';
 
   return `
     <h2 class="font-serif text-3xl font-bold text-dark mb-2 leading-tight">Ke Banyuwangi,<br>mau kemana?</h2>
     <p class="text-sm font-medium text-gray-400 mb-8">Ketik nama destinasi impianmu</p>
-    
     <div class="mb-6 relative">
-     <input type="text" id="dest-input" dir="ltr" lang="en" autocomplete="off" spellcheck="false" placeholder="Kawah Ijen, Baluran..." value="${esc(S.destInput)}" class="w-full bg-white border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-medium shadow-sm transition focus:border-dark placeholder-gray-300">
+      <input type="text" id="dest-input" dir="ltr" lang="en" autocomplete="off" spellcheck="false"
+        placeholder="Kawah Ijen, Baluran, Pantai Pulau Merah..."
+        value="${esc(S.destInput)}"
+        class="w-full bg-white border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-medium shadow-sm transition focus:border-dark placeholder-gray-300">
     </div>
-    
-    <div id="dest-tags-area" style="${matched.length>0?'':'display:none'};" class="mb-8">
+    ${unmatchedWarn}
+    <div id="dest-tags-area" style="${matched.length>0?'':'display:none'}" class="mb-8">
       <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">✓ Terpilih</div>
       <div id="dest-tags-list" class="flex flex-wrap -ml-1">${tags}</div>
     </div>
-    
     <div class="mb-8">
       <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Saran Destinasi</div>
       <div id="dest-suggestions" class="flex flex-wrap -ml-1">${suggestions}</div>
     </div>`;
 }
 
+
 function renderStep1() {
-  const transCards = [ { v:'pribadi_motor', l:'Kendaraan Pribadi', e:'🚗' }, { v:'umum', l:'Transportasi Umum', e:'🚆' } ].map(t => `<div class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all border-2 ${S.transport===t.v ? 'border-dark bg-white shadow-md' : 'border-transparent bg-white shadow-sm'} mb-3" data-transport="${t.v}"><span class="text-2xl">${t.e}</span><div class="font-bold text-sm text-dark flex-1">${t.l}</div>${S.transport===t.v ? '<span class="text-dark font-bold text-lg">✓</span>' : ''}</div>`).join('');
+  const transOpts = [
+    { v:'pribadi_motor', label:'Motor Pribadi',  emoji:'🏍️', sub:'Fleksibel, hemat, masuk jalan kecil' },
+    { v:'pribadi_mobil', label:'Mobil Pribadi',  emoji:'🚗', sub:'Nyaman, bawa lebih banyak barang' },
+    { v:'umum',          label:'Kendaraan Umum', emoji:'🚂', sub:'Kereta / Bus / Pesawat ke BWI' },
+  ];
+  const sewaOpts = [
+    { v:'motor',         label:'Sewa Motor',          emoji:'🏍️', sub:'~100K–150K/hari' },
+    { v:'mobil_driver',  label:'Sewa Mobil + Driver',  emoji:'🚐', sub:'~450K–650K/hari' },
+    { v:'ojek',          label:'Ojek / Online',        emoji:'🛵', sub:'Per perjalanan' },
+  ];
+
+  const transCards = transOpts.map(t => `
+    <div class="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all border-2 ${S.transport===t.v?'border-dark bg-white shadow-md':'border-transparent bg-white shadow-sm'} mb-3" data-transport="${t.v}">
+      <span class="text-2xl">${t.emoji}</span>
+      <div class="flex-1">
+        <div class="font-bold text-sm text-dark">${t.label}</div>
+        <div class="text-xs text-gray-400 mt-0.5">${t.sub}</div>
+      </div>
+      ${S.transport===t.v ? '<span class="text-dark font-bold text-lg">✓</span>' : ''}
+    </div>`).join('');
+
+  const showSewa = S.transport && S.transport !== 'umum';
+  const sewaCards = sewaOpts.map(t => `
+    <div class="flex-1 flex flex-col items-center gap-2 p-4 rounded-xl cursor-pointer transition-all border-2 ${S.sewaTransport===t.v?'border-dark bg-white shadow-sm':'border-transparent bg-grayLight opacity-70'}" data-sewa="${t.v}">
+      <span class="text-2xl">${t.emoji}</span>
+      <div class="text-xs font-bold text-dark text-center">${t.label}</div>
+      <div class="text-[10px] text-gray-400 text-center">${t.sub}</div>
+    </div>`).join('');
+
+  const showUmum = S.transport === 'umum';
+  const umumCards = [{v:'kereta',l:'Kereta Api',e:'🚂'},{v:'pesawat',l:'Pesawat',e:'✈️'}].map(t => `
+    <div class="flex-1 flex flex-col items-center gap-2 p-4 rounded-xl cursor-pointer transition-all border-2 ${S.subTransport===t.v?'border-dark bg-white shadow-sm':'border-transparent bg-white shadow-sm opacity-70'}" data-sub="${t.v}">
+      <span class="text-3xl">${t.e}</span>
+      <div class="text-xs font-bold text-dark">${t.l}</div>
+    </div>`).join('');
+
   return `
     <h2 class="font-serif text-3xl font-bold text-dark mb-2 leading-tight">Naik apa?</h2>
     <p class="text-sm font-medium text-gray-400 mb-8">Pilih kota asal dan kendaraan</p>
-    
     <div class="mb-6">
       <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Kota Asal</label>
       <div class="relative">
@@ -327,44 +749,131 @@ function renderStep1() {
         <span class="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold pointer-events-none">▾</span>
       </div>
     </div>
-    
     <div class="mb-4">
       <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Kendaraan ke Banyuwangi</label>
-      <div>${transCards}</div>
+      ${transCards}
     </div>
-    
-    <div class="overflow-hidden transition-all duration-300 ${S.transport==='umum'?'max-h-[500px] opacity-100 mt-2':'max-h-0 opacity-0'}">
-      <div class="bg-grayLight p-5 rounded-2xl border border-gray-100">
-        <div class="text-xs font-bold text-dark mb-4">Pilih Transportasi Umum</div>
-        <div class="flex gap-3">
-          ${[{v:'kereta',l:'Kereta Api',e:'🚂'},{v:'pesawat',l:'Pesawat',e:'✈️'}].map(t=>`
-            <div class="flex-1 flex flex-col items-center gap-2 p-4 rounded-xl cursor-pointer transition-all border-2 ${S.subTransport===t.v ? 'border-dark bg-white shadow-sm' : 'border-transparent bg-white shadow-sm opacity-70'}" data-sub="${t.v}">
-              <span class="text-3xl">${t.e}</span><div class="text-xs font-bold text-dark">${t.l}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>`;
+    ${showUmum ? `
+    <div class="bg-grayLight p-5 rounded-2xl border border-gray-100 mt-2">
+      <div class="text-xs font-bold text-dark mb-4">Pilih Transportasi Umum</div>
+      <div class="flex gap-3">${umumCards}</div>
+    </div>` : ''}
+    ${showSewa ? `
+    <div class="bg-grayLight p-5 rounded-2xl border border-gray-100 mt-2">
+      <div class="text-xs font-bold text-dark mb-4">Transportasi di Banyuwangi</div>
+      <div class="flex gap-2">${sewaCards}</div>
+    </div>` : ''}`;
 }
 
+
 function renderStep2() {
-  const durasiBtns = DURASI.map(d => `<div class="flex-1 text-center py-3 rounded-xl cursor-pointer transition-all border-2 ${S.durasi===d.v ? 'bg-dark text-white border-dark font-bold' : 'bg-white text-gray-500 border-transparent font-semibold shadow-sm'}" data-durasi="${d.v}"><div class="text-sm">${d.label}</div></div>`).join('');
-  const gayaCards = [{ v:'santai', e:'🌴', l:'Santai' }, { v:'eksplorasi', e:'⚡', l:'Eksplorasi' }].map(g => `<div class="flex-1 flex flex-col items-center py-5 rounded-2xl cursor-pointer transition-all border-2 ${S.gayaPerjalanan===g.v ? 'border-dark bg-white shadow-md' : 'border-transparent bg-white shadow-sm opacity-80'}" data-gaya="${g.v}"><div class="text-3xl mb-3">${g.e}</div><div class="font-bold text-sm text-dark">${g.l}</div></div>`).join('');
+  const durasiBtns = DURASI.map(d =>
+    `<div class="flex-1 text-center py-3 rounded-xl cursor-pointer transition-all border-2 ${S.durasi===d.v?'bg-dark text-white border-dark font-bold':'bg-white text-gray-500 border-transparent font-semibold shadow-sm'}" data-durasi="${d.v}">
+      <div class="text-sm">${d.label}</div>
+      <div class="text-[10px] opacity-60 mt-0.5">${d.sub}</div>
+    </div>`).join('');
+
+  const gayaCards = [
+    { v:'santai',     emoji:'🌴', label:'Santai',     desc:'Maks 2 destinasi/hari\nBanyak waktu menikmati' },
+    { v:'eksplorasi', emoji:'⚡', label:'Eksplorasi',  desc:'3–4 destinasi/hari\nEfisien & terpadatkan' },
+  ].map(g =>
+    `<div class="flex-1 flex flex-col items-center py-5 rounded-2xl cursor-pointer transition-all border-2 ${S.gayaPerjalanan===g.v?'border-dark bg-white shadow-md':'border-transparent bg-white shadow-sm opacity-80'}" data-gaya="${g.v}">
+      <div class="text-3xl mb-3">${g.emoji}</div>
+      <div class="font-bold text-sm text-dark">${g.label}</div>
+      <div class="text-[10px] text-gray-400 mt-1 text-center">${g.desc.replace('\n','<br>')}</div>
+    </div>`).join('');
+
+  // Penginapan: search dari Firebase + fallback tier list
+
+  // ── PENGINAPAN SECTION ──
+  const allHotels  = S.allPenginapan || [];
+  const hotelQuery = S.penginapanSearchQuery || '';
+
+  // Daftar penginapan terpilih (multi)
+  const selectedHotels = S.penginapanDataList || [];
+
+  // Filter autocomplete
+  const filteredHotels = hotelQuery.length >= 1
+    ? allHotels.filter(p => {
+        const n = (p.nama||'').toLowerCase();
+        const q = hotelQuery.toLowerCase();
+        return n.includes(q) || (p.kawasan||'').toLowerCase().includes(q);
+      }).slice(0, 8)
+    : (hotelQuery === '' && selectedHotels.length === 0)
+      ? S.penginapanOptions.slice(0, 5)
+      : [];
+
+  const selectedCards = selectedHotels.map((p, idx) => `
+    <div class="flex items-center gap-3 px-4 py-3 bg-dark text-white rounded-2xl mb-2 shadow-sm">
+      <span class="text-xl">🏨</span>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-bold truncate">${esc(p.nama)}</div>
+        <div class="text-[11px] opacity-60">${esc(p.kawasan||'')}${p.harga?' · Rp'+p.harga:''}</div>
+      </div>
+      <span data-remove-hotel="${p.id}" class="cursor-pointer opacity-50 hover:opacity-100 text-xl px-1 shrink-0">✕</span>
+    </div>`).join('');
+
+  const penginapanSection = `
+    <div class="autocomplete-wrap" style="margin-bottom:${selectedHotels.length>0?'8':'10'}px">
+      <input type="text" id="input-penginapan-search"
+        dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
+        placeholder="🔍 Cari nama penginapan..."
+        value="${esc(hotelQuery)}">
+      <div class="autocomplete-dropdown" id="hotel-autocomplete" style="${hotelQuery.length>=1||(!hotelQuery&&selectedHotels.length===0&&S.penginapanOptions.length>0)?'':'display:none'}">
+        ${filteredHotels.length > 0
+          ? filteredHotels.map(p => {
+              const alreadySel = selectedHotels.some(s=>s.id===p.id);
+              const distTxt = p.dist!=null?(p.dist<1?Math.round(p.dist*1000)+'m':p.dist.toFixed(1)+'km'):'';
+              return `<div class="autocomplete-item${alreadySel?' active':''}" data-penginapan-ac="${p.id}">
+                <span style="font-size:20px">${alreadySel?'✓':'🏨'}</span>
+                <div style="flex:1;min-width:0">
+                  <div class="autocomplete-item-name">${esc(p.nama)}</div>
+                  <div class="autocomplete-item-sub">${p.kawasan||''}${distTxt?' · ~'+distTxt+' dari destinasi':''}${p.harga?' · Rp'+p.harga:''}</div>
+                </div>
+                ${alreadySel?'<span style="color:#e07b39;font-size:12px">Terpilih</span>':''}
+              </div>`;
+            }).join('')
+          : `<div class="autocomplete-empty">Tidak ditemukan</div>`
+        }
+      </div>
+    </div>
+    ${selectedCards}
+    ${selectedHotels.length===0 && allHotels.length===0 ? `
+      <div class="card-list">
+        ${PENGINAPAN.map(p =>
+          `<div class="card-opt sm${S.penginapan===p.v?' selected':''}" data-penginapan="${p.v}">
+            <span class="card-opt-icon">${p.emoji}</span>
+            <div><div class="card-opt-title">${p.label}</div><div class="card-opt-sub">${p.range}</div></div>
+            <span class="card-opt-check">✓</span>
+          </div>`).join('')}
+      </div>` : ''}
+    <div style="margin-top:${selectedHotels.length>0?'10':'8'}px">
+      <label style="display:block;font-size:12px;color:#6a8a6a;margin-bottom:6px">
+        ${selectedHotels.length>0?'Atau tambah penginapan lain (multi malam):':'Atau ketik langsung nama penginapan:'}
+      </label>
+      <input type="text" id="input-penginapan-custom"
+        dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
+        placeholder="Contoh: Aston Banyuwangi, Ketapang Indah Hotel..."
+        value="${esc(S.penginapanCustom)}">
+    </div>`;
+
   return `
     <h2 class="font-serif text-3xl font-bold text-dark mb-2 leading-tight">Preferensi</h2>
     <p class="text-sm font-medium text-gray-400 mb-8">Sesuaikan gaya perjalananmu</p>
-    
     <div class="mb-6">
-      <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Durasi</label>
+      <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Durasi Perjalanan</label>
       <div class="flex gap-3">${durasiBtns}</div>
     </div>
-    
     <div class="mb-6">
       <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Gaya Liburan</label>
       <div class="flex gap-3">${gayaCards}</div>
     </div>
-    
     <div class="mb-6">
+      <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">🏨 Penginapan</label>
+      ${penginapanSection}
+    </div>
+
+    <div class="mb-8">
       <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Jumlah Orang</label>
       <div class="inline-flex items-center gap-4 bg-white px-3 py-2 rounded-2xl shadow-sm border border-gray-50">
         <button id="btn-minus" class="w-10 h-10 flex items-center justify-center bg-grayLight text-dark rounded-xl font-bold text-xl hover:bg-gray-200 transition">−</button>
@@ -372,182 +881,1476 @@ function renderStep2() {
         <button id="btn-plus" class="w-10 h-10 flex items-center justify-center bg-grayLight text-dark rounded-xl font-bold text-xl hover:bg-gray-200 transition">+</button>
         <span class="text-xs font-bold text-gray-400 pr-2 uppercase tracking-widest">Orang</span>
       </div>
-    </div>
-    
-    <div class="mb-8">
-      <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Nama Penginapan (Opsional)</label>
-      <input type="text" id="input-penginapan-custom" class="w-full bg-white border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-medium shadow-sm transition focus:border-dark placeholder-gray-300" placeholder="Ketik nama hotel..." value="${esc(S.penginapanCustom)}">
     </div>`;
 }
 
-function renderPlanningBoard() {
-  if (!S.planDays || S.planDays.length === 0) { S.planDays = [['ijen'], ['baluran']]; } // Mock initialization
-  const actDayHTML = S.planDays.map((ids, i) => {
-    return `
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-4">
-      <div class="flex items-center gap-3 px-5 py-4 bg-grayLight/50 border-b border-gray-100">
-        <span class="w-7 h-7 bg-dark text-white rounded-lg flex items-center justify-center text-xs font-bold">${i+1}</span>
-        <span class="font-bold text-sm text-dark">Hari ${i+1}</span>
-      </div>
-      <div class="plan-col-body p-3 min-h-[80px] flex flex-col gap-2" id="bucket-day${i}">
-        ${ids.map(id => { 
-          const d = DESTINATIONS.find(x=>x.id===id); 
-          return d ? `
-          <div class="drag-item flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl cursor-grab transition-all hover:shadow-md" data-id="${id}">
-            <span class="text-gray-300 hover:text-gray-500 font-bold">≡</span>
-            <span class="text-2xl">${d.emoji}</span>
-            <div class="font-bold text-sm text-dark truncate">${d.name}</div>
-          </div>` : ''; 
-        }).join('')}
-      </div>
-    </div>`;
-  }).join('');
-  return `
-    <h2 class="font-serif text-3xl font-bold text-dark mb-2 leading-tight">Susun Rute</h2>
-    <p class="text-sm font-medium text-gray-400 mb-8">Tahan dan geser kartu sesuai keinginan</p>
-    <div class="planning-board">${actDayHTML}</div>`;
-}
-
+// ─── RENDER STEP 3 ───────────────────────────────────────────────────────────
 function renderStep3() {
   if (S.loading) return `
     <div class="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-      <div class="text-6xl mb-6" style="animation: float 3s ease-in-out infinite;">✨</div>
+      <div class="text-6xl mb-6" style="animation:float 3s ease-in-out infinite">🗺️</div>
       <h3 class="font-serif text-2xl font-bold text-dark mb-3">Menyusun Rute Terbaik</h3>
-      <p class="text-sm font-medium text-gray-400 leading-relaxed max-w-[250px]">AI sedang mengatur jadwal perjalananmu agar sempurna...</p>
+      <p class="text-sm font-medium text-gray-400 leading-relaxed max-w-[250px]">AI sedang mengoptimasi rute dan menyusun jadwal terbaik untukmu...</p>
+      <div class="flex flex-wrap justify-center gap-2 mt-6">
+        <span class="bg-white border border-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm">📍 Sorting rute</span>
+        <span class="bg-white border border-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm">🕐 Estimasi waktu</span>
+        <span class="bg-white border border-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm">💰 Kalkulasi biaya</span>
+        <span class="bg-white border border-gray-200 text-gray-500 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm">✨ Finalisasi</span>
+      </div>
     </div>`;
-  
-  if (S.itinerary) {
-    const days = S.itinerary.days.map((day, di) => {
-      const acts = day.activities.map((act, ai) => {
-        const as = ACT_STYLE[act.type] || ACT_STYLE.aktivitas;
-        return `
-        <div class="flex gap-4 mb-5 group">
+
+  if (S.error) return `
+    <div class="flex flex-col items-center justify-center py-16 text-center px-4">
+      <div class="text-5xl mb-4">⚠️</div>
+      <h3 class="font-serif text-xl font-bold text-dark mb-2">Gagal Generate Itinerary</h3>
+      <p class="text-sm text-gray-400 mb-6">${S.error}</p>
+      <button id="btn-retry" class="bg-dark text-white rounded-full px-8 py-3 font-bold text-sm hover:bg-black transition">Coba Lagi</button>
+    </div>`;
+
+  if (!S.itinerary) return '';
+
+  const it = S.itinerary;
+
+  const highlights = (it.highlights||[])
+    .map(h => `<span class="highlight-tag">★ ${esc(h)}</span>`)
+    .join('');
+
+  const days = (it.days||[]).map((day, di) => {
+    const acts = (day.activities||[]).map((act, ai) => {
+      const as = ACT_STYLE[act.type] || ACT_STYLE.aktivitas;
+      const isLast = ai === day.activities.length - 1;
+      return `
+        <div class="flex gap-4 mb-5 group" style="animation-delay:${di*.12+ai*.07}s">
           <div class="flex flex-col items-center w-6 shrink-0 pt-1">
             <span class="text-xl bg-appBg z-10 p-1">${as.icon}</span>
-            ${ai!==day.activities.length-1?'<div class="w-[2px] flex-1 bg-gray-200 my-1 rounded-full group-hover:bg-dark transition-colors"></div>':''}
+            ${!isLast ? '<div class="w-[2px] flex-1 bg-gray-200 my-1 rounded-full"></div>' : ''}
           </div>
           <div class="flex-1 bg-white p-5 rounded-3xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
             <div class="flex justify-between items-start mb-2">
-              <span class="text-sm font-black text-dark tracking-tight">${act.time}</span>
-              ${act.estimatedCost ? `<span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">~${fmt(act.estimatedCost)}</span>` : ''}
+              <div>
+                <span class="text-sm font-black text-dark tracking-tight">${esc(act.time||'')}</span>
+                ${act.duration ? `<span class="text-xs text-gray-400 ml-2">${esc(act.duration)}</span>` : ''}
+              </div>
+              ${act.estimatedCost>0 ? `<span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">~${fmt(act.estimatedCost)}</span>` : ''}
             </div>
-            <div class="font-bold text-[15px] text-dark leading-snug mb-1">${act.name}</div>
-            <div class="text-xs font-medium text-gray-500 leading-relaxed">${act.description}</div>
-            ${act.tips?`<div class="mt-3 px-3 py-2 rounded-xl text-[11px] font-bold ${as.bg} ${as.color}">💡 ${act.tips}</div>`:''}
+            <div class="font-bold text-[15px] text-dark leading-snug mb-1">${esc(act.name)}</div>
+            ${act.location&&act.location!==act.name ? `<div class="text-xs text-gray-400 mb-1">📍 ${esc(act.location)}</div>` : ''}
+            <div class="text-xs font-medium text-gray-500 leading-relaxed">${esc(act.description||'')}</div>
+            ${act.tips ? `<div class="mt-3 px-3 py-2 rounded-xl text-[11px] font-bold ${as.bg} ${as.color}">💡 ${esc(act.tips)}</div>` : ''}
           </div>
         </div>`;
-      }).join('');
-      return `
-      <div class="mb-10 animate-slide-up" style="animation-delay: ${di * 0.1}s">
+    }).join('');
+
+    return `
+      <div class="mb-10 animate-slide-up" style="animation-delay:${di*.1}s">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-10 h-10 bg-dark text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md">${day.day}</div>
           <div>
-            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${day.date_label}</div>
-            <div class="font-serif text-xl font-bold text-dark leading-tight">${day.title}</div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${esc(day.date_label||'')}</div>
+            <div class="font-serif text-xl font-bold text-dark leading-tight">${esc(day.title||'')}</div>
           </div>
         </div>
         ${acts}
       </div>`;
-    }).join('');
-    
-    return `
-      <div class="bg-dark rounded-3xl p-6 mb-8 text-white shadow-2xl relative overflow-hidden">
-        <div class="absolute -right-4 -top-4 text-6xl opacity-10">🗺️</div>
-        <div class="font-serif text-2xl font-bold mb-2 relative z-10">Itinerary Banyuwangi</div>
-        <div class="text-xs font-medium text-gray-300 mb-4 relative z-10">Siap untuk petualanganmu!</div>
-        <div class="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/10 relative z-10">
-          <div class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Estimasi Budget</div>
-          <div class="font-bold text-lg">Rp 1.5JT - 2JT <span class="text-xs font-normal opacity-80">/ org</span></div>
-        </div>
+  }).join('');
+
+  const packingTags = (it.packingTips||[])
+    .map(t => `<span class="packing-tag">${esc(t)}</span>`)
+    .join('');
+
+  return `
+    <div class="bg-dark rounded-3xl p-6 mb-8 text-white shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-4 -top-4 text-6xl opacity-10">🗺️</div>
+      <div class="font-serif text-2xl font-bold mb-2 relative z-10">Itinerary Banyuwangi ✨</div>
+      <div class="text-xs font-medium text-gray-300 mb-4 relative z-10">Siap untuk petualanganmu!</div>
+      <div class="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/10 relative z-10">
+        <div class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Estimasi Budget/org</div>
+        <div class="font-bold text-lg">${fmt(it.estimatedBudget?.min||0)} – ${fmt(it.estimatedBudget?.max||0)}</div>
       </div>
-      ${days}
-      <button class="w-full bg-white border border-gray-200 text-dark rounded-full py-4 font-bold text-sm shadow-sm hover:bg-gray-50 transition mt-4 mb-10" id="btn-restart">Buat Itinerary Baru</button>`;
-  }
-  return '';
+    </div>
+    ${days}
+    ${it.packingTips ? `<div class="bg-blue-50 border border-blue-100 rounded-3xl p-5 mb-4">
+      <div class="font-bold text-sm text-blue-800 mb-2">🎒 Perlengkapan</div>
+      <div class="text-xs text-blue-700 leading-relaxed">${esc(it.packingTips)}</div>
+    </div>` : ''}
+    ${it.importantNotes ? `<div class="bg-amber-50 border border-amber-100 rounded-3xl p-5 mb-4">
+      <div class="text-xs text-amber-700 leading-relaxed">⚠️ ${esc(it.importantNotes)}</div>
+    </div>` : ''}
+    <button class="w-full bg-white border border-gray-200 text-dark rounded-full py-4 font-bold text-sm shadow-sm hover:bg-gray-50 transition mt-4 mb-10" id="btn-restart">
+      ↺ Buat Itinerary Baru
+    </button>`;
 }
 
+// ─── PARTIAL UPDATE STEP 0 ───────────────────────────────────────────────────
+// Dipanggil saat user mengetik — update feedback tanpa re-render input,
+// supaya cursor tidak loncat ke awal (penyebab teks terbalik di Android)
 function updateDestFeedback() {
-  const matched = DESTINATIONS.filter(d=>S.destinations.has(d.id));
-  const tags = matched.map(d => `<div class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full m-1 shadow-sm"><span class="text-lg">${d.emoji}</span><span class="text-xs font-bold text-dark">${esc(d.name)}</span><span data-remove="${d.id}" class="cursor-pointer text-gray-400 hover:text-red-500 text-xs ml-1 font-bold">✕</span></div>`).join('');
-  const suggestions = DESTINATIONS.filter(d=>!S.destinations.has(d.id)).slice(0,6).map(d=>`<button data-suggest="${d.id}" class="bg-transparent border border-gray-200 text-gray-500 hover:bg-white hover:text-dark hover:border-gray-300 rounded-full px-4 py-2 text-xs font-bold cursor-pointer m-1 transition-colors">${d.emoji} ${d.name}</button>`).join('');
+  const matched   = DESTINATIONS.filter(d=>S.destinations.has(d.id));
+  const terms     = S.destInput.split(',').map(s=>s.trim()).filter(Boolean);
+  const unmatched = terms.filter(t => !isTermMatched(t));
 
-  const tagsArea = document.getElementById('dest-tags-area');
-  const tagsList = document.getElementById('dest-tags-list');
-  const suggestArea = document.getElementById('dest-suggestions');
+  // 1. Tags destinasi yang dikenali
+  const tagsEl = document.getElementById('dest-tags-area');
+  if (tagsEl) {
+    if (matched.length > 0) {
+      tagsEl.style.display = '';
+      const tags = matched.map(d => `
+        <div style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;
+          background:rgba(224,123,57,.12);border:1.5px solid rgba(224,123,57,.4);
+          border-radius:20px;margin:3px">
+          <span>${d.emoji}</span>
+          <span style="font-size:13px;font-weight:600;color:#e07b39">${esc(d.name)}</span>
+          <span data-remove="${d.id}" style="cursor:pointer;color:#8fa08f;font-size:11px;
+            margin-left:2px;padding:1px 3px;border-radius:50%">✕</span>
+        </div>`).join('');
+      document.getElementById('dest-tags-list').innerHTML = tags;
+      // Re-attach remove listeners
+      document.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => {
+        const id = el.dataset.remove;
+        S.destinations.delete(id);
+        const d = DESTINATIONS.find(x=>x.id===id);
+        if (d) {
+          const parts = S.destInput.split(',').map(s=>s.trim())
+            .filter(s=>!s.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]));
+          S.destInput = parts.join(', ');
+          const inp = document.getElementById('dest-input');
+          if (inp) inp.value = S.destInput;
+        }
+        updateDestFeedback();
+        updateNav();
+      }));
+    } else {
+      tagsEl.style.display = 'none';
+    }
+  }
 
-  if(tagsArea) tagsArea.style.display = matched.length > 0 ? '' : 'none';
-  if(tagsList) tagsList.innerHTML = tags;
-  if(suggestArea) suggestArea.innerHTML = suggestions;
+  // 2. Warning "tidak ditemukan"
+  const warnEl = document.getElementById('dest-warn-area');
+  if (warnEl) {
+    warnEl.style.display = (unmatched.length > 0 && S.destInput) ? '' : 'none';
+    if (unmatched.length > 0 && S.destInput) {
+      warnEl.innerHTML = `⚠️ Tidak ditemukan: <em>${unmatched.join(', ')}</em><br>
+        <span style="color:#6a8a6a">Coba: Kawah Ijen, TN Baluran, Red Island, Green Bay, TN Alas Purwo, Kawah Wurung…</span>`;
+    }
+  }
 
-  updateNav();
-  attachDynamicDestListeners();
-}
+  // 3. Label "Atau pilih" / "Tambah lagi"
+  const lblEl = document.getElementById('dest-suggest-label');
+  if (lblEl) lblEl.textContent = matched.length > 0 ? 'Tambah lagi:' : 'Atau pilih dari sini:';
 
-function attachDynamicDestListeners() {
-  const c = document.getElementById('content');
-  c.querySelectorAll('[data-suggest]').forEach(el => el.addEventListener('click', () => {
-    const d = DESTINATIONS.find(x=>x.id===el.dataset.suggest);
-    if(d){
+  // 4. Suggestions — hapus yang sudah dipilih
+  const sugEl = document.getElementById('dest-suggestions');
+  if (sugEl) {
+    const suggestions = DESTINATIONS
+      .filter(d=>!S.destinations.has(d.id))
+      .slice(0,6)
+      .map(d=>`<button data-suggest="${d.id}" style="background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.1);color:#8fa08f;border-radius:16px;
+        padding:5px 11px;font-size:11px;cursor:pointer;font-family:inherit;
+        transition:all .2s;white-space:nowrap">${d.emoji} ${d.name}</button>`).join('');
+    sugEl.innerHTML = suggestions;
+    // Re-attach suggest listeners
+    sugEl.querySelectorAll('[data-suggest]').forEach(el => el.addEventListener('click', () => {
+      const d = DESTINATIONS.find(x=>x.id===el.dataset.suggest);
+      if (!d) return;
       S.destinations.add(d.id);
-      S.destInput = S.destInput ? S.destInput+', '+d.name : d.name;
+      S.destInput = S.destInput ? S.destInput.trimEnd().replace(/,$/,'')+', '+d.name : d.name;
       const inp = document.getElementById('dest-input');
       if (inp) inp.value = S.destInput;
+      parseDestInput(S.destInput);
       updateDestFeedback();
+      updateNav();
+    }));
+  }
+
+  // 5. Tombol clear (✕ di dalam input)
+  const clearBtn = document.getElementById('btn-clear-input');
+  if (S.destInput && !clearBtn) {
+    // Tambahkan clear button jika belum ada
+    const wrap = document.getElementById('dest-input')?.parentElement;
+    if (wrap) {
+      const sp = document.createElement('span');
+      sp.id = 'btn-clear-input';
+      sp.style.cssText = 'position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#5a7a5a;font-size:16px;padding:4px';
+      sp.textContent = '✕';
+      sp.addEventListener('click', () => {
+        S.destInput = ''; S.destinations.clear();
+        const inp = document.getElementById('dest-input');
+        if (inp) { inp.value = ''; inp.focus(); }
+        updateDestFeedback(); updateNav();
+        const cb = document.getElementById('btn-clear-input');
+        if (cb) cb.remove();
+      });
+      wrap.appendChild(sp);
     }
-  }));
-  c.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => {
-    S.destinations.delete(el.dataset.remove);
-    updateDestFeedback();
-  }));
+  } else if (!S.destInput && clearBtn) {
+    clearBtn.remove();
+  }
 }
+
+// Partial update suggestions penginapan (tanpa re-render step 2)
+function updateHotelSuggestions() {
+  const q    = (S.penginapanSearchQuery||'').toLowerCase();
+  const all  = S.allPenginapan || [];
+  const sel  = S.penginapanDataList || [];
+
+  const filtered = q.length >= 1
+    ? all.filter(p => {
+        const n = (p.nama||'').toLowerCase();
+        return n.includes(q)||(p.kawasan||'').toLowerCase().includes(q);
+      }).slice(0, 8)
+    : (q==='' && sel.length===0 ? S.penginapanOptions.slice(0,5) : []);
+
+  const acEl = document.getElementById('hotel-autocomplete');
+  if (acEl) {
+    const show = q.length>=1 || (q===''&&sel.length===0&&S.penginapanOptions.length>0);
+    acEl.style.display = show ? '' : 'none';
+    acEl.innerHTML = filtered.length > 0
+      ? filtered.map(p => {
+          const alreadySel = sel.some(s=>s.id===p.id);
+          const distTxt = p.dist!=null?(p.dist<1?Math.round(p.dist*1000)+'m':p.dist.toFixed(1)+'km'):'';
+          return `<div class="autocomplete-item${alreadySel?' active':''}" data-penginapan-ac="${p.id}">
+            <span style="font-size:20px">${alreadySel?'✓':'🏨'}</span>
+            <div style="flex:1;min-width:0">
+              <div class="autocomplete-item-name">${esc(p.nama)}</div>
+              <div class="autocomplete-item-sub">${p.kawasan||''}${distTxt?' · ~'+distTxt:''}${p.harga?' · Rp'+p.harga:''}</div>
+            </div>
+            ${alreadySel?'<span style="color:#e07b39;font-size:11px">Terpilih</span>':''}
+          </div>`;
+        }).join('')
+      : '<div class="autocomplete-empty">Tidak ditemukan</div>';
+
+    // Attach click listeners — mousedown supaya tidak kalah sama blur
+    acEl.querySelectorAll('[data-penginapan-ac]').forEach(el => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        const id  = el.dataset.penginapanAc;
+        const p   = all.find(x=>x.id===id);
+        if (!p) return;
+        const already = sel.some(s=>s.id===id);
+        if (already) {
+          // Toggle off
+          S.penginapanDataList = sel.filter(s=>s.id!==id);
+          S.penginapanIds      = S.penginapanDataList.map(s=>s.id);
+        } else {
+          // Tambah ke list
+          S.penginapanDataList = [...sel, p];
+          S.penginapanIds      = S.penginapanDataList.map(s=>s.id);
+        }
+        // Backward compat
+        S.penginapanId   = S.penginapanIds[0] || '';
+        S.penginapanData = S.penginapanDataList[0] || null;
+        S.penginapan     = S.penginapanIds.length > 0 ? 'firebase' : '';
+        S.penginapanSearchQuery = '';
+        // Load kuliner dari penginapan pertama
+        const first = S.penginapanDataList[0];
+        if (first?.lat && first?.lng) loadKulinerNearPenginapan(first.lat, first.lng);
+        render();
+      });
+    });
+  }
+}
+
 
 function render() {
   const c = document.getElementById('content');
-  if(S.step===0) c.innerHTML = renderStep0();
-  else if(S.step===1) c.innerHTML = renderStep1();
-  else if(S.step===2) c.innerHTML = renderStep2();
-  else if(S.step===3) c.innerHTML = S.itinerary ? renderStep3() : (S.loading ? renderStep3() : renderPlanningBoard());
-  
-  updateProgress(); updateNav(); attachListeners();
-  if(S.step===3 && !S.loading && !S.itinerary) initSortableBoard();
+  try {
+    switch (S.step) {
+      case 0: c.innerHTML = renderStep0(); break;
+      case 1: c.innerHTML = renderStep1(); break;
+      case 2: c.innerHTML = renderStep2(); break;
+      case 3:
+        if (S.loading || S.error || S.itinerary) {
+          c.innerHTML = renderStep3();
+        } else {
+          c.innerHTML = renderPlanningBoard();
+          requestAnimationFrame(() => initSortableBoard());
+        }
+        break;
+    }
+  } catch(e) {
+    console.error('render() error:', e);
+    c.innerHTML = `<div style="padding:20px;color:#e07b39;font-size:13px">
+      <b>⚠️ Error render:</b><br><pre style="white-space:pre-wrap;font-size:11px;color:#8fa08f;margin-top:8px">${esc(e.message)}\n${esc(e.stack||'')}</pre>
+    </div>`;
+  }
+  updateProgress();
+  updateNav();
+  attachListeners();
 }
 
+// ─── LISTENERS ───────────────────────────────────────────────────────────────
 function attachListeners() {
   const c = document.getElementById('content');
-  
-  const destInput = document.getElementById('dest-input'); 
-  if (destInput) { 
-    destInput.addEventListener('input', () => { 
-      S.destInput = destInput.value; 
-      parseDestInput(S.destInput); 
-      updateDestFeedback(); 
-    }); 
-    destInput.focus(); 
-  }
-  if(S.step === 0) attachDynamicDestListeners();
 
-  const selKota = document.getElementById('sel-kota'); if (selKota) selKota.addEventListener('change', () => { S.kotaAsal = selKota.value; render(); });
-  c.querySelectorAll('[data-transport]').forEach(el => el.addEventListener('click', () => { S.transport = el.dataset.transport; render(); }));
-  c.querySelectorAll('[data-sub]').forEach(el => el.addEventListener('click', () => { S.subTransport = el.dataset.sub; render(); }));
-  c.querySelectorAll('[data-durasi]').forEach(el => el.addEventListener('click', () => { S.durasi = el.dataset.durasi; render(); }));
-  c.querySelectorAll('[data-gaya]').forEach(el => el.addEventListener('click', () => { S.gayaPerjalanan = el.dataset.gaya; render(); }));
-  const inpHotel = document.getElementById('input-penginapan-custom'); if (inpHotel) inpHotel.addEventListener('input', () => { S.penginapanCustom = inpHotel.value; S.penginapan='custom'; updateNav(); });
-  const minus = document.getElementById('btn-minus'), plus = document.getElementById('btn-plus');
-  if (minus) minus.addEventListener('click', () => { S.jumlahOrang = Math.max(1, S.jumlahOrang-1); render(); });
-  if (plus) plus.addEventListener('click', () => { S.jumlahOrang = Math.min(20, S.jumlahOrang+1); render(); });
-  const restart = document.getElementById('btn-restart'); if (restart) restart.addEventListener('click', () => { window.location.reload(); });
+  // Step 0 — text input (PARTIAL UPDATE — tidak re-render agar cursor tidak reset)
+  const destInput = document.getElementById('dest-input');
+  if (destInput) {
+    destInput.addEventListener('input', () => {
+      S.destInput = destInput.value;
+      parseDestInput(S.destInput);
+      updateDestFeedback(); // partial update, bukan render()
+      updateNav();
+    });
+    destInput.focus();
+  }
+  // Clear button
+  const btnClear = document.getElementById('btn-clear-input');
+  if (btnClear) btnClear.addEventListener('click', () => {
+    S.destInput=''; S.destinations.clear();
+    const inp = document.getElementById('dest-input');
+    if (inp) { inp.value = ''; inp.focus(); }
+    updateDestFeedback(); updateNav();
+  });
+  // Remove tag
+  c.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.remove;
+    S.destinations.delete(id);
+    const d = DESTINATIONS.find(x=>x.id===id);
+    if (d) {
+      const parts = S.destInput.split(',').map(s=>s.trim()).filter(s=>!s.toLowerCase().includes(d.name.toLowerCase().split(' ')[0]));
+      S.destInput = parts.join(', ');
+      const inp = document.getElementById('dest-input');
+      if (inp) inp.value = S.destInput;
+    }
+    updateDestFeedback(); updateNav();
+  }));
+  // Suggestion pills
+  c.querySelectorAll('[data-suggest]').forEach(el => el.addEventListener('click', () => {
+    const d = DESTINATIONS.find(x=>x.id===el.dataset.suggest);
+    if (!d) return;
+    S.destinations.add(d.id);
+    S.destInput = S.destInput ? S.destInput.trimEnd().replace(/,$/,'')+', '+d.name : d.name;
+    const inp = document.getElementById('dest-input');
+    if (inp) inp.value = S.destInput;
+    parseDestInput(S.destInput);
+    updateDestFeedback(); updateNav();
+  }));
+
+  // Step 1 — kota asal
+  const selKota = document.getElementById('sel-kota');
+  if (selKota) selKota.addEventListener('change', () => {
+    S.kotaAsal = selKota.value;
+    S.kotaAsalCustom = '';
+    render();
+  });
+  const inputKota = document.getElementById('input-kota-custom');
+  if (inputKota) inputKota.addEventListener('input', () => {
+    S.kotaAsalCustom = inputKota.value;
+    updateNav();
+  });
+
+  // Step 0 — kuliner custom
+  const kulCust = document.getElementById('input-kuliner-custom');
+  if (kulCust) kulCust.addEventListener('input', () => { S.kulinerCustom = kulCust.value; });
+
+  // Step 1 — transport (targeted: toggle class + sewa section)
+  c.querySelectorAll('[data-transport]').forEach(el => el.addEventListener('click', () => {
+    S.transport = el.dataset.transport;
+    S.sewaLokal.clear();
+    c.querySelectorAll('[data-transport]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.transport===S.transport));
+    const subw = document.getElementById('sub-trans-wrap');
+    if (subw) subw.classList.toggle('open', S.transport==='umum');
+    const sw = document.getElementById('sewa-wrap');
+    if (sw) sw.classList.toggle('open', S.transport==='umum');
+    // Jam picker: tampil untuk semua transport
+    const jw = document.getElementById('jam-wrap');
+    if (jw) jw.classList.add('open');
+    if (S.transport !== 'umum') S.subTransport = '';
+    c.querySelectorAll('[data-sewa]').forEach(e => e.classList.remove('selected','sewa-sel'));
+    updateNav();
+  }));
+
+  // Step 1 — sewa lokal (targeted)
+  c.querySelectorAll('[data-sewa]').forEach(el => el.addEventListener('click', () => {
+    const v = el.dataset.sewa;
+    S.sewaLokal.has(v) ? S.sewaLokal.delete(v) : S.sewaLokal.add(v);
+    el.classList.toggle('selected', S.sewaLokal.has(v));
+    el.classList.toggle('sewa-sel', S.sewaLokal.has(v));
+  }));
+
+  // Step 1 — sub-transport (kereta/pesawat/bus)
+  c.querySelectorAll('[data-sub]').forEach(el => el.addEventListener('click', () => {
+    S.subTransport = el.dataset.sub;
+    c.querySelectorAll('[data-sub]').forEach(e => e.classList.toggle('selected', e.dataset.sub===S.subTransport));
+    const jw = document.getElementById('jam-wrap');
+    if (jw) jw.classList.add('open');
+    updateNav();
+  }));
+
+  // Step 1 — jam tiba & pulang
+  const inpTiba = document.getElementById('input-waktu-tiba');
+  if (inpTiba) inpTiba.addEventListener('change', () => { S.waktuTiba = inpTiba.value; });
+  const inpPulang = document.getElementById('input-waktu-pulang');
+  if (inpPulang) inpPulang.addEventListener('change', () => { S.waktuPulang = inpPulang.value; });
+
+  // Step 2 — penginapan custom (ketik manual)
+  const inpHotel = document.getElementById('input-penginapan-custom');
+  if (inpHotel) inpHotel.addEventListener('input', () => {
+    S.penginapanCustom = inpHotel.value;
+    if (S.penginapanCustom.trim()) {
+      // Clear Firebase & tier selection jika ketik manual
+      S.penginapanId = ''; S.penginapan = 'custom';
+      c.querySelectorAll('[data-penginapan-fb],[data-penginapan]').forEach(e => e.classList.remove('selected'));
+    }
+    updateNav();
+  });
+
+  // Step 2 — penginapan search (partial update, tidak re-render)
+  const inpHotelSearch = document.getElementById('input-penginapan-search');
+  if (inpHotelSearch) {
+    inpHotelSearch.addEventListener('input', () => {
+      S.penginapanSearchQuery = inpHotelSearch.value;
+      // Clear selection jika user mengetik ulang
+      if (S.penginapanSearchQuery && S.penginapanId) {
+        S.penginapanId = ''; S.penginapanData = null; S.penginapan = '';
+      }
+      updateHotelSuggestions();
+      updateNav();
+    });
+    // Tampilkan dropdown saat fokus
+    inpHotelSearch.addEventListener('focus', () => {
+      if (!S.penginapanId) updateHotelSuggestions();
+    });
+    // Sembunyikan dropdown saat blur (kecuali sedang klik item)
+    inpHotelSearch.addEventListener('blur', () => {
+      setTimeout(() => {
+        const acEl = document.getElementById('hotel-autocomplete');
+        if (acEl) acEl.style.display = 'none';
+      }, 200);
+    });
+  }
+  const btnClearHotel = document.getElementById('btn-clear-hotel');
+  if (btnClearHotel) btnClearHotel.addEventListener('click', () => {
+    S.penginapanSearchQuery = '';
+    S.penginapanId = ''; S.penginapanData = null; S.penginapan = '';
+    render();
+  });
+  const hotelList = document.getElementById('hotel-suggestions');
+  if (hotelList) hotelList.addEventListener('click', e => {
+    const card = e.target.closest('[data-penginapan-fb]');
+    if (!card) return;
+    const id = card.dataset.penginapanFb;
+    S.penginapanId   = S.penginapanId === id ? '' : id;
+    S.penginapanData = (S.allPenginapan||[]).find(p=>p.id===id) || S.penginapanOptions.find(p=>p.id===id) || null;
+    S.penginapan     = S.penginapanId ? 'firebase' : '';
+    if (S.penginapanData?.lat && S.penginapanData?.lng) loadKulinerNearPenginapan(S.penginapanData.lat, S.penginapanData.lng);
+    updateHotelSuggestions();
+    updateNav();
+  });
+
+  // Remove hotel dari multi-list (tombol ✕ di kartu terpilih)
+  c.querySelectorAll('[data-remove-hotel]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.removeHotel;
+      S.penginapanDataList = (S.penginapanDataList||[]).filter(p=>p.id!==id);
+      S.penginapanIds      = S.penginapanDataList.map(p=>p.id);
+      S.penginapanId       = S.penginapanIds[0] || '';
+      S.penginapanData     = S.penginapanDataList[0] || null;
+      S.penginapan         = S.penginapanIds.length>0 ? 'firebase' : '';
+      render();
+    });
+  });
+
+  // Step 2 — durasi (targeted)
+  c.querySelectorAll('[data-durasi]').forEach(el => el.addEventListener('click', () => {
+    S.durasi = el.dataset.durasi;
+    c.querySelectorAll('[data-durasi]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.durasi===S.durasi));
+    updateNav();
+  }));
+
+  // Step 2 — gaya (targeted)
+  c.querySelectorAll('[data-gaya]').forEach(el => el.addEventListener('click', () => {
+    S.gayaPerjalanan = el.dataset.gaya;
+    c.querySelectorAll('[data-gaya]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.gaya===S.gayaPerjalanan));
+    updateNav();
+  }));
+
+  // Step 2 — penginapan Firebase
+  c.querySelectorAll('[data-penginapan-fb]').forEach(el => el.addEventListener('click', () => {
+    S.penginapanId = el.dataset.penginapanFb;
+    S.penginapan = 'firebase';
+    const lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
+    const d = S.penginapanOptions.find(p=>p.id===S.penginapanId);
+    S.penginapanData = d || null;
+    if (!isNaN(lat) && !isNaN(lng)) loadKulinerNearPenginapan(lat, lng);
+    c.querySelectorAll('[data-penginapan-fb]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.penginapanFb===S.penginapanId));
+    c.querySelectorAll('[data-penginapan]').forEach(e => e.classList.remove('selected'));
+    updateNav();
+  }));
+  // Step 2 — penginapan tipe (targeted)
+  c.querySelectorAll('[data-penginapan]').forEach(el => el.addEventListener('click', () => {
+    S.penginapan = el.dataset.penginapan;
+    S.penginapanId = '';
+    S.penginapanData = null;
+    c.querySelectorAll('[data-penginapan]').forEach(e =>
+      e.classList.toggle('selected', e.dataset.penginapan===S.penginapan));
+    c.querySelectorAll('[data-penginapan-fb]').forEach(e => e.classList.remove('selected'));
+    updateNav();
+  }));
+
+  // Step 2 — counter
+  const minus = document.getElementById('btn-minus');
+  const plus  = document.getElementById('btn-plus');
+  const cntEl = document.getElementById('cnt-val');
+  if (minus) minus.addEventListener('click', () => {
+    S.jumlahOrang = Math.max(1, S.jumlahOrang-1);
+    if (cntEl) cntEl.textContent = S.jumlahOrang;
+  });
+  if (plus) plus.addEventListener('click', () => {
+    S.jumlahOrang = Math.min(20, S.jumlahOrang+1);
+    if (cntEl) cntEl.textContent = S.jumlahOrang;
+  });
+
+  // Step 3 — planning board reset button
+  const btnReset = document.getElementById('btn-reset-plan');
+  if (btnReset) btnReset.addEventListener('click', () => {
+    initPlanDays();
+    render();
+  });
+
+  // Result — retry & restart
+  const retry   = document.getElementById('btn-retry');
+  const restart = document.getElementById('btn-restart');
+  if (retry)   retry.addEventListener('click', () => { S.error=null; S.loading=true; render(); generate(); });
+  if (restart) restart.addEventListener('click', () => {
+    Object.assign(S, {
+      step:0, kotaAsal:'', kotaAsalCustom:'', destInput:'',
+      transport:'', subTransport:'', durasi:'', gayaPerjalanan:'',
+      penginapan:'', penginapanId:'', penginapanData:null,
+      penginapanCustom:'', kulinerCustom:'', jumlahOrang:2,
+      planDays:[], planBacklog:[],
+      loading:false, itinerary:null, error:null,
+    });
+    S.destinations.clear();
+    S.sewaLokal.clear();
+    render();
+  });
 }
 
-document.getElementById('btn-back').addEventListener('click', () => { S.step--; render(); });
-document.getElementById('btn-next').addEventListener('click', async () => {
-  if (S.step===3) { S.loading=true; render(); setTimeout(mockGenerate, 1500); } 
-  else { S.step++; render(); }
+// ─── STATIC NAV LISTENERS ────────────────────────────────────────────────────
+document.getElementById('btn-back').addEventListener('click', () => {
+  S.step--;
+  render();
 });
 
-function initSortableBoard() { document.querySelectorAll('.plan-col-body').forEach(col => { new Sortable(col, { group: 'wandr-board', animation: 200, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen' }); }); }
-function mockGenerate() { S.loading=false; S.itinerary = { days: [{ day:1, date_label:'Hari 1', title:'Kedatangan & Eksplorasi', activities:[{time:'10:00', type:'transport', name:'Tiba di Banyuwangi', description:'Sampai di kota tercinta.', tips:'', estimatedCost:0}, {time:'13:00', type:'makan', name:'Makan Siang Sego Tempong', description:'Kuliner pedas khas.', tips:'Pilih Sego Tempong Mbok Wah.', estimatedCost:25000}] }] }; render(); }
+document.getElementById('btn-next').addEventListener('click', async () => {
+  if (S.step===3) {
+    // Planning board → generate itinerary
+    readPlanFromDOM();
+    S.loading=true; S.itinerary=null; S.error=null;
+    render();
+    generate();
+  } else if (S.step===2) {
+    // Preferensi → planning board
+    S.step=3;
+    initPlanDays();
+    render();
+  } else if (S.step===1) {
+    // Load penginapan sebelum render step 2
+    S.step=2;
+    render();
+    await loadPenginapanOptions();
+    render(); // re-render dengan data penginapan
+  } else {
+    S.step++;
+    render();
+  }
+});
 
-(async () => { await loadDestinations(); document.getElementById('progress-area').style.display = ''; render(); })();
+// ─── RULE-BASED ENGINE ──────────────────────────────────────────────────────
+
+// Data tambahan per destinasi: zona, tiket, durasi (menit), deskripsi, tips
+const DEST_EXT = {
+  ijen:        { zone:'barat',   tiket:5000,  dur:300, isIjen:true,
+                 desc:'Trekking ke kawah asam berwarna biru misterius, fenomena langka di dunia. Tiba di puncak sebelum matahari terbit untuk menyaksikan blue fire.',
+                 tips:'Wajib bawa masker gas N95. Sewa porter ~150K (opsional). Headlamp adalah mutlak.' },
+  baluran:     { zone:'utara',   tiket:15000, dur:240,
+                 desc:'Jelajahi savana luas "Afrika van Java". Berkendara melalui padang savana untuk melihat banteng, rusa, dan merak liar.',
+                 tips:'Masuk gerbang sebelum jam 06:00 untuk peluang terbaik bertemu satwa. Bawa kamera telephoto.' },
+  alas_purwo:  { zone:'selatan', tiket:5000,  dur:300,
+                 desc:'Menjelajahi hutan purba dengan ekosistem tersier Jawa. Kunjungi Pantai Trianggulasi dan Pura Giri Salaka yang bersejarah.',
+                 tips:'Trek ringan tersedia. Bawa air minum cukup dan repellent nyamuk.' },
+  kawah_wurung:{ zone:'barat',   tiket:5000,  dur:180,
+                 desc:'Kaldera cantik dengan hamparan padang sabana hijau. Sunrise dari sini spektakuler dengan pemandangan 360 derajat.',
+                 tips:'Datang maksimal jam 05:30. Sangat dingin, bawa jaket. Bisa dilanjutkan setelah turun dari Ijen.' },
+  jagir:       { zone:'barat',   tiket:10000, dur:120,
+                 desc:'Air terjun tiga tingkat di tengah hutan pinus yang sejuk. Kolam alami di bawah air terjun cocok untuk berendam.',
+                 tips:'Trek ~1km dari parkir, relatif mudah. Gunakan sandal gunung atau sepatu anti selip.' },
+  red_island:  { zone:'selatan', tiket:10000, dur:180, isSunset:true,
+                 desc:'Pantai dengan tebing merah dramatis yang menjadi ikon Banyuwangi. Sunset di sini adalah yang paling ikonik di Jawa.',
+                 tips:'Datang pukul 15:00 untuk tempat foto terbaik. Gelombang besar, tidak dianjurkan berenang.' },
+  green_bay:   { zone:'selatan', tiket:10000, dur:240,
+                 desc:'Teluk tersembunyi dengan air berwarna hijau toska yang memukau. Snorkeling dan berenang sangat direkomendasikan.',
+                 tips:'Trek 30–40 menit dari parkir melewati hutan. Bawa bekal air minum minimal 1.5L.' },
+  sukamade:    { zone:'selatan', tiket:10000, dur:240, isNight:true,
+                 desc:'Pantai penangkaran penyu hijau terbesar di Indonesia. Saksikan penyu bertelur secara langsung di malam hari.',
+                 tips:'Wajib menginap di sekitar area. Bawa senter dan pakaian berwarna gelap.' },
+  g_land:      { zone:'selatan', tiket:0,     dur:240,
+                 desc:'Pantai legendaris surganya peselancar kelas dunia, berlokasi di dalam kawasan TN Alas Purwo.',
+                 tips:'Akses via perahu dari Pantai Grajagan ~200–300K. Bawa perlengkapan snorkeling.' },
+  menjangan:   { zone:'utara',   tiket:25000, dur:360,
+                 desc:'Pulau dengan terumbu karang terbaik di Banyuwangi. Visibilitas air hingga 30m, ideal untuk snorkeling dan diving.',
+                 tips:'Sewa perahu dari Bangsring ~300–400K/perahu. Bawa tabir surya dan alat snorkel sendiri.' },
+  tabuhan:     { zone:'utara',   tiket:15000, dur:300,
+                 desc:'Pulau pasir putih kecil dengan air berwarna biru jernih. Spot foto yang sangat instagramable.',
+                 tips:'Sewa perahu dari Pantai Bangsring ~200–250K. Perjalanan ~30 menit. Bawa bekal makanan.' },
+  city:        { zone:'kota',    tiket:0,     dur:240, isCity:true,
+                 desc:'Jelajahi pesona kota Banyuwangi: Pantai Boom, Taman Blambangan, Pendopo, dan pusat oleh-oleh khas.',
+                 tips:'Malam hari lebih ramai dan hidup. Cicipi kuliner kaki lima di Jl. PB Sudirman.' },
+};
+
+// Kuliner rekomendasi per zona (berdasarkan pola Yuk Banyuwangi)
+const KULINER_DB = {
+  barat: [
+    { name:'Warung Kopi Osing Kemiren',     menu:'Kopi Osing + Pecel Pitik khas Using', est:35000 },
+    { name:'Warung Bu Yati - Desa Tamansari', menu:'Nasi Tempong Ijen + Tahu Tempe',    est:25000 },
+    { name:'RM Djajag Genteng',              menu:'Rawon Setan + Es Dawet',              est:30000 },
+  ],
+  utara: [
+    { name:'Warung Pesisir Bangsring',  menu:'Ikan Bakar Segar + Plecing Kangkung', est:50000 },
+    { name:'Warung Bu Temu - Ketapang', menu:'Sego Tempong Osing + Sayur Asem',     est:20000 },
+    { name:'RM Kuliner Ketapang',       menu:'Soto Ayam + Kerupuk Ikan',            est:25000 },
+  ],
+  selatan: [
+    { name:'Warung Seafood Muncar',       menu:'Udang Bakar + Tumis Kangkung + Nasi',     est:55000 },
+    { name:'Warung Pinggir Pantai Merah', menu:'Mie Goreng Seafood + Teh Hangat',         est:30000 },
+    { name:'RM Pindang Banyuwangi',       menu:'Pindang Koyong + Nasi Merah + Lalapan',  est:35000 },
+  ],
+  kota: [
+    { name:'Sego Tempong Mbok Wah',        menu:'Sego Tempong Asli + Tahu + Tempe',        est:20000 },
+    { name:'Rujak Soto Jl. PB Sudirman',  menu:'Rujak Soto khas BWI + Es Tape',            est:18000 },
+    { name:'RM Blambangan',               menu:'Pecel Rawon + Jus Buah Segar',             est:28000 },
+    { name:'Warung Kopi Banyuwangi',       menu:'Kopi Osing + Roti Bakar Cokelat',         est:15000 },
+  ],
+};
+
+// Packing tips per destinasi
+const PACKING_DB = {
+  ijen:        ['Masker gas / N95','Headlamp + baterai cadangan','Jaket sangat tebal (suhu <10°C)'],
+  kawah_wurung:['Jaket tebal','Tripod untuk foto sunrise'],
+  menjangan:   ['Peralatan snorkeling','Tabir surya SPF50+','Dry bag'],
+  tabuhan:     ['Peralatan snorkeling','Tabir surya','Sandal air'],
+  sukamade:    ['Senter','Pakaian berwarna gelap','Repellent nyamuk'],
+  green_bay:   ['Sandal gunung','Air minum 1.5L','Camilan'],
+  alas_purwo:  ['Sepatu hiking','Repellent','Air minum cukup'],
+  baluran:     ['Kamera telephoto (untuk satwa)','Air minum','Topi lebar'],
+};
+
+// Jarak zona dari pusat kota BWI (km, perkiraan)
+const ZONE_DIST = { barat:42, utara:65, selatan:72, kota:5 };
+
+// ── Time helpers ─────────────────────────────────────────────────────────────
+function addMin(t, m) {
+  const [h,mn] = t.split(':').map(Number);
+  const tot = h*60+mn+m;
+  return `${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;
+}
+function durLabel(m) {
+  const h=Math.floor(m/60), mn=m%60;
+  return h&&mn?`${h} jam ${mn} menit`:h?`${h} jam`:`${mn} menit`;
+}
+function pickRand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function parseDurasi(v) {
+  return {'1D':[1,0],'2D1N':[2,1],'3D2N':[3,2],'4D3N':[4,3],'5D4N':[5,4]}[v]||[2,1];
+}
+
+// ── Build kuliner activity ────────────────────────────────────────────────────
+function buildMakan(waktu, zone, overrideTime) {
+  const timeMap = { pagi:'07:00', siang:'12:30', malam:'19:00' };
+  const labelMap = { pagi:'Sarapan', siang:'Makan Siang', malam:'Makan Malam' };
+  const finalTime = overrideTime || timeMap[waktu];
+  // Pakai kuliner custom user jika ada
+  if (S.kulinerCustom && S.kulinerCustom.trim()) {
+    return { time:finalTime, name:`${labelMap[waktu]} — ${S.kulinerCustom.trim()}`,
+      location:S.kulinerCustom.trim(), duration:'1 jam',
+      description:`${labelMap[waktu]} di ${S.kulinerCustom.trim()} — pilihan kuliner incaran kamu.`,
+      tips:'Sesuaikan dengan jam operasional tempat makan.', estimatedCost:30000, type:'makan' };
+  }
+  // Pakai kuliner dari Firebase jika ada (terdekat dari penginapan terpilih)
+  if (S.kulinerOptions && S.kulinerOptions.length > 0) {
+    const k = pickRand(S.kulinerOptions);
+    const timeMap = { pagi:'07:00', siang:'12:30', malam:'19:00' };
+    const labelMap = { pagi:'Sarapan', siang:'Makan Siang', malam:'Makan Malam' };
+    return {
+      time: timeMap[waktu],
+      name: `${labelMap[waktu]} — ${k.nama}`,
+      location: k.nama,
+      duration: '1 jam',
+      description: `${labelMap[waktu]} di ${k.nama}. ${k.catatan||k.menu_andalan||k.kategori||''}`,
+      tips: `±${Math.round(k.dist*1000)}m dari penginapan — bisa jalan kaki.`,
+      estimatedCost: k.harga ? parseInt(String(k.harga).replace(/\D/g,''))||25000 : 25000,
+      type: 'makan',
+    };
+  }
+  const db = KULINER_DB[zone] || KULINER_DB.kota;
+  const w  = pickRand(db);
+  return {
+    time: finalTime,
+    name: `${labelMap[waktu]} — ${w.name}`,
+    location: w.name,
+    duration: '1 jam',
+    description: `${labelMap[waktu]} dengan menu ${w.menu}. Warung lokal favorit di kawasan ini.`,
+    tips: 'Datang agak awal kalau ramai. Harga terjangkau, rasa autentik.',
+    estimatedCost: w.est,
+    type: 'makan',
+  };
+}
+
+// ── Day 1: Kedatangan ─────────────────────────────────────────────────────────
+function buildArrivalDay(kota, transport, penginapan) {
+  const isUmum = transport === 'umum';
+  const subLabel = {kereta:'Kereta Api (Mutiara Timur/Sri Tanjung)',pesawat:'Pesawat',bus:'Bus PO'}[S.subTransport] || 'Kendaraan Umum';
+  const jamTiba  = parseInt((S.waktuTiba||'10:00').split(':')[0]);
+  const finalHotel = getFinalHotelName();
+  const acts = [];
+
+  // Transport ke BWI
+  const berangkat = isUmum ? '07:00' : '09:00';
+  const durTrans  = isUmum ? {kereta:'±6 jam',pesawat:'±2 jam',bus:'±8 jam'}[S.subTransport]||'±6 jam' : '±4–5 jam';
+  const costTrans = {kereta:250000,pesawat:1500000,bus:150000}[S.subTransport] || (isUmum?200000:80000);
+  acts.push({ time:berangkat, name:`Perjalanan dari ${kota} ke Banyuwangi`,
+    location:kota, duration:durTrans,
+    description: isUmum
+      ? `Naik ${subLabel} dari ${kota} menuju Banyuwangi.`
+      : `Berkendara dari ${kota}. Pastikan kendaraan prima dan tangki penuh.`,
+    tips: isUmum ? 'Pesan tiket minimal H-7. Bawa bekal ringan.' : 'Istirahat di rest area setiap 2 jam.',
+    estimatedCost:costTrans, type:'transport' });
+
+  // Logika berdasarkan jam tiba
+  if (jamTiba < 11) {
+    // Tiba pagi → bisa aktivitas ringan dulu
+    acts.push({ time:S.waktuTiba, name:'Tiba di Banyuwangi',
+      location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
+      duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
+      tips:'', estimatedCost:0, type:'transport' });
+    acts.push({ time:addMin(S.waktuTiba,30), name:'Titip Tas & Sewa Kendaraan',
+      location:'Locker Wangi / Area Stasiun', duration:'45 menit',
+      description:'Titip koper di Locker Wangi agar jalan-jalan pagi leluasa sebelum jam check-in hotel.',
+      tips:'Locker Wangi: lockerwangi.com | WA: 0851-4717-8692. Tarif ~25K/tas.',
+      estimatedCost:25000, type:'aktivitas' });
+    acts.push(buildMakan('pagi','kota'));
+    acts.push({ time:addMin(S.waktuTiba,105), name:'Wisata Pagi — Pantai Boom / Taman Blambangan',
+      location:'Pusat Kota Banyuwangi', duration:'2 jam',
+      description:'Jalan santai di Pantai Boom atau Taman Blambangan. Nikmati suasana kota.',
+      tips:'Santai saja, simpan energi.', estimatedCost:5000, type:'aktivitas' });
+    acts.push({ time:'13:00', name:'Ambil Tas & Check-in Penginapan',
+      location:finalHotel, duration:'1 jam',
+      description:`Ambil kembali tas dari Locker Wangi, lalu check-in ${finalHotel}.`,
+      tips:'', estimatedCost:0, type:'penginapan' });
+    acts.push(buildMakan('malam','kota'));
+  } else if (jamTiba >= 11 && jamTiba < 18) {
+    // Tiba siang-sore → langsung check-in
+    acts.push({ time:S.waktuTiba, name:'Tiba & Check-in Penginapan',
+      location:finalHotel, duration:'1 jam',
+      description:`Check-in ${finalHotel}. Istirahat dan eksplorasi santai sekitar penginapan.`,
+      tips:'', estimatedCost:0, type:'penginapan' });
+    acts.push({ time:addMin(S.waktuTiba,90), name:'Eksplorasi Ringan Kota',
+      location:'Pusat Kota Banyuwangi', duration:'2 jam',
+      description:'Jalan sore santai, beli oleh-oleh kecil, nikmati suasana kota.',
+      tips:'', estimatedCost:5000, type:'aktivitas' });
+    acts.push(buildMakan('malam','kota'));
+  } else {
+    // Tiba malam
+    acts.push(buildMakan('malam','kota'));
+    acts.push({ time:addMin(S.waktuTiba,45), name:'Check-in & Istirahat',
+      location:finalHotel, duration:'Malam',
+      description:'Tiba malam, langsung check-in dan istirahat. Perjalanan esok lebih seru!',
+      tips:'', estimatedCost:0, type:'penginapan' });
+  }
+
+  return { day:1, date_label:'Hari 1', title:`Kedatangan dari ${kota}`, activities:sortActivities(acts) };
+}
+
+// Tambah destinasi ekstra dari arrival bucket ke hari 1
+function injectArrivalExtras(arrivalDay) {
+  const extras = (S.planArrivalExtras||[])
+    .map(id => DESTINATIONS.find(d=>d.id===id))
+    .filter(Boolean);
+  if (extras.length === 0) return arrivalDay;
+  // Sisipkan setelah aktivitas terakhir sebelum makan malam
+  const insertBefore = arrivalDay.activities.findIndex(a=>a.type==='kuliner'&&a.name.toLowerCase().includes('malam'));
+  const extraActs = extras.map((d,i) => {
+    const ext = DEST_EXT[d.id]||{};
+    return { time: addMin('15:30', i*60),
+      name: d.name, location: d.name+', Banyuwangi',
+      duration: durLabel(ext.dur||120),
+      description: ext.desc||d.desc||'',
+      tips: ext.tips||'', estimatedCost: ext.tiket||d.tiket||0, type:'aktivitas' };
+  });
+  if (insertBefore >= 0) {
+    arrivalDay.activities.splice(insertBefore, 0, ...extraActs);
+  } else {
+    arrivalDay.activities.push(...extraActs);
+  }
+  // Sort ulang setelah inject
+  arrivalDay.activities = sortActivities(arrivalDay.activities);
+  return arrivalDay;
+}
+
+// ── Day terakhir: Kepulangan ───────────────────────────────────────────────────
+function buildDepartureDay(dayNum, kota, transport) {
+  const isUmum = transport === 'umum';
+  return {
+    day:dayNum, date_label:`Hari ${dayNum}`,
+    title:'Oleh-oleh & Perjalanan Pulang',
+    activities: [
+      { time:'07:30', name:'Sarapan & Check-out',
+        location:'Penginapan', duration:'1 jam',
+        description:'Sarapan terakhir di Banyuwangi dan check-out penginapan.',
+        tips:'Titipkan koper di resepsionis jika masih mau jalan-jalan sebentar.',
+        estimatedCost:20000, type:'makan' },
+      { time:'09:00', name:'Belanja Oleh-oleh Khas Banyuwangi',
+        location:'Toko Oleh-oleh / Pasar Banyuwangi', duration:'2 jam',
+        description:'Belanja oleh-oleh: Kopi Osing, Batik Gajah Oling, Kerajinan Gedog, Dodol Banyuwangi, dan Peyek khas.',
+        tips:'Toko Oleh-oleh Barokah di Jl. A. Yani atau pasar tradisional untuk harga lebih miring.',
+        estimatedCost:150000, type:'aktivitas' },
+      { time:'11:30', name:'Makan Siang Terakhir di Banyuwangi',
+        location:'Warung Kuliner Lokal', duration:'1 jam',
+        description:'Makan siang terakhir. Jangan lewatkan Sego Tempong atau Rujak Soto sebagai kenangan rasa.',
+        tips:'Ini kesempatan terakhir menikmati kuliner khas. Beli sambal tempong buat dibawa pulang!',
+        estimatedCost:25000, type:'makan' },
+      { time:'13:00', name:`Perjalanan Pulang ke ${kota}`,
+        location:'Banyuwangi', duration: isUmum?'±6–8 jam':'±4–5 jam',
+        description:`Bertolak kembali ke ${kota}. Bawa kenangan indah dan rencana untuk kembali ke Banyuwangi!`,
+        tips:'Sampai jumpa lagi di Banyuwangi! 🌋',
+        estimatedCost: isUmum?150000:60000, type:'transport' },
+    ],
+  };
+}
+
+// ── Build activity day ─────────────────────────────────────────────────────────
+function buildActivityDay(dayNum, spots, zone, form, opts={}) {
+  const hasIjen = spots.some(s=>s.id==='ijen');
+  const hasSukamade = spots.some(s=>s.id==='sukamade');
+
+  // Sort: normal → sunset → night
+  // Jika opts.honorOrder=true (dari planning board), hanya geser night activities ke belakang
+  // tapi tetap pertahankan urutan relatif user
+  const sorted = opts.honorOrder
+    ? (() => {
+        const normal  = spots.filter(s=>!DEST_EXT[s.id]?.isNight);
+        const nightly = spots.filter(s=>DEST_EXT[s.id]?.isNight);
+        return [...normal, ...nightly];
+      })()
+    : [...spots].sort((a,b) => {
+        const score = s => (DEST_EXT[s.id]?.isSunset?10:0) + (DEST_EXT[s.id]?.isNight?20:0);
+        return score(a)-score(b);
+      });
+
+  const acts = [];
+  const distKm = ZONE_DIST[zone]||30;
+  const transMin = form.transport==='pribadi_motor'
+    ? Math.round(distKm/40*60) : Math.round(distKm/45*60);
+
+  // ── IJEN DAY ──
+  if (hasIjen) {
+    acts.push({ time:'23:15', name:`Berangkat ke Kawah Ijen via ${S.subTransport==='kereta'?'DAMRI dari Stasiun BWI':'Kendaraan dari '+getFinalHotelName()}`,
+      location:`${getFinalHotelName()} → Paltuding`,
+      duration:'1 jam 15 menit',
+      description:'Berangkat menuju Paltuding (gerbang Ijen). Bus DAMRI tersedia dari Stasiun Banyuwangi Kota tujuan Ijen.',
+      tips:'Bawa masker gas N95, headlamp, jaket sangat tebal. Bus DAMRI: ~Rp15.000 dari stasiun.',
+      estimatedCost:15000, type:'transport' });
+    acts.push({ time:'00:30', name:'Tiba di Paltuding — Antri Tiket',
+      location:'Pos Paltuding, Kawah Ijen', duration:'1 jam',
+      description:'Tiba di gerbang Paltuding. Antri tiket masuk dan istirahat sejenak di warung sebelum trekking dimulai.',
+      tips:'Siapkan KTP asli untuk tiket. Antrian bisa sangat panjang di akhir pekan.',
+      estimatedCost:20000, type:'aktivitas' });
+    acts.push({ time:'01:30', name:'Mulai Trekking Kawah Ijen',
+      location:'Gerbang Paltuding → Puncak Kawah', duration:'1 jam 30 menit',
+      description:'Trekking ±3km menuju puncak kawah. Nikmati langit berbintang. Semakin dekat puncak, tercium bau belerang — pasang masker!',
+      tips:'Jaga pace, atur napas. Ikuti headlamp di depan. Jangan berlari.',
+      estimatedCost:0, type:'aktivitas' });
+    acts.push({ time:'03:00', name:'Kawah Ijen — Blue Fire & Sunrise',
+      location:'Kawah Ijen, Banyuwangi', duration:'4 jam',
+      description:'Trekking ~3km (±1.5 jam) menuju puncak. Saksikan fenomena blue fire unik sebelum subuh, dilanjutkan sunrise spektakuler di atas kawah sulfur.',
+      tips:'Ikuti jalur resmi. Sewa masker gas di pos (Rp10K). Jangan turun ke kawah tanpa pemandu resmi.',
+      estimatedCost:5000+10000, type:'aktivitas' });
+    acts.push({ time:'07:00', name:'Turun & Sarapan di Sekitar Paltuding',
+      location:'Warung sekitar Paltuding', duration:'1 jam 30 menit',
+      description:'Turun dari kawah dan sarapan di warung sekitar Paltuding. Istirahat dan nikmati udara segar pegunungan.',
+      tips:'Beli kopi hangat — sangat dibutuhkan setelah trekking dini hari.',
+      estimatedCost:25000, type:'makan' });
+
+    if (form.gayaPerjalanan==='santai') {
+      // Ijen hangover rule: santai = rest the rest of the day
+      acts.push({ time:'09:00', name:'Kembali ke Penginapan — Istirahat Wajib',
+        location:'Penginapan', duration:'5 jam',
+        description:'Kembali ke penginapan untuk istirahat total. Trekking dini hari Ijen sangat menguras energi — pemulihan fisik adalah prioritas.',
+        tips:'Tidur siang adalah pilihan paling bijak. Jangan memforsir tubuh setelah Ijen.',
+        estimatedCost:0, type:'istirahat' });
+    } else {
+      // Eksplorasi: boleh tambah 1 spot searah (Kawah Wurung atau Jagir)
+      const extra = sorted.find(s=>s.id!=='ijen');
+      if (extra) {
+        const ext = DEST_EXT[extra.id]||{};
+        acts.push({ time:'09:30', name: extra.name,
+          location: extra.name+', Banyuwangi', duration: durLabel(ext.dur||120),
+          description: ext.desc||'', tips: ext.tips||'',
+          estimatedCost: ext.tiket||0, type:'aktivitas' });
+      }
+      acts.push({ time:'12:00', name:'Kembali & Istirahat Siang',
+        location:'Penginapan', duration:'3 jam',
+        description:'Kembali ke penginapan. Istirahat setelah Ijen tetap sangat dianjurkan meski gaya eksplorasi.',
+        tips:'Tidur 1–2 jam akan membuat badan jauh lebih segar untuk malam hari.',
+        estimatedCost:0, type:'istirahat' });
+    }
+    acts.push(buildMakan('malam','barat'));
+
+  // ── SUKAMADE DAY ──
+  } else if (hasSukamade) {
+    acts.push(buildMakan('pagi', zone));
+    acts.push({ time:'08:00', name:'Perjalanan Menuju Sukamade',
+      location:'Rute menuju Sukamade', duration:'3–4 jam',
+      description:'Perjalanan panjang menuju Sukamade melewati jalan lintas hutan. Jalur menantang terutama musim hujan.',
+      tips:'Gunakan kendaraan 4WD atau motor trail. Cek kondisi jalan sehari sebelumnya.',
+      estimatedCost:0, type:'transport' });
+    acts.push({ time:'12:00', name:'Tiba & Eksplorasi Pantai Sukamade',
+      location:'Pantai Sukamade', duration:'3 jam',
+      description:'Tiba di Sukamade. Eksplor pantai di siang hari dan check-in penginapan sederhana di kawasan.',
+      tips:'Penginapan sangat terbatas — wajib reservasi jauh-jauh hari.',
+      estimatedCost:10000, type:'aktivitas' });
+    acts.push(buildMakan('siang','selatan'));
+    acts.push({ time:'20:00', name:'Program Malam — Penyu Hijau Bertelur',
+      location:'Pantai Sukamade', duration:'2–3 jam',
+      description:'Dipandu ranger, saksikan penyu hijau raksasa naik ke pantai untuk bertelur. Momen langka dan sangat emosional.',
+      tips:'Ikuti instruksi ranger sepenuhnya. Dilarang menggunakan flash kamera. Gunakan senter dengan filter merah.',
+      estimatedCost:50000, type:'aktivitas' });
+
+  // ── REGULAR DAY ──
+  } else {
+    // Transport to zone
+    if (distKm > 15) {
+      const berangkat = addMin('07:00', -transMin-10);
+      acts.push({ time: berangkat,
+        name:`Berangkat menuju ${ZONE_LABEL_SHORT[zone]||zone}`,
+        location:'Penginapan → Destinasi', duration: durLabel(transMin),
+        description:`Berangkat menuju klaster destinasi hari ini. Jarak ±${distKm}km dari kota, tempuh ±${durLabel(transMin)}.`,
+        tips:'Pastikan bahan bakar penuh. Sarapan ringan dulu sebelum berangkat.',
+        estimatedCost:0, type:'transport' });
+    }
+
+    let cur = '07:00';
+    const mainSpots = sorted.filter(s=>!DEST_EXT[s.id]?.isSunset&&!DEST_EXT[s.id]?.isNight);
+    const sunsetSpots = sorted.filter(s=>DEST_EXT[s.id]?.isSunset);
+
+    mainSpots.forEach((spot, i) => {
+      const ext = DEST_EXT[spot.id]||{};
+      acts.push({ time:cur, name:spot.name,
+        location:spot.name+', Banyuwangi', duration:durLabel(ext.dur||180),
+        description:ext.desc||spot.desc||'', tips:ext.tips||'',
+        estimatedCost:ext.tiket||0, type:'aktivitas' });
+      cur = addMin(cur, (ext.dur||180)+35);
+
+      // Insert lunch roughly in the middle
+      if (i===Math.floor((mainSpots.length-1)/2)) {
+        const makan = buildMakan('siang', zone);
+        makan.time = cur;
+        acts.push(makan);
+        cur = addMin(cur, 70);
+      }
+    });
+
+    // Sunset spots always at 15:00
+    sunsetSpots.forEach(spot => {
+      const ext = DEST_EXT[spot.id]||{};
+      acts.push({ time:'15:00', name:spot.name+' — Sunset',
+        location:spot.name, duration:durLabel(ext.dur||180),
+        description:ext.desc||'', tips:ext.tips||'',
+        estimatedCost:ext.tiket||0, type:'aktivitas' });
+    });
+
+    // If only sunset spots and no lunch added yet
+    if (mainSpots.length===0 && sunsetSpots.length>0) {
+      acts.unshift(buildMakan('siang', zone));
+    }
+
+    acts.push(buildMakan('malam', zone));
+    acts.push({ time:'21:00', name:'Istirahat di Penginapan',
+      location:'Penginapan Banyuwangi', duration:'8 jam',
+      description:'Istirahat yang cukup untuk mempersiapkan energi hari berikutnya.',
+      tips:'Siapkan perlengkapan untuk besok malam ini agar tidak terburu-buru.',
+      estimatedCost:0, type:'penginapan' });
+  }
+
+  // Day title
+  const names = spots.map(s=>s.name);
+  const title = names.length<=2 ? names.join(' & ') : `Eksplorasi ${ZONE_LABEL_SHORT[zone]||zone} (${names.length} Destinasi)`;
+  return { day:dayNum, date_label:`Hari ${dayNum}`, title, activities:sortActivities(acts) };
+}
+
+// Convert "HH:MM" ke menit untuk sorting
+function timeToMin(t) {
+  if (!t || typeof t !== 'string') return 9999;
+  const [h, m] = t.split(':').map(Number);
+  return (h||0)*60 + (m||0);
+}
+
+// Sort activities dalam satu hari berdasarkan waktu
+function sortActivities(acts) {
+  return [...acts].sort((a,b) => timeToMin(a.time) - timeToMin(b.time));
+}
+
+const ZONE_LABEL_SHORT = { barat:'Barat/Ijen', utara:'Utara', selatan:'Selatan', kota:'Kota BWI' };
+
+// ── Budget calculator ─────────────────────────────────────────────────────────
+function calculateBudget(spots, form, totalDays) {
+  const tiket   = spots.reduce((s,d)=>s+(DEST_EXT[d.id]?.tiket||0),0);
+  const makan   = totalDays*3*27000;
+  const nights  = Math.max(0,totalDays-1);
+  const hotelEst= {hotel45:700000,hotel3:300000,hotel12:150000,homestay:80000,none:0,firebase:150000};
+  const hotel   = (hotelEst[form.penginapan]||100000)*nights;
+  const sewaEst = [...(form.sewaLokal||[])].reduce((s,v)=>s+({motor:120000,mobil_driver:500000,ojek:30000}[v]||0)*totalDays,0);
+  const transPP = {kereta:250000,pesawat:1500000,bus:150000}[form.subTransport]
+    || (form.transport==='pribadi_mobil'?400000:form.transport==='pribadi_motor'?150000:200000);
+  const totalTransport = transPP + sewaEst;
+  const min = tiket+makan+hotel+totalTransport;
+  return {
+    min: Math.round(min/1000)*1000,
+    max: Math.round(min*1.35/1000)*1000,
+    details: { transportasi:totalTransport, akomodasi:hotel, kuliner:makan, wisata:tiket },
+    note:`Per orang · ${totalDays} hari · Belum termasuk oleh-oleh`,
+  };
+}
+
+// ── Packing tips ──────────────────────────────────────────────────────────────
+function buildPackingTips(spots) {
+  const base = new Set(['Sunscreen SPF50+','Uang tunai (ATM terbatas di lokasi wisata)','Powerbank','Kartu identitas','Obat-obatan pribadi']);
+  spots.forEach(s=>(PACKING_DB[s.id]||[]).forEach(t=>base.add(t)));
+  return [...base].slice(0,8);
+}
+
+// ── Summary & notes ───────────────────────────────────────────────────────────
+function buildSummary(spots, totalDays, gaya, kota) {
+  return `Itinerary ${totalDays} hari dari ${kota} ke ${spots.length} destinasi terbaik Banyuwangi, disusun dengan gaya ${gaya==='santai'?'santai — menikmati setiap momen tanpa terburu-buru':'eksplorasi — efisien namun tetap berkesan'}.`;
+}
+function buildNotes(spots) {
+  const n=[];
+  if(spots.some(s=>s.id==='ijen'))     n.push('Kawah Ijen ditutup saat cuaca ekstrem — selalu cek update terbaru sebelum berangkat.');
+  if(spots.some(s=>s.id==='sukamade')) n.push('Akses Sukamade bisa terputus di musim hujan.');
+  if(spots.some(s=>['menjangan','tabuhan'].includes(s.id))) n.push('Perjalanan ke pulau tergantung kondisi laut.');
+  return n.join(' ')||'Selalu cek kondisi cuaca dan jalan sebelum berangkat. Jaga kebersihan dan hormati alam Banyuwangi.';
+}
+
+// ─── PLANNING BOARD ENGINE ────────────────────────────────────────────────────
+
+// Inisialisasi planDays dari auto-suggestion zone clustering
+function initPlanDays() {
+  const [totalDays] = parseDurasi(S.durasi);
+  // actDays = hari aktif untuk drag (exclude hari 1 kedatangan dan hari terakhir kepulangan)
+  // Tapi juga pastikan cukup slot untuk semua destinasi
+  const selected  = DESTINATIONS.filter(d => S.destinations.has(d.id));
+  const spotsPerDay = S.gayaPerjalanan === 'santai' ? 2 : 3;
+  const minActDays  = Math.ceil(selected.length / spotsPerDay);
+  const naturalAct  = Math.max(1, totalDays - (totalDays > 1 ? 2 : 0));
+  // Pakai yang lebih besar antara natural dan minimum yang dibutuhkan
+  // tapi tidak melebihi totalDays - 1 (sisakan 1 hari kepulangan)
+  const actDays = Math.min(Math.max(naturalAct, minActDays), Math.max(1, totalDays - 1));
+  S.planDays    = Array.from({length: actDays}, () => []);
+  S.planBacklog = [];
+  const byZone = {};
+  selected.forEach(d => {
+    const z = DEST_EXT[d.id]?.zone || d.zone || 'kota';
+    if (!byZone[z]) byZone[z] = [];
+    byZone[z].push(d.id);
+  });
+  if (byZone.barat) { const ord=['ijen','kawah_wurung','jagir']; byZone.barat.sort((a,b)=>ord.indexOf(a)-ord.indexOf(b)); }
+  if (byZone.selatan) { byZone.selatan.sort((a,b)=>(a==='sukamade'?1:0)-(b==='sukamade'?1:0)); }
+  let di = 0;
+  ['barat','utara','selatan','kota'].forEach(zone => {
+    if (!byZone[zone] || di >= actDays) return;
+    const spots = byZone[zone];
+    if (zone==='barat' && spots.includes('ijen')) {
+      const ig = S.gayaPerjalanan==='eksplorasi' ? ['ijen',...spots.filter(s=>s!=='ijen').slice(0,1)] : ['ijen'];
+      if (di<actDays) S.planDays[di++] = ig;
+      const rem = spots.filter(s=>!ig.includes(s));
+      if (rem.length>0 && di<actDays) S.planDays[di++] = rem;
+      return;
+    }
+    if (spots.includes('sukamade')) {
+      const others = spots.filter(s=>s!=='sukamade');
+      for (let i=0;i<others.length;i+=spotsPerDay) if(di<actDays) S.planDays[di++]=others.slice(i,i+spotsPerDay);
+      if (di<actDays) S.planDays[di++] = ['sukamade'];
+      return;
+    }
+    for (let i=0;i<spots.length;i+=spotsPerDay) if(di<actDays) S.planDays[di++]=spots.slice(i,i+spotsPerDay);
+  });
+  S.planBacklog = selected.map(d=>d.id).filter(id=>!S.planDays.flat().includes(id));
+}
+
+// Baca state planning board dari DOM (setelah SortableJS menggeser kartu)
+function readPlanFromDOM() {
+  S.planDays = S.planDays.map((_,i) => {
+    const el = document.getElementById(`bucket-day${i}`);
+    return el ? [...el.querySelectorAll('.drag-item')].map(c=>c.dataset.id) : [];
+  });
+  // Baca juga arrival day (opsional)
+  const arrEl = document.getElementById('bucket-day-arrival');
+  S.planArrivalExtras = arrEl
+    ? [...arrEl.querySelectorAll('.drag-item')]
+        .map(c=>c.dataset.id)
+        .filter(id => !id.startsWith('hotel_checkin_'))
+    : [];
+  const bEl = document.getElementById('bucket-unassigned');
+  S.planBacklog = bEl
+    ? [...bEl.querySelectorAll('.drag-item')]
+        .map(c=>c.dataset.id)
+        .filter(id => !id.startsWith('hotel_checkin_'))
+    : [];
+}
+
+// Render planning board
+function renderPlanningBoard() {
+  const [totalDays] = parseDurasi(S.durasi);
+  if (!S.planDays || S.planDays.length === 0) initPlanDays();
+
+  // Kartu destinasi wisata
+  function destCard(id) {
+    const d = DESTINATIONS.find(x=>x.id===id);
+    if (!d) return '';
+    const ext  = DEST_EXT[id] || {};
+    const zone = ext.zone || d.zone || '';
+    const ijen_warn = id==='ijen' ? '<span class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold ml-auto shrink-0">Dini hari</span>' : '';
+    return `<div class="drag-item flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-2xl cursor-grab active:cursor-grabbing transition-all hover:shadow-md" data-id="${id}">
+      <span class="text-gray-300 font-bold text-lg shrink-0">≡</span>
+      <span class="text-2xl shrink-0">${d.emoji||'🗺️'}</span>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-sm text-dark truncate">${esc(d.name)}</div>
+        <div class="text-[10px] text-gray-400 mt-0.5">⏰ ${d.bestTime||'pagi'} · ${zone}</div>
+      </div>
+      ${ijen_warn}
+    </div>`;
+  }
+
+  // Kartu hotel check-in
+  function hotelCard(idx, name) {
+    return `<div class="drag-item" data-id="hotel_checkin_${idx}" class="drag-item flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-2xl cursor-grab transition-all hover:shadow-md">
+      <span class="text-purple-300 font-bold text-lg shrink-0">≡</span>
+      <span class="text-2xl shrink-0">🏨</span>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-sm text-purple-700 truncate">Check-in: ${esc(name)}</div>
+        <div class="text-[10px] text-purple-400 mt-0.5">Malam ini</div>
+      </div>
+    </div>`;
+  }
+
+  // Ekstrak hotel dari penginapanCustom (pisah koma) atau penginapanData
+  const hotelNames = getHotelNames();
+  const hotelCards = hotelNames
+    .map((name, idx) => hotelCard(idx, name))
+    .join('');
+
+  const backlogHTML = S.planBacklog.length > 0 || hotelCards ? `
+    <div class="bg-amber-50 border border-amber-200 rounded-3xl overflow-hidden mb-1">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-amber-100">
+        <span class="w-6 h-6 bg-amber-400 text-white rounded-lg flex items-center justify-center text-xs font-bold">📌</span>
+        <span class="font-bold text-sm text-amber-800">Belum Dijadwalkan
+        ${S.planBacklog.length>0?`<span style="font-size:10px;background:rgba(255,200,50,.15);padding:2px 7px;border-radius:10px;margin-left:6px">${S.planBacklog.length}</span>`:''}
+      </div>
+      <div class="plan-col-body" id="bucket-unassigned">
+        ${S.planBacklog.map(destCard).join('')}
+        ${hotelCards}
+      </div>
+    </div>` : '';
+
+  const arrivalHTML = `
+    <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+      <div class="flex items-center gap-3 px-4 py-3 bg-grayLight/50 border-b border-gray-100">
+        <span class="w-7 h-7 bg-dark text-white rounded-lg flex items-center justify-center text-xs font-bold">1</span>
+        <span class="font-bold text-sm text-dark">Hari 1 — Kedatangan</span>
+        <span class="text-[10px] text-gray-400 ml-auto">Check-in otomatis</span>
+      </div>
+      <div class="plan-col-body p-3 min-h-[60px]" id="bucket-day-arrival">
+        <div class="text-xs text-gray-400 text-center py-4 italic">Opsional: tambah destinasi sore hari kedatangan</div>
+      </div>
+    </div>`;
+
+  const actDayHTML = S.planDays.map((ids, i) => {
+    const dayNum = i + 2;
+    const destIds = ids.filter(id => !id.startsWith('hotel_checkin_'));
+    const ijenWarn  = destIds.includes('ijen') && destIds.length > 1;
+    const countWarn = S.gayaPerjalanan==='santai' && destIds.length > 2 && !destIds.includes('ijen');
+    const warnHTML  = ijenWarn
+      ? `<div class="plan-warn">⚠️ Ijen sebaiknya hari tersendiri — fisik sangat terkuras</div>`
+      : countWarn
+      ? `<div class="plan-warn">⚠️ Gaya santai: disarankan maks 2 destinasi/hari</div>`
+      : '';
+    return `
+      <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+        <div class="flex items-center gap-3 px-4 py-3 bg-grayLight/50 border-b border-gray-100">
+          <span class="w-7 h-7 bg-dark text-white rounded-lg flex items-center justify-center text-xs font-bold">${dayNum}</span>
+          <span class="font-bold text-sm text-dark">Hari ${dayNum}</span>
+          <span class="text-[10px] text-gray-400 ml-auto">${destIds.length} destinasi</span>
+        </div>
+        ${warnHTML}
+        <div class="plan-col-body p-3 min-h-[80px]" id="bucket-day${i}">
+          ${ids.map(id => id.startsWith('hotel_checkin_') ? hotelCard(parseInt(id.split('_')[2]), hotelNames[parseInt(id.split('_')[2])]||'Penginapan') : destCard(id)).join('')}
+          ${ids.length===0?'<div class="text-xs text-gray-400 text-center py-6 italic">Seret destinasi ke sini</div>':''}
+        </div>
+      </div>`;
+  }).join('');
+
+  const depHTML = totalDays > 1 ? `
+    <div class="bg-green-50 border border-green-200 rounded-3xl overflow-hidden opacity-60">
+      <div class="flex items-center gap-3 px-4 py-3 border-b border-green-100">
+        <span class="w-7 h-7 bg-green-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">${totalDays}</span>
+        <span class="font-bold text-sm text-green-800">Hari ${totalDays} — Kepulangan 🔒</span>
+        <span class="text-[10px] text-green-500 ml-auto">Otomatis</span>
+      </div>
+      <div class="p-3 pointer-events-none">
+        <div class="flex items-center gap-3 p-3 bg-white/60 border border-green-100 rounded-2xl">
+          <span class="text-2xl">🚌</span>
+          <div class="font-bold text-sm text-green-700">Perjalanan Pulang</div>
+        </div>
+      </div>
+    </div>` : '';
+
+  return `
+    <h2 class="font-serif text-3xl font-bold text-dark mb-2 leading-tight">Susun Rute</h2>
+    <p class="text-sm font-medium text-gray-400 mb-6">Tahan lalu seret destinasi ke hari yang diinginkan</p>
+    <div class="flex justify-between items-center mb-4">
+      <div class="text-xs font-semibold text-gray-400">
+        ${S.destinations.size} destinasi · ${totalDays} hari
+        ${S.planBacklog.length>0?`<span class="text-amber-500"> · ${S.planBacklog.length} belum dijadwalkan</span>`:''}
+      </div>
+      <button id="btn-reset-plan" class="text-[11px] text-gray-400 bg-white border border-gray-200 rounded-full px-3 py-1.5 font-semibold hover:bg-gray-50 transition shadow-sm">
+        ↺ Saran Otomatis
+      </button>
+    </div>
+    ${hotelNames.length>1?`<div class="bg-purple-50 border border-purple-200 rounded-2xl px-4 py-3 text-xs font-semibold text-purple-700 mb-4">
+      💡 <b>Multi-penginapan terdeteksi</b> — kartu check-in bisa diseret ke hari pindah penginapan
+    </div>`:''}
+    <div class="planning-board flex flex-col gap-3">
+      ${backlogHTML}${arrivalHTML}${actDayHTML}${depHTML}
+    </div>`;
+}
+
+// ─── SORTABLEJS INIT ─────────────────────────────────────────────────────────
+// Menggantikan native HTML5 drag-drop — jauh lebih smooth di mobile touch
+let _sortableInstances = [];
+
+function initSortableBoard() {
+  // Destroy semua instance lama
+  _sortableInstances.forEach(s => s.destroy());
+  _sortableInstances = [];
+
+  const containers = document.querySelectorAll('.plan-col-body');
+  containers.forEach(col => {
+    // Skip: locked departure day tidak perlu SortableJS
+    if (col.closest('.plan-col.locked')) return;
+    const inst = new Sortable(col, {
+      group:            'wandr-board',
+      animation:        280,
+      easing:           'cubic-bezier(0.25, 1, 0.5, 1)',
+      delay:            150,
+      delayOnTouchOnly: true,
+      fallbackTolerance: 5,
+      scroll:           true,
+      scrollSensitivity:80,
+      scrollSpeed:      20,
+      bubbleScroll:     true,
+      forceFallback:    true,
+      fallbackOnBody:   true,
+      ghostClass:       'sortable-ghost',
+      chosenClass:      'sortable-chosen',
+      dragClass:        'sortable-drag',
+      onEnd: () => readPlanFromDOM(),
+    });
+    _sortableInstances.push(inst);
+  });
+}
+
+// ─── GENERATE (rule-based, no API) ──────────────────────────────────────────
+function generate() {
+  S.loading = true; S.itinerary = null; S.error = null;
+  render();
+
+  setTimeout(() => {
+    try {
+      // Jika planning board sudah diisi, pakai susunan manual
+      if (S.planDays && S.planDays.some(d=>d.length>0)) {
+        generateFromPlan(); return;
+      }
+      const selected = DESTINATIONS.filter(d=>S.destinations.has(d.id))
+        .map(d=>({...d,...(DEST_EXT[d.id]||{})}));
+
+      const [totalDays] = parseDurasi(S.durasi);
+      const spotsPerDay = S.gayaPerjalanan==='santai' ? 2 : 3;
+      const kota = S.kotaAsal==='Lainnya' ? S.kotaAsalCustom : S.kotaAsal;
+
+      const days = [];
+
+      // Day 1: Arrival
+      days.push(injectArrivalExtras(buildArrivalDay(kota, S.transport, S.penginapan)));
+
+      // Group by zone
+      const byZone = {};
+      selected.forEach(d=>{
+        const z=d.zone||'kota';
+        if(!byZone[z]) byZone[z]=[];
+        byZone[z].push(d);
+      });
+      // Sort barat: Ijen first, then Kawah Wurung, then Jagir
+      if(byZone.barat){
+        const ord=['ijen','kawah_wurung','jagir'];
+        byZone.barat.sort((a,b)=>ord.indexOf(a.id)-ord.indexOf(b.id));
+      }
+      // Sort selatan: Sukamade last (night activity)
+      if(byZone.selatan){
+        byZone.selatan.sort((a,b)=>(a.id==='sukamade'?1:0)-(b.id==='sukamade'?1:0));
+      }
+
+      let dayNum = 2;
+      const lastDay = totalDays > 1 ? totalDays : totalDays;
+      const actDayLimit = totalDays > 1 ? totalDays-1 : totalDays;
+
+      ['barat','utara','selatan','kota'].forEach(zone=>{
+        if(!byZone[zone]||dayNum>actDayLimit) return;
+        const spots = byZone[zone];
+
+        if(zone==='barat' && spots.some(s=>s.id==='ijen')) {
+          // Ijen day: Ijen + 1 optional (eksplorasi only)
+          const ijenSpot = spots.find(s=>s.id==='ijen');
+          const others   = spots.filter(s=>s.id!=='ijen');
+          const ijenGroup= S.gayaPerjalanan==='eksplorasi'&&others.length
+            ? [ijenSpot, others[0]] : [ijenSpot];
+          if(dayNum<=actDayLimit) { days.push(buildActivityDay(dayNum++,ijenGroup,zone,S)); }
+          const remaining = S.gayaPerjalanan==='eksplorasi' ? others.slice(1) : others;
+          for(let i=0;i<remaining.length;i+=spotsPerDay){
+            if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,remaining.slice(i,i+spotsPerDay),zone,S));
+          }
+          return;
+        }
+
+        if(spots.some(s=>s.id==='sukamade')) {
+          // Sukamade: its own day
+          const sukamade = spots.find(s=>s.id==='sukamade');
+          const others   = spots.filter(s=>s.id!=='sukamade');
+          for(let i=0;i<others.length;i+=spotsPerDay){
+            if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,others.slice(i,i+spotsPerDay),zone,S));
+          }
+          if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,[sukamade],zone,S));
+          return;
+        }
+
+        for(let i=0;i<spots.length;i+=spotsPerDay){
+          if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,spots.slice(i,i+spotsPerDay),zone,S));
+        }
+      });
+
+      // Last day: Departure
+      if(totalDays>1) days.push(buildDepartureDay(totalDays,kota,S.transport));
+
+      S.itinerary = {
+        summary: buildSummary(selected,totalDays,S.gayaPerjalanan,kota),
+        totalDays,
+        highlights: selected.slice(0,3).map(d=>d.name),
+        estimatedBudget: calculateBudget(selected,S,totalDays),
+        days: days.slice(0,totalDays),
+        packingTips: buildPackingTips(selected),
+        importantNotes: buildNotes(selected),
+      };
+    } catch(e) {
+      S.error = 'Terjadi kesalahan: '+e.message;
+      console.error(e);
+    } finally {
+      S.loading = false;
+      render();
+    }
+  }, 800); // Loading animation agar terasa proses
+}
+
+
+// Generate itinerary berdasarkan susunan manual dari planning board
+function generateFromPlan() {
+  try {
+    const kota = S.kotaAsal==='Lainnya' ? S.kotaAsalCustom : S.kotaAsal;
+    const [totalDays] = parseDurasi(S.durasi);
+    const allSelected = DESTINATIONS.filter(d=>S.destinations.has(d.id));
+    const hotelNames  = getHotelNames();
+    const days = [];
+
+    // Hari 1: Kedatangan (selalu)
+    days.push(injectArrivalExtras(buildArrivalDay(kota, S.transport, S.penginapan)));
+
+    // Hari dari planning board
+    S.planDays.forEach((allIds, i) => {
+      const dayNum = i + 2;
+      if (dayNum >= totalDays || allIds.length === 0) return;
+
+      // Pisahkan hotel check-in vs destinasi wisata
+      const hotelCheckIns = allIds
+        .filter(id => id.startsWith('hotel_checkin_'))
+        .map(id => {
+          const idx = parseInt(id.split('_')[2]);
+          return { id, name: `Check-in: ${hotelNames[idx]||'Penginapan'}`, hotelName: hotelNames[idx]||'Penginapan', type:'penginapan' };
+        });
+      const spots = allIds
+        .filter(id => !id.startsWith('hotel_checkin_'))
+        .map(id => DESTINATIONS.find(d=>d.id===id))
+        .filter(Boolean)
+        .map(d => ({...d,...(DEST_EXT[d.id]||{})}));
+
+      // Kalau hanya hotel check-in tanpa wisata, lewati (check-in akan masuk di buildActivityDay dengan injeksi)
+      if (spots.length === 0 && hotelCheckIns.length > 0) {
+        const act = hotelCheckIns.map(h => ({
+          time: '14:00', name: h.name, location: h.hotelName,
+          duration: '1 jam', description: 'Check-in penginapan. Taruh barang dan istirahat sejenak.',
+          tips: 'Siapkan dokumen booking.', estimatedCost: 0, type: 'penginapan',
+        }));
+        days.push({ day:dayNum, date_label:`Hari ${dayNum}`, title:'Check-in Penginapan', activities:sortActivities(act) });
+        return;
+      }
+      if (spots.length === 0) return;
+
+      const zone = spots[0]?.zone || 'kota';
+      const builtDay = buildActivityDay(dayNum, spots, zone, S, { honorOrder: true });
+
+      // Inject hotel check-in activities ke awal atau akhir hari
+      if (hotelCheckIns.length > 0) {
+        const checkinActs = hotelCheckIns.map(h => ({
+          time: '14:00', name: h.name, location: h.hotelName,
+          duration: '1 jam', description: 'Check-in penginapan baru.',
+          tips: '', estimatedCost: 0, type: 'penginapan',
+        }));
+        builtDay.activities = sortActivities([...builtDay.activities, ...checkinActs]);
+      }
+
+      days.push(builtDay);
+    });
+
+    // Hari terakhir: Kepulangan (jika multi-hari)
+    if (totalDays > 1) days.push(buildDepartureDay(totalDays, kota, S.transport));
+
+    S.itinerary = {
+      summary: buildSummary(allSelected, totalDays, S.gayaPerjalanan, kota),
+      totalDays,
+      highlights: allSelected.slice(0,3).map(d=>d.name),
+      estimatedBudget: calculateBudget(allSelected, S, totalDays),
+      days: days.slice(0, totalDays),
+      packingTips: buildPackingTips(allSelected),
+      importantNotes: buildNotes(allSelected),
+    };
+  } catch(e) {
+    S.error = 'Terjadi kesalahan: ' + e.message;
+    console.error(e);
+  } finally {
+    S.loading = false;
+    render();
+  }
+}
+// ─── INIT ────────────────────────────────────────────────────────────────────
+// App langsung berjalan tanpa perlu login.
+// Login hanya membuka mode Admin (edit, approve, dsb).
+(async () => {
+  await loadDestinations();
+  document.getElementById('progress-area').style.display = '';
+  render();
+})();
 </script>
 </body>
-</html>
+</html>  

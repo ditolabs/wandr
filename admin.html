@@ -9,10 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <script>
-    tailwind.config = {
+<script>
+    window.tailwind = { config: {
       theme: {
         extend: {
           colors: {
@@ -27,9 +25,9 @@
           }
         }
       }
-    }
+    }};
   </script>
-
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* Custom CSS untuk fitur spesifik yang sulit pakai utility class */
     body { background-color: #E5DFD3; } /* Latar belakang luar presentasi */
@@ -306,485 +304,669 @@
 
 </div>
 
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* SEMUA LOGIKA JAVASCRIPT ASLI TETAP SAMA, HANYA TEMPLATE RENDER HTML YANG DISESUAIKAN UNTUK TAILWIND */
-
-// ── AUTO GEOCODE ──
+// ── AUTO GEOCODE ──────────────────────────────────────────────────────────────
 async function autoGeocode() {
-  const btn = document.getElementById('btn-auto-geocode');
-  const status = document.getElementById('geocode-status');
-  const latEl = document.getElementById('f-lat');
-  const lngEl = document.getElementById('f-lng');
-  const nama = document.getElementById('f-nama')?.value?.trim() || '';
-  const kawasan = document.getElementById('f-kawasan')?.value?.trim() || '';
-  const mapsUrl = document.getElementById('f-maps')?.value?.trim() || '';
+  const btn    = document.getElementById('btn-auto-geocode');
+  const latEl  = document.getElementById('f-lat');
+  const lngEl  = document.getElementById('f-lng');
+  const nama   = (document.getElementById('f-nama')?.value||'').trim();
+  const kawasan= (document.getElementById('f-kawasan')?.value||'').trim();
+  const mapsUrl= (document.getElementById('f-maps')?.value||'').trim();
 
+  // Step 1: Extract dari Maps URL
   const fromUrl = extractCoordsFromUrl(mapsUrl);
   if (fromUrl) {
-    latEl.value = fromUrl.lat; lngEl.value = fromUrl.lng;
-    setGeocodeStatus('✓ URL Maps', 'text-green-600');
+    latEl.value = fromUrl.lat;
+    lngEl.value = fromUrl.lng;
+    setGeocodeStatus('✓ Dari URL Maps', '#48bb78');
     return;
   }
-  if (!nama) { setGeocodeStatus('⚠ Isi nama', 'text-amber-500'); return; }
+
+  if (!nama) { setGeocodeStatus('⚠ Isi nama dulu', '#e07b39'); return; }
 
   btn.textContent = '⏳';
-  btn.style.pointerEvents = 'none';
-  setGeocodeStatus('Mencari...', 'text-blue-500');
+  btn.disabled = true;
+  setGeocodeStatus('Mencari...', '#63b3ed');
 
+  const LAT_MIN = -8.8, LAT_MAX = -7.9, LNG_MIN = 113.9, LNG_MAX = 114.5;
+  const inBbox = (lat, lng) => lat>=LAT_MIN&&lat<=LAT_MAX&&lng>=LNG_MIN&&lng<=LNG_MAX;
+  const queryStr = `${nama} ${kawasan} Banyuwangi`.trim();
+
+  // Step 2: Photon API
   try {
-    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(nama + ' ' + kawasan + ' Banyuwangi')}&limit=5`);
-    const data = await res.json();
-    const LAT_MIN = -8.8, LAT_MAX = -7.9, LNG_MIN = 113.9, LNG_MAX = 114.5;
-    
-    let best = (data.features || []).find(f => {
-      const [lng, lat] = f.geometry.coordinates;
-      return lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX;
-    }) || data.features?.[0];
-
-    if (best) {
-      const [lng, lat] = best.geometry.coordinates;
-      latEl.value = lat.toFixed(6); lngEl.value = lng.toFixed(6);
-      const inBbox = lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX;
-      setGeocodeStatus(inBbox ? `✓ Ketemu` : `⚠ Luar BWI`, inBbox ? 'text-green-600' : 'text-amber-500');
-    } else {
-      setGeocodeStatus('✗ Tidak nemu', 'text-red-500');
+    const q   = encodeURIComponent(queryStr);
+    const res = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=5`);
+    if (res.ok) {
+      const data = await res.json();
+      const features = data.features || [];
+      const best = features.find(f => {
+        const [lng, lat] = f.geometry.coordinates;
+        return inBbox(lat, lng);
+      }) || features[0];
+      if (best) {
+        const [lng, lat] = best.geometry.coordinates;
+        latEl.value = lat.toFixed(6);
+        lngEl.value = lng.toFixed(6);
+        const ok = inBbox(lat, lng);
+        setGeocodeStatus(ok ? `✓ ${(best.properties?.name||'').slice(0,25)}` : '⚠ Di luar area BWI', ok ? '#48bb78' : '#e07b39');
+        btn.textContent = '📍 Auto'; btn.disabled = false; return;
+      }
     }
-  } catch(e) {
-    setGeocodeStatus('✗ Error', 'text-red-500');
-  } finally {
-    btn.textContent = '📍 Auto';
-    btn.style.pointerEvents = 'auto';
+  } catch(e) { /* lanjut ke fallback */ }
+
+  // Step 3: Nominatim fallback
+  setGeocodeStatus('Photon gagal, coba Nominatim...', '#63b3ed');
+  try {
+    const q   = encodeURIComponent(queryStr);
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&countrycodes=id`, {
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'id' }
+    });
+    if (res.ok) {
+      const results = await res.json();
+      const best = results.find(r => inBbox(parseFloat(r.lat), parseFloat(r.lon))) || results[0];
+      if (best) {
+        const lat = parseFloat(best.lat), lng = parseFloat(best.lon);
+        latEl.value = lat.toFixed(6);
+        lngEl.value = lng.toFixed(6);
+        const ok = inBbox(lat, lng);
+        setGeocodeStatus(ok ? `✓ Nominatim` : '⚠ Di luar area BWI', ok ? '#48bb78' : '#e07b39');
+        btn.textContent = '📍 Auto'; btn.disabled = false; return;
+      }
+    }
+  } catch(e) { /* lanjut ke pesan manual */ }
+
+  // Step 4: Semua gagal — tampilkan link Google Maps
+  const mapsSearch = `https://www.google.com/maps/search/${encodeURIComponent(queryStr)}`;
+  setGeocodeStatus('✗ Tidak ditemukan — isi manual', '#fc8181');
+  // Tampilkan link helper di bawah tombol
+  let helper = document.getElementById('geocode-helper');
+  if (!helper) {
+    helper = document.createElement('div');
+    helper.id = 'geocode-helper';
+    helper.style.cssText = 'font-size:11px;margin-top:4px;';
+    btn.parentElement.parentElement.appendChild(helper);
   }
+  helper.innerHTML = `<a href="${mapsSearch}" target="_blank"
+    style="color:#63b3ed;text-decoration:underline">
+    🗺 Buka Google Maps → klik kanan → "Apa yang ada di sini?" → copy koordinat
+  </a>`;
+  btn.textContent = '📍 Auto'; btn.disabled = false;
 }
 
 function extractCoordsFromUrl(url) {
   if (!url) return null;
-  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  // Format: maps.google.com/.../@lat,lng,zoom
+  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format: maps.google.com/?q=lat,lng
+  m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format: ll=lat,lng
+  m = url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
   if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
   return null;
 }
-function setGeocodeStatus(msg, colorClass) {
+
+function setGeocodeStatus(msg, color) {
   const el = document.getElementById('geocode-status');
-  if (el) { el.textContent = msg; el.className = `text-[9px] font-normal normal-case ${colorClass}`; }
+  if (el) { el.textContent = msg; el.style.color = color; }
 }
 
-// ── FIREBASE INIT ──
+
+
+// ─── FIREBASE INIT ────────────────────────────────────────────────────────────
 let db = null, auth = null;
 try {
   firebase.initializeApp({
-    apiKey: 'AIzaSyCHWWjnxX5-Fk9-gRTZVwyC3WDDfnLPh_s',
-    authDomain: 'banyuwangi-db.firebaseapp.com',
-    projectId: 'banyuwangi-db',
-    storageBucket: 'banyuwangi-db.firebasestorage.app',
+    apiKey:            'AIzaSyCHWWjnxX5-Fk9-gRTZVwyC3WDDfnLPh_s',
+    authDomain:        'banyuwangi-db.firebaseapp.com',
+    projectId:         'banyuwangi-db',
+    storageBucket:     'banyuwangi-db.firebasestorage.app',
     messagingSenderId: '973498690850',
-    appId: '1:973498690850:web:b2d67373174542167a497b',
+    appId:             '1:973498690850:web:b2d67373174542167a497b',
   });
-  db = firebase.firestore();
+  db   = firebase.firestore();
   auth = firebase.auth();
 } catch(e) { console.warn('Firebase gagal:', e.message); }
 
-// ── STATE ──
-const PER_PAGE = 15;
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const PER_PAGE = 25;
 const state = {
   tab: 'wisata',
+  // Data cache: keyed by type
   data: { wisata: [], penginapan: [], kuliner: [] },
+  // Data lokal (dari JSON import, belum push)
   local: { wisata: [], penginapan: [], kuliner: [] },
   search: { wisata:'', penginapan:'', kuliner:'' },
-  page: { wisata:1, penginapan:1, kuliner:1 },
+  page:   { wisata:1, penginapan:1, kuliner:1 },
   loaded: { wisata:false, penginapan:false, kuliner:false },
-  editDoc: null, editType: null, importData: null,
+  editDoc: null,  // dokumen yang sedang diedit
+  editType: null,
+  importData: null, // data JSON yang di-preview
 };
 
+const TYPE_MAP = { wisata:'wisata', penginapan:'penginapan', kuliner:'kuliner_cafe' };
 const PANEL_MAP = {
   wisata:'panel-wisata', penginapan:'panel-penginapan',
   kuliner:'panel-kuliner', import:'panel-import', export:'panel-export'
 };
 
-// ── TOAST ──
+// ─── TOAST ───────────────────────────────────────────────────────────────────
 function toast(msg, type='ok') {
   const t = document.createElement('div');
-  t.className = `bg-dark text-white rounded-2xl px-5 py-4 text-sm font-semibold flex items-center gap-3 shadow-2xl animate-slide-up`;
-  t.innerHTML = `<span class="text-xl">${type==='ok'?'✅':type==='err'?'❌':'ℹ️'}</span> ${msg}`;
+  t.className = `toast-item toast-${type}`;
+  t.innerHTML = `<span>${type==='ok'?'✓':type==='err'?'✗':'ℹ'}</span> ${msg}`;
   document.getElementById('toast').appendChild(t);
-  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3500);
+  setTimeout(() => t.remove(), 3500);
 }
 
-// ── AUTH ──
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
 document.getElementById('btnLogin').addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  const err = document.getElementById('loginErr');
-  const btn = document.getElementById('btnLogin');
-  err.classList.add('hidden');
-  if (!email || !pass) { err.textContent='Email & password required'; err.classList.remove('hidden'); return; }
-  btn.textContent = 'Memproses...'; btn.disabled = true;
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginErr');
+  const btn   = document.getElementById('btnLogin');
+  err.style.display = 'none';
+  if (!email || !pass) { err.textContent='Email & password wajib diisi'; err.style.display='block'; return; }
+  btn.textContent = '⏳ Memproses...'; btn.disabled = true;
   try {
-    if (auth) await auth.signInWithEmailAndPassword(email, pass);
-    else onLogin(email);
+    if (auth) {
+      await auth.signInWithEmailAndPassword(email, pass);
+    } else {
+      // Offline mode
+      onLogin(email);
+    }
   } catch(e) {
-    err.textContent = e.message; err.classList.remove('hidden');
-  } finally { btn.textContent = 'Sign In'; btn.disabled = false; }
+    err.textContent = e.code === 'auth/wrong-password' ? 'Password salah'
+      : e.code === 'auth/user-not-found' ? 'Email tidak ditemukan'
+      : e.message;
+    err.style.display = 'block';
+  } finally { btn.textContent = 'Masuk'; btn.disabled = false; }
 });
-document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('btnLogin').click(); });
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key==='Enter') document.getElementById('btnLogin').click();
+});
 document.getElementById('btnLogout').addEventListener('click', async () => {
-  if (confirm('Logout sekarang?')) { if (auth) await auth.signOut(); else showLogin(); }
+  if (confirm('Yakin logout?')) {
+    if (auth) await auth.signOut();
+    else showLogin();
+  }
 });
 
-if (auth) { auth.onAuthStateChanged(user => { if (user) onLogin(user.email); else showLogin(); }); } 
-else { showLogin(); }
-
-function showLogin() { document.getElementById('login-screen').classList.remove('hidden'); }
-function hideLogin() { document.getElementById('login-screen').classList.add('hidden'); }
-function onLogin(email) {
-  hideLogin(); document.getElementById('tb-user').textContent = email.split('@')[0];
-  loadAllTabs(); 
+if (auth) {
+  auth.onAuthStateChanged(user => {
+    if (user) onLogin(user.email);
+    else showLogin();
+  });
+} else {
+  showLogin();
 }
 
-// ── LOAD DATA ──
-let _allDocsCache = null, _allDocsCacheTime = 0;
-async function fetchAllDocs(forceRefresh = false) {
-  const now = Date.now();
-  if (!forceRefresh && _allDocsCache && (now - _allDocsCacheTime) < 30000) return _allDocsCache;
-  const snap = await db.collection('places').get();
-  _allDocsCache = snap.docs.map(doc => ({ _id: doc.id, ...doc.data(), _source: 'firebase' }));
-  _allDocsCacheTime = now;
-  return _allDocsCache;
+function showLogin()  { document.getElementById('login-screen').classList.remove('hidden'); }
+function hideLogin()  { document.getElementById('login-screen').classList.add('hidden'); }
+function onLogin(email) {
+  hideLogin();
+  document.getElementById('tb-user').textContent = email;
+  loadAllTabs();
+  pasangTombolPembersih();
 }
 
 async function loadAllTabs() {
   if (!db) { ['wisata','penginapan','kuliner'].forEach(t => renderTable(t)); return; }
   try {
     const all = await fetchAllDocs(true);
-    const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
-    ['wisata','penginapan','kuliner'].forEach(type => {
+    const typeMap = {
+      wisata:     ['wisata'],
+      penginapan: ['penginapan','hotel','homestay'],
+      kuliner:    ['kuliner','kuliner_cafe','cafe','restoran'],
+    };
+    for (const type of ['wisata','penginapan','kuliner']) {
       state.data[type] = all.filter(d => typeMap[type].includes((d.type||'').toLowerCase()));
       state.loaded[type] = true;
-    });
-    updateStats(); renderTable('wisata');
-  } catch(e) { toast('Error load: ' + e.message, 'err'); }
+    }
+    updateStats();
+    renderTable('wisata');
+  } catch(e) {
+    toast('Gagal load data: ' + e.message, 'err');
+    console.error(e);
+  }
+}
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    const tab = el.dataset.tab;
+    state.tab = tab;
+    Object.values(PANEL_MAP).forEach(p => document.getElementById(p).style.display='none');
+    document.getElementById(PANEL_MAP[tab]).style.display = '';
+    if (['wisata','penginapan','kuliner'].includes(tab) && !state.loaded[tab]) {
+      loadTab(tab);
+    }
+    if (tab === 'export') updateStats();
+  });
+});
+
+// ─── LOAD FROM FIREBASE ───────────────────────────────────────────────────────
+// Cache semua data sekali dari Firebase, filter di client
+let _allDocsCache = null;
+let _allDocsCacheTime = 0;
+
+async function fetchAllDocs(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && _allDocsCache && (now - _allDocsCacheTime) < 30000) {
+    return _allDocsCache; // cache 30 detik
+  }
+  const snap = await db.collection('places').get();
+  _allDocsCache = snap.docs.map(doc => ({ _id: doc.id, ...doc.data(), _source: 'firebase' }));
+  _allDocsCacheTime = now;
+  return _allDocsCache;
 }
 
 async function loadTab(type, forceRefresh = false) {
   if (!db) { renderTable(type); return; }
   try {
     const all = await fetchAllDocs(forceRefresh);
+    // Filter by type — handle semua variasi nilai type di Firestore
     const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
-    state.data[type] = all.filter(d => (typeMap[type] || [type]).includes((d.type||'').toLowerCase()));
-    state.loaded[type] = true; updateStats(); renderTable(type);
-  } catch(e) { renderTable(type); }
+    const validTypes = typeMap[type] || [type];
+    state.data[type] = all.filter(d => validTypes.includes((d.type||'').toLowerCase()));
+    state.loaded[type] = true;
+    updateStats();
+    renderTable(type);
+  } catch(e) {
+    toast('Gagal load ' + type + ': ' + e.message, 'err');
+    console.error('loadTab error:', e);
+    renderTable(type);
+  }
 }
 
 function updateStats() {
   const all = [...state.data.wisata, ...state.data.penginapan, ...state.data.kuliner];
   const localAll = [...state.local.wisata, ...state.local.penginapan, ...state.local.kuliner];
-  document.getElementById('stat-total').textContent = all.filter(d=>d.status==='approved'||!d.status).length;
+  document.getElementById('stat-total').textContent   = all.filter(d=>d.status==='approved'||!d.status).length;
   document.getElementById('stat-pending').textContent = all.filter(d=>d.status==='pending').length;
-  document.getElementById('stat-local').textContent = localAll.length;
+  document.getElementById('stat-local').textContent   = localAll.length;
+  document.getElementById('cnt-wisata').textContent      = state.data.wisata.length + state.local.wisata.length;
+  document.getElementById('cnt-penginapan').textContent  = state.data.penginapan.length + state.local.penginapan.length;
+  document.getElementById('cnt-kuliner').textContent     = state.data.kuliner.length + state.local.kuliner.length;
 }
 
-// ── TABS LOGIC ──
-document.querySelectorAll('.nav-item').forEach(el => {
-  el.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(i => {
-      i.classList.remove('active');
-    });
-    el.classList.add('active');
-    const tab = el.dataset.tab; state.tab = tab;
-    Object.values(PANEL_MAP).forEach(p => document.getElementById(p).style.display='none');
-    document.getElementById(PANEL_MAP[tab]).style.display = 'block';
-    if (['wisata','penginapan','kuliner'].includes(tab) && !state.loaded[tab]) loadTab(tab);
-  });
-});
-
-// ── RENDER CARDS (DISESUAIKAN DENGAN GAYA TAILWIND MINIMALIS) ──
+// ─── RENDER TABLE ─────────────────────────────────────────────────────────────
 function renderTable(type) {
-  const q = (state.search[type]||'').toLowerCase();
-  const all = [...state.local[type].map(d=>({...d,_source:'local'})), ...(state.data[type]||[])];
-  const filtered = q ? all.filter(d => (d.nama||d.Nama||'').toLowerCase().includes(q) || (d.kawasan||d.Kawasan||'').toLowerCase().includes(q)) : all;
+  const q    = (state.search[type]||'').toLowerCase();
+  const fbData  = state.data[type]  || [];
+  const lcData  = state.local[type] || [];
+  const all  = [...lcData.map(d=>({...d,_source:'local'})), ...fbData];
+  const filtered = q ? all.filter(d =>
+    (d.nama||d.Nama||'').toLowerCase().includes(q) ||
+    (d.kawasan||d.Kawasan||'').toLowerCase().includes(q) ||
+    (d.kategori||d.Kategori||'').toLowerCase().includes(q)
+  ) : all;
 
-  const perPage = PER_PAGE, total = filtered.length, page = state.page[type], start = (page-1)*perPage;
-  const rows = filtered.slice(start, start+perPage);
-  const tbody = document.getElementById('tbody-'+type);
+  const perPage = PER_PAGE;
+  const total   = filtered.length;
+  const page    = state.page[type];
+  const start   = (page-1)*perPage;
+  const rows    = filtered.slice(start, start+perPage);
+  const tbody   = document.getElementById('tbody-'+type);
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<div class="text-center py-10 text-gray-400 font-medium"><div class="text-4xl mb-4 opacity-40">📭</div>No Data Found</div>`;
+    tbody.innerHTML = '<div class="text-center py-12"><div class="text-4xl mb-3 opacity-30">📭</div><div class="text-sm font-semibold text-gray-400">Tidak ada data</div></div>';
   } else {
-    // Generate Cards dengan Tailwind
     tbody.innerHTML = rows.map(d => {
-      const id = d._id || d.Id || '—';
-      const nama = d.nama || d.Nama || '—';
-      const kaw = d.kawasan || d.Kawasan || '—';
-      const kat = d.kategori || d.Kategori || '—';
+      const id     = d._id || d.Id || '—';
+      const nama   = d.nama || d.Nama || '—';
+      const kaw    = d.kawasan || d.Kawasan || '—';
+      const kat    = d.kategori || d.Kategori || '—';
       const status = d._source === 'local' ? 'local' : (d.status || 'approved');
-      
-      let statBadge = '';
-      if(status === 'local') statBadge = `<span class="px-3 py-1 bg-blue-50 text-blue-600 text-[9px] font-bold rounded-full uppercase tracking-widest border border-blue-100">Local</span>`;
-      else if(status === 'pending') statBadge = `<span class="px-3 py-1 bg-amber-50 text-amber-600 text-[9px] font-bold rounded-full uppercase tracking-widest border border-amber-100">Pending</span>`;
-      else statBadge = `<span class="px-3 py-1 bg-green-50 text-green-600 text-[9px] font-bold rounded-full uppercase tracking-widest border border-green-100 flex items-center gap-1">★ ${d.rating||'4.8'}</span>`; // Tambahan fake rating biar mirip mockup
-
-      return `
-      <div class="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col gap-4">
-        <div class="flex justify-between items-start gap-2">
-          <div>
-            <div class="font-serif text-lg font-bold text-dark mb-1 leading-tight">${nama} ${d._source==='local'?'<span class="bg-orange-500 text-white text-[9px] px-2 py-0.5 rounded-full ml-1 align-middle">NEW</span>':''}</div>
-            <div class="text-[10px] text-gray-400 font-mono tracking-tighter">ID: ${String(id).slice(0,8)}</div>
+      const statLabel = status === 'local' ? '<span class="td-stat stat-local">lokal</span>'
+        : status === 'pending' ? '<span class="td-stat stat-pending">pending</span>'
+        : '<span class="td-stat stat-approved">✓</span>';
+      const isLocal = d._source === 'local';
+      const statBadge = status === 'local'
+        ? '<span class="text-[9px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">DRAFT</span>'
+        : status === 'pending'
+        ? '<span class="text-[9px] font-bold bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full">PENDING</span>'
+        : '<span class="text-[9px] font-bold bg-green-100 text-green-600 px-2 py-0.5 rounded-full">LIVE</span>';
+      const hasCoords = d.lat && d.lng;
+      return `<div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+        <div class="flex justify-between items-start mb-2">
+          <div class="flex-1 min-w-0 mr-3">
+            <div class="font-bold text-sm text-dark truncate">${nama}${isLocal?'<span class="ml-1 text-[9px] font-bold bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">NEW</span>':''}</div>
+            <div class="text-[11px] text-gray-400 mt-0.5">${kaw} · <span class="text-gray-500">${kat}</span></div>
           </div>
-          <div class="flex-shrink-0">${statBadge}</div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${statBadge}
+            ${hasCoords ? '<span class="text-[9px] bg-green-50 text-green-600 border border-green-200 px-1.5 py-0.5 rounded-full font-bold">📍</span>' : ''}
+          </div>
         </div>
-        <div class="flex gap-2 flex-wrap">
-          <span class="text-[11px] font-semibold px-3 py-1 bg-beige text-dark rounded-lg flex items-center gap-1"><span class="opacity-70">📍</span> ${kaw}</span>
-          <span class="text-[11px] font-semibold px-3 py-1 bg-grayLight text-gray-500 rounded-lg">${kat}</span>
-        </div>
-        <div class="flex gap-2 pt-3 border-t border-gray-50 mt-1">
-          <button class="flex-1 py-2 bg-grayLight text-dark rounded-xl text-[11px] font-bold hover:bg-gray-200 transition" onclick="openEdit('${type}','${id}')">Edit</button>
-          ${d._source === 'local' 
-            ? `<button class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-xl text-[11px] font-bold transition hover:bg-blue-100" onclick="pushSingle('${type}','${id}')">Push</button>`
-            : `<button class="flex-1 py-2 ${status==='pending'?'bg-green-50 text-green-600 border border-green-100':'bg-transparent border border-gray-200 text-gray-500'} rounded-xl text-[11px] font-bold transition" onclick="approveDoc('${type}','${id}','${status}')">${status==='pending'?'Approve':'Pending'}</button>`
-          }
-          <button class="flex-1 py-2 bg-red-50 text-red-600 rounded-xl text-[11px] font-bold transition hover:bg-red-100" onclick="deleteDoc('${type}','${id}')">Delete</button>
+        <div class="text-[10px] text-gray-300 mb-3 font-mono">${String(id).slice(0,16)}</div>
+        <div class="flex gap-2">
+          <button class="flex-1 bg-grayLight text-dark text-[11px] font-semibold py-1.5 rounded-xl hover:bg-gray-200 transition" onclick="openEdit('${type}','${id}')">Edit</button>
+          ${isLocal
+            ? `<button class="flex-1 bg-dark text-white text-[11px] font-semibold py-1.5 rounded-xl hover:bg-black transition" onclick="pushSingle('${type}','${id}')">Push ↑</button>`
+            : `<button class="flex-1 bg-grayLight text-dark text-[11px] font-semibold py-1.5 rounded-xl hover:bg-gray-200 transition" onclick="approveDoc('${type}','${id}','${status}')">${status==='pending'?'Approve':'Pending'}</button>`}
+          <button class="bg-red-50 text-red-500 text-[11px] font-semibold px-3 py-1.5 rounded-xl hover:bg-red-100 transition" onclick="deleteDoc('${type}','${id}')">✕</button>
         </div>
       </div>`;
     }).join('');
   }
 
-  // Pagination (Tailwind)
+  // Pagination
   const pages = Math.ceil(total/perPage);
-  const pag = document.getElementById('pag-'+type);
+  const pag   = document.getElementById('pag-'+type);
   if (pages <= 1) { pag.innerHTML=''; return; }
-  
-  let html = `<button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-dark disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition" onclick="setPage('${type}',${page-1})" ${page<=1?'disabled':''}>‹</button>`;
-  
-  const lo = Math.max(1,page-1), hi = Math.min(pages,page+1);
+  let html = `<span class="text-xs text-gray-400 font-medium">${start+1}–${Math.min(start+perPage,total)} dari ${total}</span>`;
+  html += `<button class="w-8 h-8 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-grayLight transition text-sm font-bold disabled:opacity-30" onclick="setPage('${type}',${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+  const lo = Math.max(1,page-2), hi = Math.min(pages,page+2);
   for (let i=lo;i<=hi;i++) {
-    html += `<button class="w-8 h-8 flex items-center justify-center border ${i===page?'bg-dark text-white border-dark font-bold':'border-gray-200 text-dark hover:bg-gray-50'} rounded-lg transition text-sm" onclick="setPage('${type}',${i})">${i}</button>`;
+    html += `<button class="w-8 h-8 flex items-center justify-center rounded-xl text-sm font-bold transition ${i===page?'bg-dark text-white':'bg-white border border-gray-200 text-gray-500 hover:bg-grayLight'}" onclick="setPage('${type}',${i})">${i}</button>`;
   }
-  
-  html += `<button class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-dark disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition" onclick="setPage('${type}',${page+1})" ${page>=pages?'disabled':''}>›</button>`;
-  
+  html += `<button class="w-8 h-8 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-grayLight transition text-sm font-bold disabled:opacity-30" onclick="setPage('${type}',${page+1})" ${page>=pages?'disabled':''}>›</button>`;
   pag.innerHTML = html;
 }
 
-function setPage(type, page) { state.page[type]=page; renderTable(type); document.getElementById('content').scrollTo(0,0); }
+function setPage(type, page) { state.page[type]=page; renderTable(type); }
 
+// Search listeners
 ['wisata','penginapan','kuliner'].forEach(t => {
   const inp = document.getElementById('search-'+t);
-  if (inp) inp.addEventListener('input', () => { state.search[t] = inp.value; state.page[t] = 1; renderTable(t); });
+  if (inp) inp.addEventListener('input', () => {
+    state.search[t] = inp.value;
+    state.page[t]   = 1;
+    renderTable(t);
+  });
   const btn = document.getElementById('btn-add-'+t);
   if (btn) btn.addEventListener('click', () => openEdit(t, null));
 });
 
-// ── EDIT / TAMBAH (MODAL) ──
+// ─── EDIT / TAMBAH ────────────────────────────────────────────────────────────
 function openEdit(type, id) {
   state.editType = type;
-  let doc = id ? [...state.data[type], ...state.local[type]].find(d => (d._id||d.Id) === id) : null;
+  let doc = null;
+  if (id) {
+    doc = [...state.data[type], ...state.local[type]].find(d => (d._id||d.Id) === id);
+  }
   state.editDoc = doc;
-  
-  document.getElementById('modal-title-text').textContent = doc ? 'Edit Details' : 'Add ' + type.charAt(0).toUpperCase() + type.slice(1);
-  document.getElementById('f-nama').value = doc?.nama || doc?.Nama || '';
+  document.getElementById('modal-title-text').textContent = doc ? 'Edit Data' : 'Tambah '+capitalize(type);
+  document.getElementById('f-nama').value    = doc?.nama || doc?.Nama || '';
   document.getElementById('f-kawasan').value = doc?.kawasan || doc?.Kawasan || '';
-  document.getElementById('f-kategori').value = doc?.kategori || doc?.Kategori || '';
-  document.getElementById('f-akses').value = doc?.akses || doc?.Akses || 'Mulus';
+  document.getElementById('f-kategori').value= doc?.kategori || doc?.Kategori || '';
+  document.getElementById('f-akses').value   = doc?.akses || doc?.Akses || 'Mulus';
   document.getElementById('f-catatan').value = doc?.catatan || doc?.Catatan || '';
-  document.getElementById('f-maps').value = doc?.maps || doc?.Maps || '';
-  document.getElementById('f-lat').value = doc?.lat || '';
-  document.getElementById('f-lng').value = doc?.lng || '';
-  document.getElementById('f-status').value = doc?.status || 'approved';
-  
+  document.getElementById('f-maps').value    = doc?.maps || doc?.Maps || '';
+  document.getElementById('f-lat').value     = doc?.lat || '';
+  document.getElementById('f-lng').value     = doc?.lng || '';
+  document.getElementById('f-status').value  = doc?.status || 'approved';
   document.getElementById('modalEdit').classList.remove('hidden');
 }
 
 document.getElementById('btnCloseModal').addEventListener('click', closeModal);
 document.getElementById('btnCancelEdit').addEventListener('click', closeModal);
-document.getElementById('modalOverlay').addEventListener('click', closeModal);
-
+document.getElementById('modalEdit').addEventListener('click', e => { if(e.target===document.getElementById('modalEdit')) closeModal(); });
 function closeModal() { document.getElementById('modalEdit').classList.add('hidden'); }
 
 document.getElementById('btnSaveEdit').addEventListener('click', async () => {
   const nama = document.getElementById('f-nama').value.trim();
   if (!nama) { toast('Nama wajib diisi', 'err'); return; }
-  
-  const type = state.editType;
   const data = {
-    nama, type: type === 'kuliner' ? 'kuliner' : type,
-    kawasan: document.getElementById('f-kawasan').value,
+    nama, type: state.editType === 'kuliner' ? 'kuliner' : state.editType,
+    kawasan:  document.getElementById('f-kawasan').value,
     kategori: document.getElementById('f-kategori').value.trim(),
-    akses: document.getElementById('f-akses').value,
-    catatan: document.getElementById('f-catatan').value.trim(),
-    maps: document.getElementById('f-maps').value.trim(),
-    status: document.getElementById('f-status').value,
+    akses:    document.getElementById('f-akses').value,
+    catatan:  document.getElementById('f-catatan').value.trim(),
+    maps:     document.getElementById('f-maps').value.trim(),
+    status:   document.getElementById('f-status').value,
     updatedAt: new Date().toISOString(),
   };
   const lat = parseFloat(document.getElementById('f-lat').value);
   const lng = parseFloat(document.getElementById('f-lng').value);
-  if (!isNaN(lat)) data.lat = lat; if (!isNaN(lng)) data.lng = lng;
+  if (!isNaN(lat)) data.lat = lat;
+  if (!isNaN(lng)) data.lng = lng;
 
   const doc = state.editDoc;
+  const type = state.editType;
+
   if (doc && doc._id && db && doc._source !== 'local') {
+    // Update di Firebase
     try {
       await db.collection('places').doc(doc._id).update(data);
       const idx = state.data[type].findIndex(d=>d._id===doc._id);
       if (idx>=0) state.data[type][idx] = {...state.data[type][idx], ...data};
-      toast('Data Updated ✓');
-    } catch(e) { toast('Error: '+e.message, 'err'); return; }
+      toast('Data berhasil diupdate ✓');
+    } catch(e) { toast('Gagal update: '+e.message, 'err'); return; }
   } else if (doc && doc._source === 'local') {
+    // Update lokal
     const idx = state.local[type].findIndex(d=>(d._id||d.Id)===doc._id);
     if (idx>=0) state.local[type][idx] = {...state.local[type][idx], ...data};
-    toast('Local Draft Updated');
+    toast('Data lokal diupdate');
   } else {
+    // Tambah baru
     if (db) {
       try {
         const ref = await db.collection('places').add(data);
         state.data[type].unshift({ _id:ref.id, ...data, _source:'firebase' });
-        toast('Data Added to Firebase ✓');
+        toast('Data berhasil ditambah ke Firebase ✓');
       } catch(e) {
-        state.local[type].unshift({ _id:'local_'+Date.now(), ...data, _source:'local' });
-        toast('Saved Locally (Error)', 'info');
+        // Fallback: simpan lokal
+        const localId = 'local_' + Date.now();
+        state.local[type].unshift({ _id:localId, ...data, _source:'local' });
+        toast('Simpan lokal (Firebase gagal: '+e.message+')', 'info');
       }
     } else {
-      state.local[type].unshift({ _id:'local_'+Date.now(), ...data, _source:'local' });
-      toast('Saved locally (Offline)', 'info');
+      const localId = 'local_' + Date.now();
+      state.local[type].unshift({ _id:localId, ...data, _source:'local' });
+      toast('Simpan lokal (offline mode)', 'info');
     }
   }
   updateStats(); renderTable(type); closeModal();
 });
 
-// ── APPROVE / DELETE / PUSH ──
+// ─── APPROVE / PENDING TOGGLE ─────────────────────────────────────────────────
 async function approveDoc(type, id, currentStatus) {
-  if (!db) return toast('Firebase disconnected', 'err');
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
   const newStatus = currentStatus === 'pending' ? 'approved' : 'pending';
   try {
     await db.collection('places').doc(id).update({ status: newStatus });
-    const doc = state.data[type].find(d=>d._id===id); if(doc) doc.status = newStatus;
-    toast(`Status -> ${newStatus}`); renderTable(type);
-  } catch(e) { toast('Error: '+e.message, 'err'); }
+    const doc = state.data[type].find(d=>d._id===id);
+    if (doc) doc.status = newStatus;
+    toast(`Status diubah ke: ${newStatus}`);
+    renderTable(type);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
 }
 
+// ─── DELETE ───────────────────────────────────────────────────────────────────
 async function deleteDoc(type, id) {
-  if (!confirm('Are you sure you want to delete this?')) return;
+  if (!confirm('Hapus data ini?')) return;
+  // Cek lokal dulu
   const localIdx = state.local[type].findIndex(d=>(d._id||d.Id)===id);
-  if (localIdx >= 0) { state.local[type].splice(localIdx, 1); updateStats(); renderTable(type); return toast('Local draft deleted'); }
-  if (!db) return toast('Firebase disconnected', 'err');
+  if (localIdx >= 0) {
+    state.local[type].splice(localIdx, 1);
+    toast('Data lokal dihapus');
+    updateStats(); renderTable(type); return;
+  }
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
   try {
     await db.collection('places').doc(id).delete();
     state.data[type] = state.data[type].filter(d=>d._id!==id);
-    updateStats(); renderTable(type); toast('Deleted ✓');
-  } catch(e) { toast('Error: '+e.message, 'err'); }
+    toast('Data dihapus ✓');
+    updateStats(); renderTable(type);
+  } catch(e) { toast('Gagal hapus: '+e.message, 'err'); }
 }
 
+// ─── PUSH SINGLE LOCAL DOC ────────────────────────────────────────────────────
 async function pushSingle(type, id) {
-  if (!db) return toast('Firebase disconnected', 'err');
-  const doc = state.local[type].find(d=>(d._id||d.Id)===id); if (!doc) return;
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  const doc = state.local[type].find(d=>(d._id||d.Id)===id);
+  if (!doc) return;
   try {
     const { _id, _source, ...data } = doc;
     const ref = await db.collection('places').add(data);
     state.local[type] = state.local[type].filter(d=>(d._id||d.Id)!==id);
     state.data[type].unshift({ _id:ref.id, ...data, _source:'firebase' });
-    updateStats(); renderTable(type); toast('Pushed to Firebase ✓');
-  } catch(e) { toast('Error: '+e.message, 'err'); }
+    toast('Berhasil push ke Firebase ✓');
+    updateStats(); renderTable(type);
+  } catch(e) { toast('Gagal push: '+e.message, 'err'); }
 }
 
-// ── IMPORT ──
-const dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('fileInput');
+// ─── IMPORT JSON ──────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
 dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) parseImportFile(file);
+});
 fileInput.addEventListener('change', e => { if(e.target.files[0]) parseImportFile(e.target.files[0]); });
 
 function parseImportFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const json = JSON.parse(e.target.result); state.importData = json;
-      const wisata = json.wisata_banyuwangi || json.wisata || [];
-      const hotel = json.penginapan || [];
-      const kuliner = json.kuliner_cafe || json.kuliner || [];
-      document.getElementById('import-stats').innerHTML = `Found: ✈️ ${wisata.length} wisata, 🏨 ${hotel.length} hotel, 🍽️ ${kuliner.length} kuliner`;
-      document.getElementById('import-preview').classList.remove('hidden');
-      document.getElementById('push-progress').classList.add('hidden');
-      toast(`File loaded`);
-    } catch(err) { toast('Invalid JSON', 'err'); }
+      const json = JSON.parse(e.target.result);
+      state.importData = json;
+      const wisata   = json.wisata_banyuwangi || json.wisata || [];
+      const hotel    = json.penginapan || [];
+      const kuliner  = json.kuliner_cafe || json.kuliner || [];
+      const total    = wisata.length + hotel.length + kuliner.length;
+      document.getElementById('import-stats').innerHTML =
+        `<b>${total} records</b> ditemukan: 🗺️ ${wisata.length} wisata · 🏨 ${hotel.length} penginapan · 🍜 ${kuliner.length} kuliner`;
+      document.getElementById('import-preview').style.display = '';
+      document.getElementById('push-progress').style.display = 'none';
+      toast(`File "${file.name}" berhasil dibaca`, 'info');
+    } catch(err) {
+      toast('File JSON tidak valid: '+err.message, 'err');
+    }
   };
   reader.readAsText(file);
 }
 
 document.getElementById('btn-import-cancel').addEventListener('click', () => {
-  state.importData = null; document.getElementById('import-preview').classList.add('hidden'); fileInput.value = '';
+  state.importData = null;
+  document.getElementById('import-preview').style.display = 'none';
+  fileInput.value = '';
 });
 
 document.getElementById('btn-import-local').addEventListener('click', () => {
   if (!state.importData) return;
   const json = state.importData;
   const convert = (arr, type) => arr.map((d,i) => ({
-    _id: 'local_import_'+type+'_'+i+'_'+Date.now(), _source: 'local',
-    nama: d.Nama||d.nama, kawasan: d.Kawasan||d.kawasan, kategori: d.Kategori||d.kategori, 
-    akses: d.Akses||d.akses, catatan: d.Catatan||d.catatan, maps: d.Maps||d.maps,
+    _id: 'local_import_'+type+'_'+i+'_'+Date.now(),
+    _source: 'local',
+    nama: d.Nama||d.nama, kawasan: d.Kawasan||d.kawasan,
+    kategori: d.Kategori||d.kategori, akses: d.Akses||d.akses,
+    catatan: d.Catatan||d.catatan, maps: d.Maps||d.maps,
     type, status: 'pending', lat: d.lat||null, lng: d.lng||null,
   }));
-  state.local.wisata = convert(json.wisata_banyuwangi||json.wisata||[], 'wisata');
-  state.local.penginapan = convert(json.penginapan||[], 'penginapan');
-  state.local.kuliner = convert(json.kuliner_cafe||json.kuliner||[], 'kuliner');
-  updateStats(); ['wisata','penginapan','kuliner'].forEach(t => { state.loaded[t]=true; renderTable(t); });
-  toast('Saved as Local Drafts', 'ok'); document.getElementById('import-preview').classList.add('hidden');
+  state.local.wisata    = convert(json.wisata_banyuwangi||json.wisata||[], 'wisata');
+  state.local.penginapan= convert(json.penginapan||[], 'penginapan');
+  state.local.kuliner   = convert(json.kuliner_cafe||json.kuliner||[], 'kuliner');
+  updateStats();
+  ['wisata','penginapan','kuliner'].forEach(t => { state.loaded[t]=true; renderTable(t); });
+  toast('Data disimpan lokal sebagai draft ✓', 'ok');
+  document.getElementById('import-preview').style.display='none';
 });
 
 document.getElementById('btn-import-push').addEventListener('click', async () => {
-  if (!state.importData || !db) return;
-  const json = state.importData, items = [];
+  if (!state.importData) return;
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  const json  = state.importData;
+  const items = [];
   (json.wisata_banyuwangi||json.wisata||[]).forEach(d => items.push({...d, _type:'wisata'}));
   (json.penginapan||[]).forEach(d => items.push({...d, _type:'penginapan'}));
   (json.kuliner_cafe||json.kuliner||[]).forEach(d => items.push({...d, _type:'kuliner'}));
 
-  document.getElementById('push-progress').classList.remove('hidden');
-  const bar = document.getElementById('push-bar'), log = document.getElementById('push-log'), label = document.getElementById('push-label');
+  const prog  = document.getElementById('push-progress');
+  const bar   = document.getElementById('push-bar');
+  const log   = document.getElementById('push-log');
+  const label = document.getElementById('push-label');
+  prog.style.display = '';
+  log.innerHTML = '';
   let done = 0, errors = 0;
+
+  document.getElementById('btn-import-push').disabled = true;
+  document.getElementById('btn-import-local').disabled = true;
 
   for (const d of items) {
     const { _type, Id, ...rest } = d;
     const data = {
-      nama: rest.Nama||rest.nama||'', kawasan: rest.Kawasan||rest.kawasan||'',
-      kategori: rest.Kategori||rest.kategori||'', akses: rest.Akses||rest.akses||'',
-      catatan: rest.Catatan||rest.catatan||'', maps: rest.Maps||rest.maps||'',
-      type: _type, status: 'approved', importedAt: new Date().toISOString(),
+      nama:     rest.Nama    || rest.nama    || '',
+      kawasan:  rest.Kawasan || rest.kawasan || '',
+      kategori: rest.Kategori|| rest.kategori|| '',
+      akses:    rest.Akses   || rest.akses   || '',
+      catatan:  rest.Catatan || rest.catatan || '',
+      maps:     rest.Maps    || rest.maps    || '',
+      type:     _type, status: 'approved',
+      importedAt: new Date().toISOString(),
     };
-    if (rest.lat) data.lat = parseFloat(rest.lat); if (rest.lng) data.lng = parseFloat(rest.lng);
-    
-    try {
+    if (rest.lat) data.lat = parseFloat(rest.lat);
+    if (rest.lng) data.lng = parseFloat(rest.lng);
+        try {
       if (Id) {
+        // Jika ada ID asli (seperti k1, w1) dari JSON, pakai ID tersebut dan paksa Timpa (Update)
         await db.collection('places').doc(String(Id)).set(data, { merge: true });
-        log.innerHTML += `<span class="text-green-600">✓ Update: ${data.nama}</span><br>`; done++;
+        log.innerHTML += `<span style="color:var(--blue)">✓ Tersimpan (Update): ${data.nama}</span>\n`;
+        done++;
       } else {
-        const dup = await db.collection('places').where('nama','==',data.nama).where('type','==',_type).limit(1).get();
+        // Jika tidak ada ID bawaan, cek duplikat nama
+        const dup = await db.collection('places')
+          .where('nama','==',data.nama).where('type','==',_type).limit(1).get();
         if (!dup.empty) {
-          await db.collection('places').doc(dup.docs[0].id).update(data);
-          log.innerHTML += `<span class="text-blue-500">↻ Update: ${data.nama}</span><br>`; done++;
+          // Update data jika nama sudah ada
+          const docId = dup.docs[0].id;
+          await db.collection('places').doc(docId).update(data);
+          log.innerHTML += `<span style="color:var(--blue)">↻ Update: ${data.nama}</span>\n`;
+          done++;
         } else {
+          // Tambah baru jika benar-benar belum ada
           await db.collection('places').add(data);
-          log.innerHTML += `<span>✓ New: ${data.nama}</span><br>`; done++;
+          log.innerHTML += `<span style="color:var(--accent)">✓ Tambah Baru: ${data.nama}</span>\n`;
+          done++;
         }
       }
-    } catch(e) { log.innerHTML += `<span class="text-red-500">✗ ${data.nama}</span><br>`; errors++; }
-    
+    } catch(e) {
+      log.innerHTML += `<span style="color:var(--red)">✗ ${data.nama}: ${e.message}</span>\n`;
+      errors++;
+    }
     log.scrollTop = log.scrollHeight;
-    bar.style.width = Math.round(((done+errors)/items.length)*100)+'%';
-    label.textContent = `Pushing... ${done+errors}/${items.length}`;
-    if ((done+errors)%5===0) await new Promise(r=>setTimeout(r,0));
+    const pct = Math.round(((done+errors)/items.length)*100);
+    bar.style.width = pct+'%';
+    label.textContent = `Pushing... ${done+errors}/${items.length} (${pct}%)`;
+    // Yield setiap 10 item agar UI tidak freeze
+    if ((done+errors) % 10 === 0) await new Promise(r=>setTimeout(r,0));
   }
-  toast(`Push complete: ${done} success`);
-  _allDocsCache = null; state.loaded = {wisata:false,penginapan:false,kuliner:false}; loadTab('wisata', true);
+
+  label.textContent = `Selesai: ${done} berhasil, ${errors} error`;
+  toast(`Push selesai: ${done} data berhasil`, done>0?'ok':'err');
+  document.getElementById('btn-import-push').disabled = false;
+  document.getElementById('btn-import-local').disabled = false;
+  // Reload semua tab — force refresh cache
+  _allDocsCache = null;
+  state.loaded = { wisata:false, penginapan:false, kuliner:false };
+  loadTab('wisata', true);
 });
 
-// ── EXPORT ──
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
 async function exportData(types) {
-  if (!db) return toast('Firebase disconnected', 'err');
-  toast('Fetching from Firebase...', 'info');
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  toast('Mengambil data dari Firebase...', 'info');
   try {
-    const all = await fetchAllDocs(true);
+    const all = await fetchAllDocs(true); // selalu fresh saat export
     const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
     const result = {};
     for (const type of types) {
-      const docs = all.filter(d => (typeMap[type] || [type]).includes((d.type||'').toLowerCase()));
+      const validTypes = typeMap[type] || [type];
+      const docs = all.filter(d => validTypes.includes((d.type||'').toLowerCase()));
       const key = type === 'wisata' ? 'wisata_banyuwangi' : type === 'kuliner' ? 'kuliner_cafe' : type;
       result[key] = docs.map(d => ({
         Id: d._id, Nama: d.nama, Kawasan: d.kawasan, Kategori: d.kategori,
@@ -792,18 +974,179 @@ async function exportData(types) {
         ...(d.lat ? {lat: d.lat} : {}), ...(d.lng ? {lng: d.lng} : {})
       }));
     }
+    const ts   = new Date().toISOString().slice(0,10);
     const blob = new Blob([JSON.stringify(result, null, 2)], {type:'application/json'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `bwi-db-export-${new Date().toISOString().slice(0,10)}.json`;
-    a.click(); URL.revokeObjectURL(a.href);
-    toast(`Export successful ✓`);
-  } catch(e) { toast('Export failed', 'err'); }
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `bwi-db-export-${ts}.json`;
+    a.click(); URL.revokeObjectURL(url);
+    const total = Object.values(result).reduce((s,arr) => s+arr.length, 0);
+    toast(`Export ${total} records berhasil ✓`);
+  } catch(e) {
+    toast('Gagal export: ' + e.message, 'err');
+  }
 }
+
 document.getElementById('btn-export-all').addEventListener('click', () => exportData(['wisata','penginapan','kuliner']));
 document.getElementById('btn-export-wisata').addEventListener('click', () => exportData(['wisata']));
 document.getElementById('btn-export-penginapan').addEventListener('click', () => exportData(['penginapan']));
 document.getElementById('btn-export-kuliner').addEventListener('click', () => exportData(['kuliner']));
 
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function capitalize(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+// ─── SCRIPT PEMBERSIH DATABASE OTOMATIS (Bisa dihapus jika sudah selesai) ───
+async function jalankanPembersihan(tombol) {
+  try {
+    tombol.textContent = '⏳ Memproses...';
+    tombol.disabled = true;
+
+    const snap = await db.collection('places').get();
+    let jumlahTerhapus = 0;
+
+    for (const doc of snap.docs) {
+      // Filter aman: ID acak Firebase panjangnya 20 karakter, ID asli kita <= 4 karakter
+      if (doc.id.length > 10) {
+        await doc.ref.delete();
+        jumlahTerhapus++;
+      }
+    }
+
+    alert(`🎉 Sukses! Berhasil membersihkan ${jumlahTerhapus} data kotor ber-ID acak.`);
+    window.location.reload();
+  } catch (e) {
+    alert('Gagal membersihkan database: ' + e.message);
+    tombol.textContent = '🧹 Bersihkan Data Kotor';
+    tombol.disabled = false;
+  }
+}
+
+function pasangTombolPembersih() {
+  const container = document.querySelector('.tb-right');
+  if (!container || document.getElementById('btnCleanKotor')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'btnCleanKotor';
+  btn.textContent = '🧹 Bersihkan Data Kotor';
+  btn.style.cssText = 'font-size: 11px; color: #fff; background: rgba(239,68,68,.85); border: 1px solid rgba(239,68,68,.3); padding: 4px 12px; border-radius: 20px; cursor: pointer; margin-right: 8px; font-family: inherit; font-weight: 500;';
+  
+  btn.addEventListener('click', () => {
+    if (confirm('Apakah Anda yakin ingin menghapus SEMUA data ganda ber-ID acak panjang? Data asli (w1, p1, k1, dll) dijamin aman dan tidak akan terhapus.')) {
+      jalankanPembersihan(btn);
+    }
+  });
+
+  container.insertBefore(btn, container.firstChild);
+}
+
+
+// ── AUTO GEOCODE ──────────────────────────────────────────────────────────────
+async function autoGeocode() {
+  const btn    = document.getElementById('btn-auto-geocode');
+  const latEl  = document.getElementById('f-lat');
+  const lngEl  = document.getElementById('f-lng');
+  const nama   = (document.getElementById('f-nama')?.value||'').trim();
+  const kawasan= (document.getElementById('f-kawasan')?.value||'').trim();
+  const mapsUrl= (document.getElementById('f-maps')?.value||'').trim();
+
+  // Step 1: Extract dari Maps URL
+  const fromUrl = extractCoordsFromUrl(mapsUrl);
+  if (fromUrl) {
+    latEl.value = fromUrl.lat;
+    lngEl.value = fromUrl.lng;
+    setGeocodeStatus('✓ Dari URL Maps', '#48bb78');
+    return;
+  }
+
+  if (!nama) { setGeocodeStatus('⚠ Isi nama dulu', '#e07b39'); return; }
+
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  setGeocodeStatus('Mencari...', '#63b3ed');
+
+  const LAT_MIN = -8.8, LAT_MAX = -7.9, LNG_MIN = 113.9, LNG_MAX = 114.5;
+  const inBbox = (lat, lng) => lat>=LAT_MIN&&lat<=LAT_MAX&&lng>=LNG_MIN&&lng<=LNG_MAX;
+  const queryStr = `${nama} ${kawasan} Banyuwangi`.trim();
+
+  // Step 2: Photon API
+  try {
+    const q   = encodeURIComponent(queryStr);
+    const res = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=5`);
+    if (res.ok) {
+      const data = await res.json();
+      const features = data.features || [];
+      const best = features.find(f => {
+        const [lng, lat] = f.geometry.coordinates;
+        return inBbox(lat, lng);
+      }) || features[0];
+      if (best) {
+        const [lng, lat] = best.geometry.coordinates;
+        latEl.value = lat.toFixed(6);
+        lngEl.value = lng.toFixed(6);
+        const ok = inBbox(lat, lng);
+        setGeocodeStatus(ok ? `✓ ${(best.properties?.name||'').slice(0,25)}` : '⚠ Di luar area BWI', ok ? '#48bb78' : '#e07b39');
+        btn.textContent = '📍 Auto'; btn.disabled = false; return;
+      }
+    }
+  } catch(e) { /* lanjut ke fallback */ }
+
+  // Step 3: Nominatim fallback
+  setGeocodeStatus('Photon gagal, coba Nominatim...', '#63b3ed');
+  try {
+    const q   = encodeURIComponent(queryStr);
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&countrycodes=id`, {
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'id' }
+    });
+    if (res.ok) {
+      const results = await res.json();
+      const best = results.find(r => inBbox(parseFloat(r.lat), parseFloat(r.lon))) || results[0];
+      if (best) {
+        const lat = parseFloat(best.lat), lng = parseFloat(best.lon);
+        latEl.value = lat.toFixed(6);
+        lngEl.value = lng.toFixed(6);
+        const ok = inBbox(lat, lng);
+        setGeocodeStatus(ok ? `✓ Nominatim` : '⚠ Di luar area BWI', ok ? '#48bb78' : '#e07b39');
+        btn.textContent = '📍 Auto'; btn.disabled = false; return;
+      }
+    }
+  } catch(e) { /* lanjut ke pesan manual */ }
+
+  // Step 4: Semua gagal — tampilkan link Google Maps
+  const mapsSearch = `https://www.google.com/maps/search/${encodeURIComponent(queryStr)}`;
+  setGeocodeStatus('✗ Tidak ditemukan — isi manual', '#fc8181');
+  // Tampilkan link helper di bawah tombol
+  let helper = document.getElementById('geocode-helper');
+  if (!helper) {
+    helper = document.createElement('div');
+    helper.id = 'geocode-helper';
+    helper.style.cssText = 'font-size:11px;margin-top:4px;';
+    btn.parentElement.parentElement.appendChild(helper);
+  }
+  helper.innerHTML = `<a href="${mapsSearch}" target="_blank"
+    style="color:#63b3ed;text-decoration:underline">
+    🗺 Buka Google Maps → klik kanan → "Apa yang ada di sini?" → copy koordinat
+  </a>`;
+  btn.textContent = '📍 Auto'; btn.disabled = false;
+}
+
+function extractCoordsFromUrl(url) {
+  if (!url) return null;
+  // Format: maps.google.com/.../@lat,lng,zoom
+  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format: maps.google.com/?q=lat,lng
+  m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format: ll=lat,lng
+  m = url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  return null;
+}
+
+function setGeocodeStatus(msg, color) {
+  const el = document.getElementById('geocode-status');
+  if (el) { el.textContent = msg; el.style.color = color; }
+}
 </script>
 </body>
 </html>
