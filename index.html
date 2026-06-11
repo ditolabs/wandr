@@ -1964,45 +1964,111 @@ document.getElementById('btn-next').addEventListener('click', async () => {
 
 // ─── RULE-BASED ENGINE ──────────────────────────────────────────────────────
 
-// Data tambahan per destinasi: zona, tiket, durasi (menit), deskripsi, tips
+// Data tambahan per destinasi: zona, tiket, durasi (menit), deskripsi, tips, koordinat
 const DEST_EXT = {
-  ijen:        { zone:'barat',   tiket:5000,  dur:300, isIjen:true,
+  ijen:        { zone:'barat',   tiket:5000,  dur:300, isIjen:true,  lat:-8.0584, lng:114.2422,
                  desc:'Trekking ke kawah asam berwarna biru misterius, fenomena langka di dunia. Tiba di puncak sebelum matahari terbit untuk menyaksikan blue fire.',
                  tips:'Wajib bawa masker gas N95. Sewa porter ~150K (opsional). Headlamp adalah mutlak.' },
-  baluran:     { zone:'utara',   tiket:15000, dur:240,
+  baluran:     { zone:'utara',   tiket:15000, dur:240, lat:-7.8626,  lng:114.3660,
                  desc:'Jelajahi savana luas "Afrika van Java". Berkendara melalui padang savana untuk melihat banteng, rusa, dan merak liar.',
                  tips:'Masuk gerbang sebelum jam 06:00 untuk peluang terbaik bertemu satwa. Bawa kamera telephoto.' },
-  alas_purwo:  { zone:'selatan', tiket:5000,  dur:300,
+  alas_purwo:  { zone:'selatan', tiket:5000,  dur:300, lat:-8.6830,  lng:114.3670,
                  desc:'Menjelajahi hutan purba dengan ekosistem tersier Jawa. Kunjungi Pantai Trianggulasi dan Pura Giri Salaka yang bersejarah.',
                  tips:'Trek ringan tersedia. Bawa air minum cukup dan repellent nyamuk.' },
-  kawah_wurung:{ zone:'barat',   tiket:5000,  dur:180,
+  kawah_wurung:{ zone:'barat',   tiket:5000,  dur:180, lat:-8.1177,  lng:114.2063,
                  desc:'Kaldera cantik dengan hamparan padang sabana hijau. Sunrise dari sini spektakuler dengan pemandangan 360 derajat.',
                  tips:'Datang maksimal jam 05:30. Sangat dingin, bawa jaket. Bisa dilanjutkan setelah turun dari Ijen.' },
-  jagir:       { zone:'barat',   tiket:10000, dur:120,
+  jagir:       { zone:'barat',   tiket:10000, dur:120, lat:-8.2154,  lng:114.1872,
                  desc:'Air terjun tiga tingkat di tengah hutan pinus yang sejuk. Kolam alami di bawah air terjun cocok untuk berendam.',
                  tips:'Trek ~1km dari parkir, relatif mudah. Gunakan sandal gunung atau sepatu anti selip.' },
-  red_island:  { zone:'selatan', tiket:10000, dur:180, isSunset:true,
+  red_island:  { zone:'selatan', tiket:10000, dur:180, isSunset:true, lat:-8.4386, lng:114.0147,
                  desc:'Pantai dengan tebing merah dramatis yang menjadi ikon Banyuwangi. Sunset di sini adalah yang paling ikonik di Jawa.',
                  tips:'Datang pukul 15:00 untuk tempat foto terbaik. Gelombang besar, tidak dianjurkan berenang.' },
-  green_bay:   { zone:'selatan', tiket:10000, dur:240,
+  green_bay:   { zone:'selatan', tiket:10000, dur:240, lat:-8.6176,  lng:114.0493,
                  desc:'Teluk tersembunyi dengan air berwarna hijau toska yang memukau. Snorkeling dan berenang sangat direkomendasikan.',
                  tips:'Trek 30–40 menit dari parkir melewati hutan. Bawa bekal air minum minimal 1.5L.' },
-  sukamade:    { zone:'selatan', tiket:10000, dur:240, isNight:true,
+  sukamade:    { zone:'selatan', tiket:10000, dur:240, isNight:true, lat:-8.6714,  lng:113.9756,
                  desc:'Pantai penangkaran penyu hijau terbesar di Indonesia. Saksikan penyu bertelur secara langsung di malam hari.',
                  tips:'Wajib menginap di sekitar area. Bawa senter dan pakaian berwarna gelap.' },
-  g_land:      { zone:'selatan', tiket:0,     dur:240,
+  g_land:      { zone:'selatan', tiket:0,     dur:240, lat:-8.6760,  lng:114.3320,
                  desc:'Pantai legendaris surganya peselancar kelas dunia, berlokasi di dalam kawasan TN Alas Purwo.',
                  tips:'Akses via perahu dari Pantai Grajagan ~200–300K. Bawa perlengkapan snorkeling.' },
-  menjangan:   { zone:'utara',   tiket:25000, dur:360,
+  menjangan:   { zone:'utara',   tiket:25000, dur:360, lat:-8.1122,  lng:114.4978,
                  desc:'Pulau dengan terumbu karang terbaik di Banyuwangi. Visibilitas air hingga 30m, ideal untuk snorkeling dan diving.',
                  tips:'Sewa perahu dari Bangsring ~300–400K/perahu. Bawa tabir surya dan alat snorkel sendiri.' },
-  tabuhan:     { zone:'utara',   tiket:15000, dur:300,
+  tabuhan:     { zone:'utara',   tiket:15000, dur:300, lat:-8.0940,  lng:114.4856,
                  desc:'Pulau pasir putih kecil dengan air berwarna biru jernih. Spot foto yang sangat instagramable.',
                  tips:'Sewa perahu dari Pantai Bangsring ~200–250K. Perjalanan ~30 menit. Bawa bekal makanan.' },
-  city:        { zone:'kota',    tiket:0,     dur:240, isCity:true,
+  city:        { zone:'kota',    tiket:0,     dur:240, isCity:true,  lat:-8.2191,  lng:114.3691,
                  desc:'Jelajahi pesona kota Banyuwangi: Pantai Boom, Taman Blambangan, Pendopo, dan pusat oleh-oleh khas.',
                  tips:'Malam hari lebih ramai dan hidup. Cicipi kuliner kaki lima di Jl. PB Sudirman.' },
 };
+
+// Koordinat titik penting untuk rekomendasi kuliner hari terakhir
+const BWI_COORDS = {
+  stasiun:  { lat:-8.2191, lng:114.3659, label:'Stasiun Banyuwangi Kota' },
+  bandara:  { lat:-8.1685, lng:114.3391, label:'Bandara Banyuwangi' },
+  pelabuhan:{ lat:-8.1774, lng:114.3789, label:'Pelabuhan Ketapang' },
+  pusat:    { lat:-8.2191, lng:114.3691, label:'Pusat Kota Banyuwangi' },
+};
+
+// ── Rekomendasi kuliner dari cache Firestore (nol query tambahan) ──────────────
+// Ambil max N kuliner terdekat dari titik (lat,lng) dalam radius radiusKm
+function getKulinerNear(lat, lng, radiusKm=2, maxResult=3) {
+  if (!lat || !lng) return [];
+  const cache = window._placesCache || [];
+  return cache
+    .filter(d => {
+      const t = (d.type||'').toLowerCase();
+      return ['kuliner','cafe','restoran','warung','rumah makan'].some(k => t.includes(k));
+    })
+    .filter(d => d.lat && d.lng && d.nama)
+    .map(d => ({ ...d, dist: haversineKm(lat, lng, d.lat, d.lng) }))
+    .filter(d => d.dist <= radiusKm)
+    .sort((a,b) => a.dist - b.dist)
+    .slice(0, maxResult);
+}
+
+// Format satu item kuliner jadi activity object
+function kulinerActivity(k, waktu, labelWaktu, fallbackZone) {
+  const timeMap = { pagi:'07:00', siang:'12:30', malam:'19:00' };
+  const distTxt = k.dist < 1
+    ? `${Math.round(k.dist*1000)}m dari lokasi`
+    : `${k.dist.toFixed(1)}km dari lokasi`;
+  return {
+    time: timeMap[waktu] || timeMap.siang,
+    name: `${labelWaktu} — ${k.nama}`,
+    location: k.nama + (k.kawasan ? `, ${k.kawasan}` : ''),
+    duration: '1 jam',
+    description: `${labelWaktu} di ${k.nama}. ${k.catatan||k.menu_andalan||k.kategori||''}`.trim(),
+    tips: `~${distTxt}${k.harga?' · Rp'+k.harga:''}`,
+    estimatedCost: k.harga ? parseInt(String(k.harga).replace(/\D/g,''))||25000 : 25000,
+    type: 'makan',
+  };
+}
+
+// Ambil koordinat destinasi — dari Firestore data (lat/lng) atau fallback DEST_EXT
+function getDestCoords(destOrId) {
+  const id = typeof destOrId === 'string' ? destOrId : destOrId?.id;
+  const d  = typeof destOrId === 'object' ? destOrId : DESTINATIONS.find(x=>x.id===id);
+  if (d?.lat && d?.lng) return { lat: d.lat, lng: d.lng };
+  const ext = DEST_EXT[id];
+  if (ext?.lat && ext?.lng) return { lat: ext.lat, lng: ext.lng };
+  return null;
+}
+
+// Midpoint antara dua koordinat
+function midpoint(c1, c2) {
+  if (!c1 || !c2) return c1 || c2 || null;
+  return { lat:(c1.lat+c2.lat)/2, lng:(c1.lng+c2.lng)/2 };
+}
+
+// Penginapan coords dari penginapanDataList atau fallback pusat kota
+function getHotelCoords() {
+  const h = (S.penginapanDataList||[]).find(p=>p.lat&&p.lng);
+  if (h) return { lat:h.lat, lng:h.lng };
+  return BWI_COORDS.pusat;
+}
 
 // Kuliner rekomendasi per zona (berdasarkan pola Yuk Banyuwangi)
 const KULINER_DB = {
@@ -2060,41 +2126,40 @@ function parseDurasi(v) {
 }
 
 // ── Build kuliner activity ────────────────────────────────────────────────────
-function buildMakan(waktu, zone, overrideTime) {
-  const timeMap = { pagi:'07:00', siang:'12:30', malam:'19:00' };
+// lat/lng: titik referensi untuk cari kuliner terdekat. Jika null, fallback ke zone DB.
+function buildMakan(waktu, zone, overrideTime, refLat, refLng) {
+  const timeMap  = { pagi:'07:00', siang:'12:30', malam:'19:00' };
   const labelMap = { pagi:'Sarapan', siang:'Makan Siang', malam:'Makan Malam' };
   const finalTime = overrideTime || timeMap[waktu];
+  const label = labelMap[waktu];
+
   // Pakai kuliner custom user jika ada
   if (S.kulinerCustom && S.kulinerCustom.trim()) {
-    return { time:finalTime, name:`${labelMap[waktu]} — ${S.kulinerCustom.trim()}`,
+    return { time:finalTime, name:`${label} — ${S.kulinerCustom.trim()}`,
       location:S.kulinerCustom.trim(), duration:'1 jam',
-      description:`${labelMap[waktu]} di ${S.kulinerCustom.trim()} — pilihan kuliner incaran kamu.`,
+      description:`${label} di ${S.kulinerCustom.trim()} — pilihan kuliner incaran kamu.`,
       tips:'Sesuaikan dengan jam operasional tempat makan.', estimatedCost:30000, type:'makan' };
   }
-  // Pakai kuliner dari Firebase jika ada (terdekat dari penginapan terpilih)
-  if (S.kulinerOptions && S.kulinerOptions.length > 0) {
-    const k = pickRand(S.kulinerOptions);
-    const timeMap = { pagi:'07:00', siang:'12:30', malam:'19:00' };
-    const labelMap = { pagi:'Sarapan', siang:'Makan Siang', malam:'Makan Malam' };
-    return {
-      time: timeMap[waktu],
-      name: `${labelMap[waktu]} — ${k.nama}`,
-      location: k.nama,
-      duration: '1 jam',
-      description: `${labelMap[waktu]} di ${k.nama}. ${k.catatan||k.menu_andalan||k.kategori||''}`,
-      tips: `±${Math.round(k.dist*1000)}m dari penginapan — bisa jalan kaki.`,
-      estimatedCost: k.harga ? parseInt(String(k.harga).replace(/\D/g,''))||25000 : 25000,
-      type: 'makan',
-    };
+
+  // Cari dari cache Firestore berdasarkan koordinat terdekat (radius 3km)
+  const coords = (refLat && refLng)
+    ? { lat:refLat, lng:refLng }
+    : getHotelCoords();
+  const nearby = getKulinerNear(coords.lat, coords.lng, 3, 5);
+  if (nearby.length > 0) {
+    const k = pickRand(nearby);
+    return kulinerActivity(k, waktu, label, zone);
   }
-  const db = KULINER_DB[zone] || KULINER_DB.kota;
-  const w  = pickRand(db);
+
+  // Fallback: zone-based static DB
+  const db2 = KULINER_DB[zone] || KULINER_DB.kota;
+  const w   = pickRand(db2);
   return {
     time: finalTime,
-    name: `${labelMap[waktu]} — ${w.name}`,
+    name: `${label} — ${w.name}`,
     location: w.name,
     duration: '1 jam',
-    description: `${labelMap[waktu]} dengan menu ${w.menu}. Warung lokal favorit di kawasan ini.`,
+    description: `${label} dengan menu ${w.menu}. Warung lokal favorit di kawasan ini.`,
     tips: 'Datang agak awal kalau ramai. Harga terjangkau, rasa autentik.',
     estimatedCost: w.est,
     type: 'makan',
@@ -2107,6 +2172,7 @@ function buildArrivalDay(kota, transport, penginapan) {
   const subLabel = {kereta:'Kereta Api (Mutiara Timur/Sri Tanjung)',pesawat:'Pesawat',bus:'Bus PO'}[S.subTransport] || 'Kendaraan Umum';
   const jamTiba  = parseInt((S.waktuTiba||'10:00').split(':')[0]);
   const finalHotel = getFinalHotelName();
+  const hotelC   = getHotelCoords();
   const acts = [];
 
   // Transport ke BWI — selalu tampil pertama (order 0)
@@ -2134,7 +2200,7 @@ function buildArrivalDay(kota, transport, penginapan) {
       tips:'Locker Wangi: lockerwangi.com | WA: 0851-4717-8692. Tarif ~25K/tas.',
       estimatedCost:25000, type:'aktivitas' });
     acts.push({ _order:3, time:addMin(S.waktuTiba,80), name:'Sarapan Khas Banyuwangi',
-      ...buildMakan('pagi','kota'), time:addMin(S.waktuTiba,80) });
+      ...buildMakan('pagi','kota', addMin(S.waktuTiba,80), BWI_COORDS.stasiun.lat, BWI_COORDS.stasiun.lng), time:addMin(S.waktuTiba,80) });
     acts.push({ _order:4, time:addMin(S.waktuTiba,140), name:'Wisata Pagi — Pantai Boom / Taman Blambangan',
       location:'Pusat Kota Banyuwangi', duration:'2 jam',
       description:'Jalan santai di Pantai Boom atau Taman Blambangan. Nikmati suasana kota sebelum check-in.',
@@ -2143,7 +2209,7 @@ function buildArrivalDay(kota, transport, penginapan) {
       location:finalHotel, duration:'1 jam',
       description:`Ambil kembali tas dari Locker Wangi, lalu check-in ${finalHotel}. Bersih-bersih dan istirahat siang.`,
       tips:'Standar check-in hotel jam 14:00. Jika lebih awal, tas bisa dititip resepsionis.', estimatedCost:0, type:'penginapan' });
-    acts.push({ _order:6, time:'19:00', ...buildMakan('malam','kota'), time:'19:00' });
+    acts.push({ _order:6, time:'19:00', ...buildMakan('malam','kota', '19:00', hotelC?.lat, hotelC?.lng), time:'19:00' });
   } else if (jamTiba >= 11 && jamTiba < 18) {
     // Tiba siang-sore → langsung check-in (kemungkinan besar sudah jam 14:00+)
     const checkInTime = jamTiba >= 14 ? S.waktuTiba : '14:00';
@@ -2152,10 +2218,11 @@ function buildArrivalDay(kota, transport, penginapan) {
       duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
       tips:'', estimatedCost:0, type:'transport' });
     if (jamTiba < 14) {
+      const makanSiang = buildMakan('siang', 'kota', addMin(S.waktuTiba,20), BWI_COORDS.stasiun.lat, BWI_COORDS.stasiun.lng);
       acts.push({ _order:2, time:addMin(S.waktuTiba,20), name:'Makan Siang Sambil Menunggu Check-in',
-        location:'Warung Kuliner Lokal', duration:'1 jam',
-        description:'Makan siang di sekitar stasiun/area tiba. Check-in hotel biasanya jam 14:00.',
-        tips:'Manfaatkan waktu untuk cicipi kuliner lokal.', estimatedCost:25000, type:'makan' });
+        ...makanSiang, time:addMin(S.waktuTiba,20),
+        description:(makanSiang.description||'') + ' Check-in hotel biasanya jam 14:00.',
+        tips:(makanSiang.tips||'') + ' Manfaatkan waktu untuk cicipi kuliner lokal.' });
     }
     acts.push({ _order:3, time:checkInTime, name:'Check-in Penginapan',
       location:finalHotel, duration:'1 jam',
@@ -2165,14 +2232,14 @@ function buildArrivalDay(kota, transport, penginapan) {
       location:'Pusat Kota Banyuwangi', duration:'2 jam',
       description:'Jalan sore santai, beli oleh-oleh kecil, nikmati suasana kota.',
       tips:'', estimatedCost:5000, type:'aktivitas' });
-    acts.push({ _order:5, time:'19:00', ...buildMakan('malam','kota'), time:'19:00' });
+    acts.push({ _order:5, time:'19:00', ...buildMakan('malam','kota','19:00',hotelC?.lat,hotelC?.lng), time:'19:00' });
   } else {
     // Tiba malam → langsung check-in
     acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
       location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
       duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
       tips:'', estimatedCost:0, type:'transport' });
-    acts.push({ _order:2, time:addMin(S.waktuTiba,30), ...buildMakan('malam','kota'), time:addMin(S.waktuTiba,30) });
+    acts.push({ _order:2, time:addMin(S.waktuTiba,30), ...buildMakan('malam','kota',addMin(S.waktuTiba,30),BWI_COORDS.stasiun.lat,BWI_COORDS.stasiun.lng), time:addMin(S.waktuTiba,30) });
     acts.push({ _order:3, time:addMin(S.waktuTiba,90), name:'Check-in & Istirahat',
       location:finalHotel, duration:'Malam',
       description:'Tiba malam, langsung check-in dan istirahat. Perjalanan esok lebih seru!',
@@ -2214,29 +2281,53 @@ function injectArrivalExtras(arrivalDay) {
 
 // ── Day terakhir: Kepulangan ───────────────────────────────────────────────────
 function buildDepartureDay(dayNum, kota, transport) {
-  const isUmum = transport === 'umum';
+  const isUmum  = transport === 'umum';
+  const subTrans = S.subTransport;
+
+  // Tentukan titik keberangkatan untuk rekomendasi kuliner
+  const depPoint = subTrans === 'pesawat' ? BWI_COORDS.bandara
+    : subTrans === 'kereta' ? BWI_COORDS.stasiun
+    : isUmum ? BWI_COORDS.pelabuhan
+    : BWI_COORDS.pusat;
+
+  // Kuliner sarapan dekat penginapan (masih di hotel saat sarapan)
+  const hotelC   = getHotelCoords();
+  const sarapan  = buildMakan('pagi', 'kota', '07:30', hotelC?.lat, hotelC?.lng);
+  sarapan.name   = 'Sarapan & Check-out';
+  sarapan.description = (sarapan.description||'') + ' Sarapan terakhir, lalu check-out penginapan.';
+  sarapan.tips   = (sarapan.tips ? sarapan.tips + ' · ' : '') + 'Titipkan koper di resepsionis jika masih mau jalan-jalan.';
+
+  // Kuliner makan siang — di sekitar stasiun/bandara keberangkatan
+  const makanSiang = buildMakan('siang', 'kota', '11:30', depPoint.lat, depPoint.lng);
+  makanSiang.name = `Makan Siang Terakhir di Banyuwangi`;
+  makanSiang.description = (makanSiang.description||'') + ' Makan siang terakhir sebelum bertolak pulang.';
+  makanSiang.tips = (makanSiang.tips ? makanSiang.tips + ' · ' : '') + 'Jangan lewatkan Sego Tempong atau Rujak Soto sebagai kenangan rasa!';
+
+  // Rekomendasi oleh-oleh dekat titik keberangkatan (radius 2km)
+  const olehOleh = getKulinerNear(depPoint.lat, depPoint.lng, 5, 3)
+    .filter(k => {
+      const t = (k.type||k.kategori||'').toLowerCase();
+      return t.includes('oleh') || t.includes('toko') || t.includes('kerajinan') || t.includes('kopi');
+    });
+  const olehDesc = olehOleh.length > 0
+    ? `Belanja oleh-oleh di sekitar ${depPoint.label}: ${olehOleh.map(k=>k.nama).join(', ')}.`
+    : 'Belanja oleh-oleh: Kopi Osing, Batik Gajah Oling, Kerajinan Gedog, Dodol Banyuwangi, dan Peyek khas.';
+
   return {
     day:dayNum, date_label:`Hari ${dayNum}`,
     title:'Oleh-oleh & Perjalanan Pulang',
     activities: [
-      { time:'07:30', name:'Sarapan & Check-out',
-        location:'Penginapan', duration:'1 jam',
-        description:'Sarapan terakhir di Banyuwangi dan check-out penginapan.',
-        tips:'Titipkan koper di resepsionis jika masih mau jalan-jalan sebentar.',
-        estimatedCost:20000, type:'makan' },
+      { ...sarapan, time:'07:30' },
       { time:'09:00', name:'Belanja Oleh-oleh Khas Banyuwangi',
-        location:'Toko Oleh-oleh / Pasar Banyuwangi', duration:'2 jam',
-        description:'Belanja oleh-oleh: Kopi Osing, Batik Gajah Oling, Kerajinan Gedog, Dodol Banyuwangi, dan Peyek khas.',
-        tips:'Toko Oleh-oleh Barokah di Jl. A. Yani atau pasar tradisional untuk harga lebih miring.',
+        location: olehOleh.length > 0 ? olehOleh[0].nama : 'Toko Oleh-oleh / Pasar Banyuwangi',
+        duration:'2 jam',
+        description: olehDesc,
+        tips:`Toko Oleh-oleh Barokah di Jl. A. Yani atau pasar tradisional untuk harga lebih miring. Dalam ~${(haversineKm(hotelC.lat,hotelC.lng,depPoint.lat,depPoint.lng)).toFixed(1)}km dari penginapan ke ${depPoint.label}.`,
         estimatedCost:150000, type:'aktivitas' },
-      { time:'11:30', name:'Makan Siang Terakhir di Banyuwangi',
-        location:'Warung Kuliner Lokal', duration:'1 jam',
-        description:'Makan siang terakhir. Jangan lewatkan Sego Tempong atau Rujak Soto sebagai kenangan rasa.',
-        tips:'Ini kesempatan terakhir menikmati kuliner khas. Beli sambal tempong buat dibawa pulang!',
-        estimatedCost:25000, type:'makan' },
+      { ...makanSiang, time:'11:30' },
       { time:'13:00', name:`Perjalanan Pulang ke ${kota}`,
-        location:'Banyuwangi', duration: isUmum?'±6–8 jam':'±4–5 jam',
-        description:`Bertolak kembali ke ${kota}. Bawa kenangan indah dan rencana untuk kembali ke Banyuwangi!`,
+        location: depPoint.label, duration: isUmum?'±6–8 jam':'±4–5 jam',
+        description:`Bertolak dari ${depPoint.label} kembali ke ${kota}. Bawa kenangan indah dan rencana untuk kembali ke Banyuwangi!`,
         tips:'Sampai jumpa lagi di Banyuwangi! 🌋',
         estimatedCost: isUmum?150000:60000, type:'transport' },
     ],
@@ -2319,11 +2410,11 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         tips:'Tidur 1–2 jam akan membuat badan jauh lebih segar untuk malam hari.',
         estimatedCost:0, type:'istirahat' });
     }
-    acts.push(buildMakan('malam','barat'));
+    acts.push(buildMakan('malam','barat', null, getHotelCoords()?.lat, getHotelCoords()?.lng));
 
   // ── SUKAMADE DAY ──
   } else if (hasSukamade) {
-    acts.push(buildMakan('pagi', zone));
+    acts.push(buildMakan('pagi', zone, null, DEST_EXT.sukamade?.lat, DEST_EXT.sukamade?.lng));
     acts.push({ time:'08:00', name:'Perjalanan Menuju Sukamade',
       location:'Rute menuju Sukamade', duration:'3–4 jam',
       description:'Perjalanan panjang menuju Sukamade melewati jalan lintas hutan. Jalur menantang terutama musim hujan.',
@@ -2334,7 +2425,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       description:'Tiba di Sukamade. Eksplor pantai di siang hari dan check-in penginapan sederhana di kawasan.',
       tips:'Penginapan sangat terbatas — wajib reservasi jauh-jauh hari.',
       estimatedCost:10000, type:'aktivitas' });
-    acts.push(buildMakan('siang','selatan'));
+    acts.push(buildMakan('siang','selatan', null, DEST_EXT.sukamade?.lat, DEST_EXT.sukamade?.lng));
     acts.push({ time:'20:00', name:'Program Malam — Penyu Hijau Bertelur',
       location:'Pantai Sukamade', duration:'2–3 jam',
       description:'Dipandu ranger, saksikan penyu hijau raksasa naik ke pantai untuk bertelur. Momen langka dan sangat emosional.',
@@ -2355,27 +2446,32 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
     }
 
     let cur = '07:00';
-    const mainSpots = sorted.filter(s=>!DEST_EXT[s.id]?.isSunset&&!DEST_EXT[s.id]?.isNight);
+    const mainSpots   = sorted.filter(s=>!DEST_EXT[s.id]?.isSunset&&!DEST_EXT[s.id]?.isNight);
     const sunsetSpots = sorted.filter(s=>DEST_EXT[s.id]?.isSunset);
 
     mainSpots.forEach((spot, i) => {
-      const ext = DEST_EXT[spot.id]||{};
+      const ext   = DEST_EXT[spot.id]||{};
+      const sCoord = getDestCoords(spot);
       acts.push({ time:cur, name:spot.name,
         location:spot.name+', Banyuwangi', duration:durLabel(ext.dur||180),
         description:ext.desc||spot.desc||'', tips:ext.tips||'',
         estimatedCost:ext.tiket||0, type:'aktivitas' });
       cur = addMin(cur, (ext.dur||180)+35);
 
-      // Insert lunch roughly in the middle
+      // Insert makan siang di tengah — pakai koordinat midpoint antar spot atau spot saat ini
       if (i===Math.floor((mainSpots.length-1)/2)) {
-        const makan = buildMakan('siang', zone);
-        makan.time = cur;
+        const nextSpot  = mainSpots[i+1];
+        const nextCoord = nextSpot ? getDestCoords(nextSpot) : null;
+        const refCoord  = midpoint(sCoord, nextCoord) || sCoord || getHotelCoords();
+        const makan     = buildMakan('siang', zone, cur, refCoord?.lat, refCoord?.lng);
+        makan.time      = cur;
+        // Tambah konteks jarak di tips jika kuliner dari DB
         acts.push(makan);
         cur = addMin(cur, 70);
       }
     });
 
-    // Sunset spots always at 15:00
+    // Sunset spots selalu jam 15:00
     sunsetSpots.forEach(spot => {
       const ext = DEST_EXT[spot.id]||{};
       acts.push({ time:'15:00', name:spot.name+' — Sunset',
@@ -2384,14 +2480,17 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         estimatedCost:ext.tiket||0, type:'aktivitas' });
     });
 
-    // If only sunset spots and no lunch added yet
+    // Jika hanya sunset spots dan belum ada makan siang
     if (mainSpots.length===0 && sunsetSpots.length>0) {
-      acts.unshift(buildMakan('siang', zone));
+      const sCoord = getDestCoords(sunsetSpots[0]);
+      acts.unshift(buildMakan('siang', zone, null, sCoord?.lat, sCoord?.lng));
     }
 
-    acts.push(buildMakan('malam', zone));
+    // Makan malam — pakai koordinat penginapan (sudah kembali)
+    const hotelC = getHotelCoords();
+    acts.push(buildMakan('malam', zone, null, hotelC?.lat, hotelC?.lng));
     acts.push({ time:'21:00', name:'Istirahat di Penginapan',
-      location:'Penginapan Banyuwangi', duration:'8 jam',
+      location: getFinalHotelName(), duration:'8 jam',
       description:'Istirahat yang cukup untuk mempersiapkan energi hari berikutnya.',
       tips:'Siapkan perlengkapan untuk besok malam ini agar tidak terburu-buru.',
       estimatedCost:0, type:'penginapan' });
