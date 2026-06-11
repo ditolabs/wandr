@@ -2109,11 +2109,11 @@ function buildArrivalDay(kota, transport, penginapan) {
   const finalHotel = getFinalHotelName();
   const acts = [];
 
-  // Transport ke BWI
+  // Transport ke BWI — selalu tampil pertama (order 0)
   const berangkat = isUmum ? '07:00' : '09:00';
   const durTrans  = isUmum ? {kereta:'±6 jam',pesawat:'±2 jam',bus:'±8 jam'}[S.subTransport]||'±6 jam' : '±4–5 jam';
   const costTrans = {kereta:250000,pesawat:1500000,bus:150000}[S.subTransport] || (isUmum?200000:80000);
-  acts.push({ time:berangkat, name:`Perjalanan dari ${kota} ke Banyuwangi`,
+  acts.push({ _order:0, time:berangkat, name:`Perjalanan dari ${kota} ke Banyuwangi`,
     location:kota, duration:durTrans,
     description: isUmum
       ? `Naik ${subLabel} dari ${kota} menuju Banyuwangi.`
@@ -2123,47 +2123,65 @@ function buildArrivalDay(kota, transport, penginapan) {
 
   // Logika berdasarkan jam tiba
   if (jamTiba < 11) {
-    // Tiba pagi → bisa aktivitas ringan dulu
-    acts.push({ time:S.waktuTiba, name:'Tiba di Banyuwangi',
+    // Tiba pagi → bisa aktivitas ringan dulu, check-in jam 14:00
+    acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
       location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
       duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
       tips:'', estimatedCost:0, type:'transport' });
-    acts.push({ time:addMin(S.waktuTiba,30), name:'Titip Tas & Sewa Kendaraan',
+    acts.push({ _order:2, time:addMin(S.waktuTiba,30), name:'Titip Tas & Sewa Kendaraan',
       location:'Locker Wangi / Area Stasiun', duration:'45 menit',
       description:'Titip koper di Locker Wangi agar jalan-jalan pagi leluasa sebelum jam check-in hotel.',
       tips:'Locker Wangi: lockerwangi.com | WA: 0851-4717-8692. Tarif ~25K/tas.',
       estimatedCost:25000, type:'aktivitas' });
-    acts.push(buildMakan('pagi','kota'));
-    acts.push({ time:addMin(S.waktuTiba,105), name:'Wisata Pagi — Pantai Boom / Taman Blambangan',
+    acts.push({ _order:3, time:addMin(S.waktuTiba,80), name:'Sarapan Khas Banyuwangi',
+      ...buildMakan('pagi','kota'), time:addMin(S.waktuTiba,80) });
+    acts.push({ _order:4, time:addMin(S.waktuTiba,140), name:'Wisata Pagi — Pantai Boom / Taman Blambangan',
       location:'Pusat Kota Banyuwangi', duration:'2 jam',
-      description:'Jalan santai di Pantai Boom atau Taman Blambangan. Nikmati suasana kota.',
-      tips:'Santai saja, simpan energi.', estimatedCost:5000, type:'aktivitas' });
-    acts.push({ time:'13:00', name:'Ambil Tas & Check-in Penginapan',
+      description:'Jalan santai di Pantai Boom atau Taman Blambangan. Nikmati suasana kota sebelum check-in.',
+      tips:'Santai saja, simpan energi untuk hari-hari berikutnya.', estimatedCost:5000, type:'aktivitas' });
+    acts.push({ _order:5, time:'14:00', name:'Ambil Tas & Check-in Penginapan',
       location:finalHotel, duration:'1 jam',
-      description:`Ambil kembali tas dari Locker Wangi, lalu check-in ${finalHotel}.`,
-      tips:'', estimatedCost:0, type:'penginapan' });
-    acts.push(buildMakan('malam','kota'));
+      description:`Ambil kembali tas dari Locker Wangi, lalu check-in ${finalHotel}. Bersih-bersih dan istirahat siang.`,
+      tips:'Standar check-in hotel jam 14:00. Jika lebih awal, tas bisa dititip resepsionis.', estimatedCost:0, type:'penginapan' });
+    acts.push({ _order:6, time:'19:00', ...buildMakan('malam','kota'), time:'19:00' });
   } else if (jamTiba >= 11 && jamTiba < 18) {
-    // Tiba siang-sore → langsung check-in
-    acts.push({ time:S.waktuTiba, name:'Tiba & Check-in Penginapan',
+    // Tiba siang-sore → langsung check-in (kemungkinan besar sudah jam 14:00+)
+    const checkInTime = jamTiba >= 14 ? S.waktuTiba : '14:00';
+    acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
+      location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
+      duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
+      tips:'', estimatedCost:0, type:'transport' });
+    if (jamTiba < 14) {
+      acts.push({ _order:2, time:addMin(S.waktuTiba,20), name:'Makan Siang Sambil Menunggu Check-in',
+        location:'Warung Kuliner Lokal', duration:'1 jam',
+        description:'Makan siang di sekitar stasiun/area tiba. Check-in hotel biasanya jam 14:00.',
+        tips:'Manfaatkan waktu untuk cicipi kuliner lokal.', estimatedCost:25000, type:'makan' });
+    }
+    acts.push({ _order:3, time:checkInTime, name:'Check-in Penginapan',
       location:finalHotel, duration:'1 jam',
       description:`Check-in ${finalHotel}. Istirahat dan eksplorasi santai sekitar penginapan.`,
       tips:'', estimatedCost:0, type:'penginapan' });
-    acts.push({ time:addMin(S.waktuTiba,90), name:'Eksplorasi Ringan Kota',
+    acts.push({ _order:4, time:addMin(checkInTime,90), name:'Eksplorasi Ringan Kota',
       location:'Pusat Kota Banyuwangi', duration:'2 jam',
       description:'Jalan sore santai, beli oleh-oleh kecil, nikmati suasana kota.',
       tips:'', estimatedCost:5000, type:'aktivitas' });
-    acts.push(buildMakan('malam','kota'));
+    acts.push({ _order:5, time:'19:00', ...buildMakan('malam','kota'), time:'19:00' });
   } else {
-    // Tiba malam
-    acts.push(buildMakan('malam','kota'));
-    acts.push({ time:addMin(S.waktuTiba,45), name:'Check-in & Istirahat',
+    // Tiba malam → langsung check-in
+    acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
+      location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
+      duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
+      tips:'', estimatedCost:0, type:'transport' });
+    acts.push({ _order:2, time:addMin(S.waktuTiba,30), ...buildMakan('malam','kota'), time:addMin(S.waktuTiba,30) });
+    acts.push({ _order:3, time:addMin(S.waktuTiba,90), name:'Check-in & Istirahat',
       location:finalHotel, duration:'Malam',
       description:'Tiba malam, langsung check-in dan istirahat. Perjalanan esok lebih seru!',
       tips:'', estimatedCost:0, type:'penginapan' });
   }
 
-  return { day:1, date_label:'Hari 1', title:`Kedatangan dari ${kota}`, activities:sortActivities(acts) };
+  // Urutkan berdasarkan _order (bukan jam), lalu strip field _order
+  const ordered = acts.sort((a,b) => (a._order||0) - (b._order||0)).map(({_order,...rest})=>rest);
+  return { day:1, date_label:'Hari 1', title:`Kedatangan dari ${kota}`, activities:ordered };
 }
 
 // Tambah destinasi ekstra dari arrival bucket ke hari 1
@@ -2525,16 +2543,21 @@ function renderPlanningBoard() {
     </div>`;
   }
 
-  // Kartu hotel check-in
+  // Kartu hotel check-in (bisa diduplikat)
   function hotelCard(idx, name) {
-    return `<div class="drag-item" data-id="hotel_checkin_${idx}"
+    return `<div class="drag-item" data-id="hotel_checkin_${idx}_${Date.now()}_${Math.random().toString(36).slice(2,6)}"
       style="border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06)">
       <span class="drag-handle" style="color:#7a4a8a">≡</span>
       <span class="drag-emoji">🏨</span>
       <div class="drag-info">
         <div class="drag-title" style="color:#c47bd4">Check-in: ${esc(name)}</div>
-        <div class="drag-zone" style="color:#8a5a9a">📍 Akomodasi</div>
+        <div class="drag-zone" style="color:#8a5a9a">📍 Akomodasi · seret ke hari menginap</div>
       </div>
+      <button class="btn-clone-hotel" data-hotel-name="${esc(name)}" data-hotel-idx="${idx}"
+        title="Duplikat kartu (menginap >1 malam)"
+        style="background:rgba(196,123,212,.15);border:1px solid rgba(196,123,212,.3);color:#c47bd4;
+          border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:inherit;
+          flex-shrink:0;white-space:nowrap">+</button>
     </div>`;
   }
 
@@ -2651,6 +2674,41 @@ function initSortableBoard() {
       onEnd: () => readPlanFromDOM(),
     });
     _sortableInstances.push(inst);
+  });
+
+  // Tombol duplikat kartu hotel (+ malam tambahan)
+  document.querySelectorAll('.btn-clone-hotel').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const name = btn.dataset.hotelName;
+      const idx  = parseInt(btn.dataset.hotelIdx);
+      const uid  = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+      const clone = document.createElement('div');
+      clone.className = 'drag-item';
+      clone.dataset.id = `hotel_checkin_${idx}_${uid}`;
+      clone.style.cssText = 'border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06)';
+      clone.innerHTML = `<span class="drag-handle" style="color:#7a4a8a">≡</span>
+        <span class="drag-emoji">🏨</span>
+        <div class="drag-info">
+          <div class="drag-title" style="color:#c47bd4">Check-in: ${name}</div>
+          <div class="drag-zone" style="color:#8a5a9a">📍 Akomodasi · seret ke hari menginap</div>
+        </div>
+        <button class="btn-clone-hotel" data-hotel-name="${name}" data-hotel-idx="${idx}"
+          title="Duplikat kartu"
+          style="background:rgba(196,123,212,.15);border:1px solid rgba(196,123,212,.3);color:#c47bd4;
+            border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:inherit;
+            flex-shrink:0;white-space:nowrap">+</button>`;
+      // Sisipkan setelah kartu aslinya
+      btn.closest('.drag-item').insertAdjacentElement('afterend', clone);
+      // Pasang listener di clone baru
+      clone.querySelector('.btn-clone-hotel').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        ev.target.closest('.drag-item').dispatchEvent(
+          new CustomEvent('cloneHotel', { detail:{ name, idx } })
+        );
+      });
+      readPlanFromDOM();
+    });
   });
 }
 
