@@ -475,23 +475,62 @@ const ZONE_DIST = { barat:42, utara:65, selatan:72, kota:5 };
 
 // ======================== PENGINAPAN LOAD ===================================
 async function loadPenginapanOptions() {
-  if (!db) { S.penginapanOptions = []; S.allPenginapan = []; return; }
+  if (!db) { 
+    console.warn('loadPenginapanOptions: Firebase tidak tersedia');
+    S.allPenginapan = [];
+    S.penginapanOptions = [];
+    return; 
+  }
   try {
-    let allDocs = window._placesCache;
-    if (!allDocs) { const snap = await db.collection('places').get(); allDocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); window._placesCache = allDocs; }
-    const all = allDocs.filter(d => { const t = (d.type||'').toLowerCase(); return ['penginapan','hotel','homestay','villa','guesthouse'].includes(t); });
+    // Ambil data langsung dari Firestore (fresh)
+    const querySnapshot = await db.collection('places').get();
+    const allDocs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    window._placesCache = allDocs; // update cache global
+    
+    // Keyword untuk penginapan (case-insensitive)
+    const keywords = ['penginapan', 'hotel', 'homestay', 'villa', 'guesthouse', 'losmen', 'inn', 'resort', 'cottage', 'apartment'];
+    
+    const all = allDocs.filter(d => {
+      const t = (d.type || '').toLowerCase();
+      const k = (d.kategori || '').toLowerCase();
+      // Cek di type atau kategori
+      return keywords.some(kw => t.includes(kw) || k.includes(kw));
+    });
+    
     S.allPenginapan = all;
+    console.log(`✅ loadPenginapanOptions: ${all.length} penginapan ditemukan`);
+    
+    // Jika tidak ada penginapan, tampilkan warning (sekali saja)
+    if (all.length === 0 && !window._penginapanWarningShown) {
+      toast('⚠️ Tidak ada data penginapan. Pastikan koleksi "places" memiliki data dengan type/kategori hotel/penginapan.', 'info');
+      window._penginapanWarningShown = true;
+    }
+    
+    // Hitung rekomendasi terdekat dari destinasi yang dipilih
     if (S.destinations.size > 0) {
-      const selDests = DESTINATIONS.filter(d=>S.destinations.has(d.id));
-      const lats = selDests.map(d=>d.lat).filter(Boolean);
-      const lngs = selDests.map(d=>d.lng).filter(Boolean);
+      const selDests = DESTINATIONS.filter(d => S.destinations.has(d.id));
+      const lats = selDests.map(d => d.lat).filter(Boolean);
+      const lngs = selDests.map(d => d.lng).filter(Boolean);
       if (lats.length > 0) {
-        const cLat = lats.reduce((a,b)=>a+b,0)/lats.length;
-        const cLng = lngs.reduce((a,b)=>a+b,0)/lngs.length;
-        S.penginapanOptions = all.filter(d => d.lat && d.lng).map(d => ({ ...d, dist: haversineKm(cLat,cLng,d.lat,d.lng) })).sort((a,b)=>a.dist-b.dist).slice(0, 6);
-      } else { S.penginapanOptions = all.slice(0, 6); }
-    } else { S.penginapanOptions = all.slice(0, 6); }
-  } catch(e) { console.warn('loadPenginapanOptions gagal:', e.message); S.penginapanOptions = []; S.allPenginapan = []; }
+        const cLat = lats.reduce((a,b) => a+b, 0) / lats.length;
+        const cLng = lngs.reduce((a,b) => a+b, 0) / lngs.length;
+        S.penginapanOptions = all
+          .filter(d => d.lat && d.lng)
+          .map(d => ({ ...d, dist: haversineKm(cLat, cLng, d.lat, d.lng) }))
+          .sort((a,b) => a.dist - b.dist)
+          .slice(0, 8);
+      } else {
+        S.penginapanOptions = all.slice(0, 8);
+      }
+    } else {
+      S.penginapanOptions = all.slice(0, 8);
+    }
+  } catch(e) {
+    console.error('❌ loadPenginapanOptions error:', e);
+    S.allPenginapan = [];
+    S.penginapanOptions = [];
+    toast('Gagal memuat data penginapan: ' + e.message, 'err');
+  }
 }
 
 // ======================== RENDER FUNCTIONS (dengan esc) =====================
