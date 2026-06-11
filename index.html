@@ -2660,10 +2660,13 @@ function initSortableBoard() {
     // Arrival bucket pakai group terpisah — tidak bisa menerima drag dari hari biasa
     // dan tidak bisa jadi source drag ke hari lain (mencegah destinasi nyasar)
     const isArrival = col.id === 'bucket-day-arrival';
+    const isBacklog = col.id === 'bucket-unassigned';
     const inst = new Sortable(col, {
       group: isArrival
-        ? { name: 'wandr-arrival', pull: true, put: ['wandr-arrival'] }
-        : { name: 'wandr-board',   pull: true, put: ['wandr-board'] },
+        ? { name: 'wandr-arrival', pull: 'wandr-board', put: ['wandr-board', 'wandr-arrival'] }
+        : isBacklog
+        ? { name: 'wandr-board', pull: true, put: ['wandr-board', 'wandr-arrival'] }
+        : { name: 'wandr-board', pull: true, put: ['wandr-board'] },
       animation:        280,
       easing:           'cubic-bezier(0.25, 1, 0.5, 1)',
       delay:            150,
