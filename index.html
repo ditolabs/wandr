@@ -2179,7 +2179,9 @@ function buildArrivalDay(kota, transport, penginapan) {
   const berangkat = isUmum ? '07:00' : '09:00';
   const durTrans  = isUmum ? {kereta:'±6 jam',pesawat:'±2 jam',bus:'±8 jam'}[S.subTransport]||'±6 jam' : '±4–5 jam';
   const costTrans = {kereta:250000,pesawat:1500000,bus:150000}[S.subTransport] || (isUmum?200000:80000);
-  acts.push({ _order:0, time:berangkat, name:`Perjalanan dari ${kota} ke Banyuwangi`,
+  // Jam keberangkatan ditampilkan sebagai 05:00 agar selalu muncul pertama di sort
+  // (jam sebenarnya tidak relevan karena user sudah berangkat dari kota asal pagi hari)
+  acts.push({ _order:0, time:'05:00', name:`Perjalanan dari ${kota} ke Banyuwangi`,
     location:kota, duration:durTrans,
     description: isUmum
       ? `Naik ${subLabel} dari ${kota} menuju Banyuwangi.`
@@ -2259,8 +2261,8 @@ function injectArrivalExtras(arrivalDay) {
   // Guard: hanya inject jika tiba sebelum jam 15 (masih ada waktu wisata sore)
   const jamTiba = parseInt((S.waktuTiba||'10:00').split(':')[0]);
   if (extras.length === 0 || jamTiba >= 15) return arrivalDay;
-  // Sisipkan setelah aktivitas terakhir sebelum makan malam
-  const insertBefore = arrivalDay.activities.findIndex(a=>a.type==='kuliner'&&a.name.toLowerCase().includes('malam'));
+  // Sisipkan sebelum makan malam — cari index-nya
+  const insertBefore = arrivalDay.activities.findIndex(a=>a.type==='makan'&&a.name.toLowerCase().includes('malam'));
   const extraActs = extras.map((d,i) => {
     const ext = DEST_EXT[d.id]||{};
     return { time: addMin('15:30', i*60),
@@ -2274,8 +2276,7 @@ function injectArrivalExtras(arrivalDay) {
   } else {
     arrivalDay.activities.push(...extraActs);
   }
-  // Sort ulang setelah inject
-  arrivalDay.activities = sortActivities(arrivalDay.activities);
+  // Tidak sort ulang — urutan manual dari _order sudah benar
   return arrivalDay;
 }
 
