@@ -762,6 +762,12 @@ const DESTINATIONS_FALLBACK = [
     aliases:['wedi ireng','pantai wedi ireng','wedi'] },
   { id:'pantai_boom',    name:'Pantai Boom',            cat:'pantai', emoji:'🌊', desc:'Pantai bersejarah Banyuwangi', bestTime:'sore',      zone:'kota',    tiket:5000,  dur:120,
     aliases:['boom','pantai boom'] },
+  { id:'plengsengan',   name:'Pantai Plengsengan',     cat:'pantai', emoji:'🌊', desc:'Pantai kota ikonik Banyuwangi',bestTime:'pagi',      zone:'kota',    tiket:0,     dur:90,
+    aliases:['plengsengan','pantai plengsengan'] },
+  { id:'sendang_seruni',name:'Sendang Seruni',         cat:'alam',   emoji:'🌿', desc:'Pemandian alam air murni jernih',bestTime:'pagi',    zone:'kota',    tiket:5000,  dur:120,
+    aliases:['sendang seruni','seruni','pemandian seruni'] },
+  { id:'djawatan',      name:'De Djawatan',            cat:'alam',   emoji:'🌳', desc:'Hutan trembesi eksotis ikonik', bestTime:'pagi',     zone:'kota',    tiket:10000, dur:90,
+    aliases:['djawatan','de djawatan','hutan djawatan','djawatan benculuk'] },
   { id:'telunjuk_raung', name:'Air Terjun Telunjuk Raung', cat:'alam', emoji:'💧', desc:'Air terjun eksotis Raung',    bestTime:'pagi',      zone:'barat',   tiket:10000, dur:180,
     aliases:['telunjuk raung','telunjuk','air terjun telunjuk'] },
   { id:'lider',          name:'Air Terjun Lider',       cat:'alam',   emoji:'💧', desc:'Air terjun tertinggi di BWI',  bestTime:'pagi',      zone:'barat',   tiket:10000, dur:240,
@@ -2230,8 +2236,8 @@ function buildArrivalDay(kota, transport, penginapan) {
       ...buildMakan('pagi','kota', addMin(S.waktuTiba,80), BWI_COORDS.stasiun.lat, BWI_COORDS.stasiun.lng), time:addMin(S.waktuTiba,80) });
     acts.push({ _order:4, time:addMin(S.waktuTiba,140), name:'Waktu Bebas — Jelajah Sekitar Kota',
       location:'Pusat Kota Banyuwangi', duration:'±2 jam',
-      description:'Waktu santai sambil menunggu jam check-in. Bisa jalan-jalan di sekitar penginapan, beli kebutuhan perjalanan, atau sekadar istirahat di warung kopi.',
-      tips:'Jika penginapanmu di dekat pusat kota, Pantai Boom dan Taman Blambangan bisa jadi pilihan singgah sebentar.', estimatedCost:0, type:'aktivitas' });
+      description:'Waktu santai sambil menunggu jam check-in. Bisa jalan-jalan di sekitar penginapan, beli kebutuhan perjalanan, atau istirahat di warung kopi.',
+      tips:'Simpan energi untuk destinasi utama yang sudah direncanakan.', estimatedCost:0, type:'aktivitas' });
     acts.push({ _order:5, time:'13:00', name:'Ambil Tas & Check-in Penginapan',
       location:finalHotel, duration:'1 jam',
       description:`Ambil kembali tas dari Locker Wangi, lalu check-in ${finalHotel}. Check-in standar jam 14:00 — banyak penginapan fleksibel untuk early check-in.`,
@@ -2253,13 +2259,9 @@ function buildArrivalDay(kota, transport, penginapan) {
     }
     acts.push({ _order:3, time:checkInTime, name:'Check-in Penginapan',
       location:finalHotel, duration:'1 jam',
-      description:`Check-in ${finalHotel}. Istirahat dan eksplorasi santai sekitar penginapan.`,
+      description:`Check-in ${finalHotel}. Istirahat dan bersih-bersih setelah perjalanan.`,
       tips:'', estimatedCost:0, type:'penginapan' });
-    acts.push({ _order:4, time:addMin(checkInTime,90), name:'Eksplorasi Ringan Kota',
-      location:'Pusat Kota Banyuwangi', duration:'2 jam',
-      description:'Jalan sore santai, beli oleh-oleh kecil, nikmati suasana kota.',
-      tips:'', estimatedCost:5000, type:'aktivitas' });
-    acts.push({ _order:5, time:'19:00', ...buildMakan('malam','kota','19:00',hotelC?.lat,hotelC?.lng), time:'19:00' });
+    acts.push({ _order:4, time:'19:00', ...buildMakan('malam','kota','19:00',hotelC?.lat,hotelC?.lng), time:'19:00' });
   } else {
     // Tiba malam → langsung check-in
     acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
