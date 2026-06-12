@@ -1011,10 +1011,19 @@ async function loadPenginapanOptions() {
     }
 
     const all = allDocs.filter(d => {
-      const t = (d.type||'').toLowerCase();
-      return ['penginapan','hotel','homestay','villa','guesthouse'].includes(t);
+      const t = (d.type||d.kategori||'').toLowerCase().replace(/\s+/g,'');
+      return t.includes('penginapan')||t.includes('hotel')||t.includes('homestay')||
+             t.includes('villa')||t.includes('guesthouse')||t.includes('guest')||
+             t.includes('losmen')||t.includes('resort')||t.includes('inn')||
+             t.includes('motel')||t.includes('cottage')||t.includes('wisma');
     });
     S.allPenginapan = all;
+    // Debug toast — hapus setelah fix
+    const dbg = document.createElement('div');
+    dbg.style.cssText='position:fixed;bottom:80px;left:12px;right:12px;background:#1a2a1a;border:1px solid #3a5a3a;color:#8fbf8f;font-size:11px;padding:8px 12px;border-radius:8px;z-index:9999;font-family:monospace';
+    dbg.textContent = `[Debug] Total places: ${allDocs.length} | Penginapan: ${all.length} | Types: ${[...new Set(allDocs.map(d=>(d.type||d.kategori||'-').toLowerCase()))].slice(0,8).join(', ')}`;
+    document.body.appendChild(dbg);
+    setTimeout(()=>dbg.remove(), 15000);
 
     // Hitung terdekat dari destinasi terpilih (jika ada koordinat)
     if (S.destinations.size > 0) {
