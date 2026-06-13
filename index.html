@@ -2162,7 +2162,22 @@ function parseDurasi(v) {
   return {'1D':[1,0],'2D1N':[2,1],'3D2N':[3,2],'4D3N':[4,3],'5D4N':[5,4]}[v]||[2,1];
 }
 
-// ── Build kuliner activity ────────────────────────────────────────────────────
+// ── Transport context helpers ──────────────────────────────────────────────────
+function hasMotor()  { return S.transport==='pribadi_motor' || S.sewaLokal.has('motor'); }
+function hasMobil()  { return S.transport==='pribadi_mobil' || S.sewaLokal.has('mobil_driver'); }
+function hasOjek()   { return S.sewaLokal.has('ojek'); }
+function getTransportLabel() {
+  if (hasMotor()) return 'motor';
+  if (hasMobil()) return 'mobil';
+  if (hasOjek())  return 'ojek online';
+  return 'kendaraan';
+}
+// Tips pulang dari area terpencil — sadar kendaraan user
+function tipsKembaliDaratan() {
+  if (hasMotor() || hasMobil()) return 'Kendaraanmu sudah standby di parkiran GWD. Perjalanan balik ke penginapan ±45 menit.';
+  if (hasOjek())  return 'Grab/Gojek terbatas di area GWD — sebaiknya pesan ojek pangkalan atau arrange jemputan H-1.';
+  return 'Transportasi umum tidak tersedia di area GWD. Pastikan sudah arrange kendaraan pulang dari H-1.';
+}
 // lat/lng: titik referensi untuk cari kuliner terdekat. Jika null, fallback ke zone DB.
 function buildMakan(waktu, zone, overrideTime, refLat, refLng) {
   const timeMap  = { pagi:'07:00', siang:'12:30', malam:'19:00' };
@@ -2223,8 +2238,10 @@ function buildArrivalDay(kota, transport, penginapan) {
   acts.push({ _order:0, time:S.waktuTiba, name:'Tiba di Banyuwangi',
     location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
     duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
-    tips: isUmum
-      ? 'Grab/Gojek tersedia di area stasiun. Kendaraan sewa juga bisa dipesan H-1.'
+    tips: hasMotor() ? 'Kendaraan sewa bisa diambil di area stasiun atau diantar ke lokasi — konfirmasi H-1 dengan penyewa.'
+      : hasMobil() ? 'Mobil + driver sudah bisa standby di stasiun — konfirmasi jadwal jemput H-1.'
+      : hasOjek()  ? 'Grab/Gojek tersedia di area stasiun untuk perjalanan pertama.'
+      : isUmum     ? 'Grab/Gojek tersedia di area stasiun. Kendaraan sewa juga bisa dipesan H-1.'
       : 'Parkir kendaraan di penginapan atau titipkan di tempat aman.',
     estimatedCost:0, type:'transport' });
 
@@ -2467,7 +2484,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       location:'Pantai Grand Watu Dodol',
       duration:'1 jam',
       description:'Perjalanan balik ke Grand Watu Dodol. Fasilitas kamar bilas tersedia bersih dan memadai.',
-      tips:'Trip selesai ~15:30. Grab/Gojek sulit di area ini — sebaiknya sudah arrange kendaraan pulang dari H-1.',
+      tips: tipsKembaliDaratan(),
       estimatedCost:0, type:'transport' });
     acts.push(malamAct);
     // Jika ada destinasi lain selain menjangan/tabuhan di hari yang sama, append sebagai sore
@@ -3128,12 +3145,31 @@ function generateFromPlan() {
       const zone = spots[0]?.zone || 'kota';
       const builtDay = buildActivityDay(dayNum, spots, zone, S, { honorOrder: true });
 
-      // Inject hotel check-in activities ke awal atau akhir hari
+      // Inject hotel check-in activities — jam disesuaikan dengan aktivitas di hari itu
       if (hotelCheckIns.length > 0) {
+        // Cek apakah hari ini trip Menjangan/Tabuhan (selesai ~15:30)
+        const isMenjanganTabuhanDay = spots.some(s =>
+          s.id==='menjangan' || s.id==='tabuhan' ||
+          (s.name||'').toLowerCase().includes('menjangan') ||
+          (s.name||'').toLowerCase().includes('tabuhan'));
+
+        // Jam check-in: setelah aktivitas terakhir selesai
+        const lastAct = builtDay.activities
+          .filter(a=>a.type==='aktivitas'||a.type==='transport')
+          .slice(-1)[0];
+        let checkInHour = '14:00';
+        if (isMenjanganTabuhanDay) {
+          checkInHour = '16:00'; // pulang dari GWD ~15:30, check-in ~16:00
+        } else if (lastAct?.time) {
+          // Ambil jam setelah aktivitas terakhir + 30 menit buffer
+          const afterLast = addMin(lastAct.time, (lastAct.duration?.includes('jam') ? parseInt(lastAct.duration)*60 : 60) + 30);
+          checkInHour = timeToMin(afterLast) > timeToMin('14:00') ? afterLast : '14:00';
+        }
+
         const checkinActs = hotelCheckIns.map(h => ({
-          time: '14:00', name: h.name, location: h.hotelName,
-          duration: '1 jam', description: 'Check-in penginapan baru.',
-          tips: '', estimatedCost: 0, type: 'penginapan',
+          time: checkInHour, name: h.name, location: h.hotelName,
+          duration: '1 jam', description: `Check-in ${h.hotelName}. Bersih-bersih dan istirahat sejenak.`,
+          tips: 'Siapkan dokumen booking.', estimatedCost: 0, type: 'penginapan',
         }));
         builtDay.activities = sortActivities([...builtDay.activities, ...checkinActs]);
       }
