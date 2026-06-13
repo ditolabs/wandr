@@ -2205,85 +2205,87 @@ function buildMakan(waktu, zone, overrideTime, refLat, refLng) {
 
 // ── Day 1: Kedatangan ─────────────────────────────────────────────────────────
 function buildArrivalDay(kota, transport, penginapan) {
-  const isUmum = transport === 'umum';
-  const subLabel = {kereta:'Kereta Api (Mutiara Timur/Sri Tanjung)',pesawat:'Pesawat',bus:'Bus PO'}[S.subTransport] || 'Kendaraan Umum';
+  const isUmum   = transport === 'umum';
   const jamTiba  = parseInt((S.waktuTiba||'10:00').split(':')[0]);
+  const minTiba  = parseInt((S.waktuTiba||'10:00').split(':')[1]||0);
   const finalHotel = getFinalHotelName();
   const hotelC   = getHotelCoords();
+
+  // Cari destinasi yang dipilih user untuk sarapan kontekstual
+  const selectedDests = DESTINATIONS.filter(d => S.destinations.has(d.id));
+  const firstDestCoord = selectedDests.length > 0 ? getDestCoords(selectedDests[0]) : null;
+  // Koordinat sarapan = midpoint antara stasiun dan destinasi pertama
+  const sarapanCoord = midpoint(BWI_COORDS.stasiun, firstDestCoord) || BWI_COORDS.stasiun;
+
   const acts = [];
 
-  // Transport ke BWI — selalu tampil pertama (order 0)
-  const berangkat = isUmum ? '07:00' : '09:00';
-  const durTrans  = isUmum ? {kereta:'±6 jam',pesawat:'±2 jam',bus:'±8 jam'}[S.subTransport]||'±6 jam' : '±4–5 jam';
-  const costTrans = {kereta:250000,pesawat:1500000,bus:150000}[S.subTransport] || (isUmum?200000:80000);
-  // Jam keberangkatan ditampilkan sebagai 05:00 agar selalu muncul pertama di sort
-  // (jam sebenarnya tidak relevan karena user sudah berangkat dari kota asal pagi hari)
-  acts.push({ _order:0, time:'05:00', name:`Perjalanan dari ${kota} ke Banyuwangi`,
-    location:kota, duration:durTrans,
-    description: isUmum
-      ? `Naik ${subLabel} dari ${kota} menuju Banyuwangi.`
-      : `Berkendara dari ${kota}. Pastikan kendaraan prima dan tangki penuh.`,
-    tips: isUmum ? 'Pesan tiket minimal H-7. Bawa bekal ringan.' : 'Istirahat di rest area setiap 2 jam.',
-    estimatedCost:costTrans, type:'transport' });
+  // ── TIBA ──
+  acts.push({ _order:0, time:S.waktuTiba, name:'Tiba di Banyuwangi',
+    location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
+    duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
+    tips: isUmum
+      ? 'Grab/Gojek tersedia di area stasiun. Kendaraan sewa juga bisa dipesan H-1.'
+      : 'Parkir kendaraan di penginapan atau titipkan di tempat aman.',
+    estimatedCost:0, type:'transport' });
 
-  // Logika berdasarkan jam tiba
   if (jamTiba < 11) {
-    // Tiba pagi → titip tas, sarapan, waktu bebas sampai check-in
-    acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
-      location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
-      duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
-      tips:'', estimatedCost:0, type:'transport' });
-    acts.push({ _order:2, time:addMin(S.waktuTiba,30), name:'Titip Tas & Sewa Kendaraan',
-      location:'Locker Wangi / Area Stasiun', duration:'45 menit',
-      description:'Titip koper di Locker Wangi agar jalan-jalan pagi leluasa sebelum jam check-in penginapan.',
-      tips:'Locker Wangi: lockerwangi.com | WA: 0851-4717-8692. Tarif ~25K/tas.',
+    // Titip tas — opsional, hanya jika pagi hari (belum bisa check-in)
+    acts.push({ _order:1, time:addMin(S.waktuTiba,20), name:'Titip Tas (Opsional)',
+      location:'Locker Wangi / Area Stasiun', duration:'20 menit',
+      description:'Jika membawa koper besar, bisa dititipkan di Locker Wangi sebelum jalan-jalan. Bisa langsung skip jika bawaan ringan.',
+      tips:'Locker Wangi: lockerwangi.com | WA: 0851-4717-8692. Tarif ~25K/tas. Buka 24 jam.',
       estimatedCost:25000, type:'aktivitas' });
-    acts.push({ _order:3, time:addMin(S.waktuTiba,80), name:'Sarapan Khas Banyuwangi',
-      ...buildMakan('pagi','kota', addMin(S.waktuTiba,80), BWI_COORDS.stasiun.lat, BWI_COORDS.stasiun.lng), time:addMin(S.waktuTiba,80) });
-    acts.push({ _order:4, time:addMin(S.waktuTiba,140), name:'Waktu Bebas — Jelajah Sekitar Kota',
-      location:'Pusat Kota Banyuwangi', duration:'±2 jam',
-      description:'Waktu santai sambil menunggu jam check-in. Bisa jalan-jalan di sekitar penginapan, beli kebutuhan perjalanan, atau istirahat di warung kopi.',
-      tips:'Simpan energi untuk destinasi utama yang sudah direncanakan.', estimatedCost:0, type:'aktivitas' });
-    acts.push({ _order:5, time:'13:00', name:'Ambil Tas & Check-in Penginapan',
+
+    // Sarapan — antara stasiun dan destinasi pertama
+    const sarapan = buildMakan('pagi','kota', addMin(S.waktuTiba,45), sarapanCoord.lat, sarapanCoord.lng);
+    sarapan.time  = addMin(S.waktuTiba,45);
+    sarapan.name  = 'Sarapan Khas Banyuwangi';
+    acts.push({ _order:2, ...sarapan, time:addMin(S.waktuTiba,45) });
+
+    // Waktu bebas — hanya jika ada gap besar antara sarapan dan check-in
+    // (tidak hardcode destinasi — arrival extras akan diisi via injectArrivalExtras)
+    acts.push({ _order:3, time:'13:00', name:'Check-in Penginapan',
       location:finalHotel, duration:'1 jam',
-      description:`Ambil kembali tas dari Locker Wangi, lalu check-in ${finalHotel}. Check-in standar jam 14:00 — banyak penginapan fleksibel untuk early check-in.`,
-      tips:'Hubungi penginapan H-1 untuk konfirmasi early check-in. Jika kamar belum siap, tas bisa dititip resepsionis dulu.', estimatedCost:0, type:'penginapan' });
-    acts.push({ _order:6, time:'19:00', ...buildMakan('malam','kota', '19:00', hotelC?.lat, hotelC?.lng), time:'19:00' });
+      description:`Check-in ${finalHotel}. Check-in standar jam 14:00 — banyak penginapan fleksibel untuk early check-in.`,
+      tips:'Hubungi penginapan H-1 untuk konfirmasi early check-in. Jika kamar belum siap, tas bisa dititip resepsionis.',
+      estimatedCost:0, type:'penginapan' });
+
+    // Makan malam dekat penginapan
+    const malamAct = buildMakan('malam','kota','19:00',hotelC?.lat,hotelC?.lng);
+    malamAct.time = '19:00';
+    acts.push({ _order:10, ...malamAct });
+
   } else if (jamTiba >= 11 && jamTiba < 18) {
-    // Tiba siang-sore → langsung check-in (kemungkinan besar sudah jam 14:00+)
     const checkInTime = jamTiba >= 14 ? S.waktuTiba : '14:00';
-    acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
-      location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
-      duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
-      tips:'', estimatedCost:0, type:'transport' });
     if (jamTiba < 14) {
-      const makanSiang = buildMakan('siang', 'kota', addMin(S.waktuTiba,20), BWI_COORDS.stasiun.lat, BWI_COORDS.stasiun.lng);
-      acts.push({ _order:2, time:addMin(S.waktuTiba,20), name:'Makan Siang Sambil Menunggu Check-in',
-        ...makanSiang, time:addMin(S.waktuTiba,20),
-        description:(makanSiang.description||'') + ' Check-in hotel biasanya jam 14:00.',
-        tips:(makanSiang.tips||'') + ' Manfaatkan waktu untuk cicipi kuliner lokal.' });
+      // Ada waktu sebelum check-in — makan siang dulu
+      const siangAct = buildMakan('siang','kota',addMin(S.waktuTiba,30),BWI_COORDS.stasiun.lat,BWI_COORDS.stasiun.lng);
+      siangAct.time  = addMin(S.waktuTiba,30);
+      siangAct.name  = 'Makan Siang Sambil Menunggu Check-in';
+      acts.push({ _order:1, ...siangAct });
     }
-    acts.push({ _order:3, time:checkInTime, name:'Check-in Penginapan',
+    acts.push({ _order:2, time:checkInTime, name:'Check-in Penginapan',
       location:finalHotel, duration:'1 jam',
       description:`Check-in ${finalHotel}. Istirahat dan bersih-bersih setelah perjalanan.`,
       tips:'', estimatedCost:0, type:'penginapan' });
-    acts.push({ _order:4, time:'19:00', ...buildMakan('malam','kota','19:00',hotelC?.lat,hotelC?.lng), time:'19:00' });
+    const malamAct = buildMakan('malam','kota','19:00',hotelC?.lat,hotelC?.lng);
+    malamAct.time = '19:00';
+    acts.push({ _order:10, ...malamAct });
+
   } else {
-    // Tiba malam → langsung check-in
-    acts.push({ _order:1, time:S.waktuTiba, name:'Tiba di Banyuwangi',
-      location: isUmum ? 'Stasiun/Bandara Banyuwangi' : 'Banyuwangi',
-      duration:'30 menit', description:'Selamat datang di Banyuwangi! 🎉',
-      tips:'', estimatedCost:0, type:'transport' });
-    acts.push({ _order:2, time:addMin(S.waktuTiba,30), ...buildMakan('malam','kota',addMin(S.waktuTiba,30),BWI_COORDS.stasiun.lat,BWI_COORDS.stasiun.lng), time:addMin(S.waktuTiba,30) });
-    acts.push({ _order:3, time:addMin(S.waktuTiba,90), name:'Check-in & Istirahat',
+    // Tiba malam
+    acts.push({ _order:1, time:addMin(S.waktuTiba,20), name:'Check-in & Istirahat',
       location:finalHotel, duration:'Malam',
-      description:'Tiba malam, langsung check-in dan istirahat. Perjalanan esok lebih seru!',
+      description:`Check-in ${finalHotel}. Istirahat yang cukup untuk hari pertama besok.`,
       tips:'', estimatedCost:0, type:'penginapan' });
+    const malamAct = buildMakan('malam','kota',addMin(S.waktuTiba,60),BWI_COORDS.stasiun.lat,BWI_COORDS.stasiun.lng);
+    malamAct.time  = addMin(S.waktuTiba,60);
+    acts.push({ _order:2, ...malamAct });
   }
 
-  // Urutkan berdasarkan _order (bukan jam), lalu strip field _order
-  const ordered = acts.sort((a,b) => (a._order||0) - (b._order||0)).map(({_order,...rest})=>rest);
-  return { day:1, date_label:'Hari 1', title:`Kedatangan dari ${kota}`, activities:ordered };
+  // Sort by _order, strip field _order
+  const ordered = acts.sort((a,b)=>(a._order||0)-(b._order||0)).map(({_order,...r})=>r);
+  return { day:1, date_label:'Hari 1', title:`Kedatangan di Banyuwangi`, activities:ordered };
 }
 
 // Tambah destinasi ekstra dari arrival bucket ke hari 1
@@ -2359,65 +2361,69 @@ function injectArrivalExtras(arrivalDay) {
 
 // ── Day terakhir: Kepulangan ───────────────────────────────────────────────────
 function buildDepartureDay(dayNum, kota, transport) {
-  const isUmum  = transport === 'umum';
+  const isUmum   = transport === 'umum';
   const subTrans = S.subTransport;
+  const jamPulang = S.waktuPulang || '13:00'; // jam keberangkatan dari BWI yang diisi user
 
-  // Tentukan titik keberangkatan untuk rekomendasi kuliner
   const depPoint = subTrans === 'pesawat' ? BWI_COORDS.bandara
     : subTrans === 'kereta' ? BWI_COORDS.stasiun
     : isUmum ? BWI_COORDS.pelabuhan
     : BWI_COORDS.pusat;
 
-  // Kuliner sarapan dekat penginapan (masih di hotel saat sarapan)
-  const hotelC   = getHotelCoords();
-  const sarapan  = buildMakan('pagi', 'kota', '07:30', hotelC?.lat, hotelC?.lng);
-  sarapan.name   = 'Sarapan & Check-out';
-  sarapan.description = (sarapan.description||'') + ' Sarapan terakhir, lalu check-out penginapan.';
-  sarapan.tips   = (sarapan.tips ? sarapan.tips + ' · ' : '') + 'Titipkan koper di resepsionis jika masih mau jalan-jalan.';
+  const hotelC = getHotelCoords();
 
-  // Kuliner makan siang — di sekitar stasiun/bandara keberangkatan
-  const makanSiang = buildMakan('siang', 'kota', '11:30', depPoint.lat, depPoint.lng);
-  makanSiang.name = `Makan Siang Terakhir di Banyuwangi`;
-  makanSiang.description = (makanSiang.description||'') + ' Makan siang terakhir sebelum bertolak pulang.';
-  makanSiang.tips = (makanSiang.tips ? makanSiang.tips + ' · ' : '') + 'Jangan lewatkan Sego Tempong atau Rujak Soto sebagai kenangan rasa!';
+  // Hitung mundur dari jam pulang
+  // Check-out = jamPulang - 2 jam (waktu ke stasiun + buffer)
+  const checkoutTime = addMin(jamPulang, -90);
+  // Oleh-oleh = jamPulang - 3.5 jam
+  const olehTime = addMin(jamPulang, -210);
+  // Sarapan = jamPulang - 5 jam (atau jam 07:00 jika hasilnya terlalu pagi)
+  const sarapanRaw = addMin(jamPulang, -300);
+  const sarapanTime = timeToMin(sarapanRaw) < timeToMin('06:30') ? '06:30' : sarapanRaw;
 
-  // Rekomendasi oleh-oleh dekat titik keberangkatan (radius 2km)
+  const sarapan = buildMakan('pagi','kota', sarapanTime, hotelC?.lat, hotelC?.lng);
+  sarapan.name  = 'Sarapan & Persiapan Check-out';
+  sarapan.description = (sarapan.description||'') + ' Sarapan terakhir di Banyuwangi, lalu check-out dan bereskan barang.';
+
+  // Makan terakhir sebelum pulang — dekat stasiun/bandara
+  const makanAkhir = buildMakan('siang','kota', addMin(jamPulang,-60), depPoint.lat, depPoint.lng);
+  makanAkhir.name = 'Makan Terakhir di Banyuwangi';
+  makanAkhir.description = (makanAkhir.description||'') + ' Makan terakhir sebelum bertolak. Jangan lewatkan Sego Tempong atau Rujak Soto!';
+
   const olehOleh = getKulinerNear(depPoint.lat, depPoint.lng, 5, 3)
     .filter(k => {
       const t = (k.type||k.kategori||'').toLowerCase();
-      return t.includes('oleh') || t.includes('toko') || t.includes('kerajinan') || t.includes('kopi');
+      return t.includes('oleh')||t.includes('toko')||t.includes('kerajinan')||t.includes('kopi');
     });
   const olehDesc = olehOleh.length > 0
     ? `Belanja oleh-oleh di sekitar ${depPoint.label}: ${olehOleh.map(k=>k.nama).join(', ')}.`
-    : 'Belanja oleh-oleh: Kopi Osing, Batik Gajah Oling, Kerajinan Gedog, Dodol Banyuwangi, dan Peyek khas.';
+    : 'Belanja oleh-oleh: Kopi Osing, Batik Gajah Oling, Dodol Banyuwangi, dan Peyek khas.';
 
-  return {
-    day:dayNum, date_label:`Hari ${dayNum}`,
-    title:'Oleh-oleh & Perjalanan Pulang',
-    activities: [
-      { ...sarapan, time:'07:30' },
-      { time:'09:00', name:'Belanja Oleh-oleh Khas Banyuwangi',
-        location: olehOleh.length > 0 ? olehOleh[0].nama : 'Toko Oleh-oleh / Pasar Banyuwangi',
-        duration:'2 jam',
-        description: olehDesc,
-        tips:`Toko Oleh-oleh Barokah di Jl. A. Yani atau pasar tradisional untuk harga lebih miring. Dalam ~${(haversineKm(hotelC.lat,hotelC.lng,depPoint.lat,depPoint.lng)).toFixed(1)}km dari penginapan ke ${depPoint.label}.`,
-        estimatedCost:150000, type:'aktivitas' },
-      { ...makanSiang, time:'11:30' },
-      { time:'13:00', name:`Perjalanan Pulang ke ${kota}`,
-        location: depPoint.label, duration: isUmum?'±6–8 jam':'±4–5 jam',
-        description:`Bertolak dari ${depPoint.label} kembali ke ${kota}. Bawa kenangan indah dan rencana untuk kembali ke Banyuwangi!`,
-        tips:'Sampai jumpa lagi di Banyuwangi! 🌋',
-        estimatedCost: isUmum?150000:60000, type:'transport' },
-    ],
-  };
+  const activities = [
+    { ...sarapan, time:sarapanTime },
+    { time:olehTime, name:'Belanja Oleh-oleh Khas Banyuwangi',
+      location: olehOleh.length > 0 ? olehOleh[0].nama : 'Toko Oleh-oleh / Pasar Banyuwangi',
+      duration:'1.5 jam', description:olehDesc,
+      tips:'Toko Oleh-oleh Barokah di Jl. A. Yani. Pasar tradisional untuk harga lebih miring.',
+      estimatedCost:150000, type:'aktivitas' },
+    { ...makanAkhir, time:addMin(jamPulang,-60) },
+    { time:jamPulang, name:`Perjalanan Pulang ke ${kota}`,
+      location:depPoint.label, duration: isUmum?'±6–8 jam':'±4–5 jam',
+      description:`Bertolak dari ${depPoint.label} kembali ke ${kota}. Bawa kenangan indah dari Banyuwangi!`,
+      tips:'Sampai jumpa lagi di Banyuwangi! 🌋',
+      estimatedCost: isUmum?150000:60000, type:'transport' },
+  ];
+
+  return { day:dayNum, date_label:`Hari ${dayNum}`,
+    title:'Oleh-oleh & Perjalanan Pulang', activities };
 }
 
 // ── Build activity day ─────────────────────────────────────────────────────────
 function buildActivityDay(dayNum, spots, zone, form, opts={}) {
   const hasIjen    = spots.some(s=>s.id==='ijen');
   const hasSukamade = spots.some(s=>s.id==='sukamade');
-  const hasMenjangan = spots.some(s=>s.id==='menjangan');
-  const hasTabuhan   = spots.some(s=>s.id==='tabuhan');
+  const hasMenjangan = spots.some(s=>s.id==='menjangan' || (s.name||'').toLowerCase().includes('menjangan'));
+  const hasTabuhan   = spots.some(s=>s.id==='tabuhan'   || (s.name||'').toLowerCase().includes('tabuhan'));
 
   // ── MENJANGAN + TABUHAN (atau salah satu) — trip seharian dari Grand Watu Dodol ──
   if (hasMenjangan || hasTabuhan) {
@@ -2623,10 +2629,28 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.unshift(buildMakan('siang', zone, null, sCoord?.lat, sCoord?.lng));
     }
 
-    // Makan malam — pakai koordinat penginapan (sudah kembali)
+    // Makan malam — dekat penginapan, pastikan tidak sama dengan makan siang
     const hotelC = getHotelCoords();
-    acts.push(buildMakan('malam', zone, null, hotelC?.lat, hotelC?.lng));
-    acts.push({ time:'21:00', name:'Istirahat di Penginapan',
+    const malamAct = buildMakan('malam', zone, null, hotelC?.lat, hotelC?.lng);
+    // Cek duplikat dengan makan siang
+    const siangAct = acts.find(a => a.type==='makan');
+    if (siangAct && malamAct.location === siangAct.location) {
+      // Ambil kuliner lain dari DB
+      const altDb = KULINER_DB[zone] || KULINER_DB.kota;
+      const used  = acts.filter(a=>a.type==='makan').map(a=>a.location);
+      const alt   = altDb.find(w => !used.includes(w.name));
+      if (alt) {
+        malamAct.name     = `Makan Malam — ${alt.name}`;
+        malamAct.location = alt.name;
+        malamAct.description = `Makan Malam dengan menu ${alt.menu}. Warung lokal favorit di kawasan ini.`;
+        malamAct.estimatedCost = alt.est;
+      }
+    }
+    // Set jam makan malam setelah aktivitas terakhir + perjalanan balik
+    const lastActTime = acts.filter(a=>a.type==='aktivitas').slice(-1)[0]?.time || '17:00';
+    malamAct.time = timeToMin(addMin(lastActTime,90)) > timeToMin('19:00') ? addMin(lastActTime,90) : '19:00';
+    acts.push(malamAct);
+    acts.push({ time:addMin(malamAct.time,75), name:'Istirahat di Penginapan',
       location: getFinalHotelName(), duration:'8 jam',
       description:'Istirahat yang cukup untuk mempersiapkan energi hari berikutnya.',
       tips:'Siapkan perlengkapan untuk besok malam ini agar tidak terburu-buru.',
