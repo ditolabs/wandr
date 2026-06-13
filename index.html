@@ -586,6 +586,9 @@ document.getElementById('btnLogin').addEventListener('click', (e) => {
     const m = document.getElementById('modalLogin');
     m.style.display = 'flex';
     setTimeout(() => document.getElementById('loginEmail').focus(), 100);
+    document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPass').value = '';
   }
 });
 document.getElementById('closeLogin').addEventListener('click', () => {
@@ -593,8 +596,10 @@ document.getElementById('closeLogin').addEventListener('click', () => {
   document.getElementById('loginErr').style.display = 'none';
 });
 document.getElementById('modalLogin').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('modalLogin'))
+  if (e.target === document.getElementById('modalLogin')) {
     document.getElementById('modalLogin').style.display = 'none';
+    document.getElementById('loginErr').style.display = 'none';
+  }
 });
 document.getElementById('loginPass').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('btnDoLogin').click();
@@ -1011,7 +1016,10 @@ async function loadPenginapanOptions() {
     }
 
     const allDocs = window._placesCache || [];
-    if (allDocs.length === 0) { S.penginapanOptions = []; S.allPenginapan = []; return; }
+    if (!allDocs || allDocs.length === 0) {
+      console.warn('[Wandr] _placesCache kosong saat loadPenginapanOptions dipanggil');
+      S.penginapanOptions = []; S.allPenginapan = []; return;
+    }
 
     const all = allDocs.filter(d => {
       const t = (d.type||d.kategori||'').toLowerCase().replace(/\s+/g,'');
@@ -2441,8 +2449,11 @@ function buildDepartureDay(dayNum, kota, transport) {
 
   const olehOleh = getKulinerNear(depPoint.lat, depPoint.lng, 5, 3)
     .filter(k => {
-      const t = (k.type||k.kategori||'').toLowerCase();
-      return t.includes('oleh')||t.includes('toko')||t.includes('kerajinan')||t.includes('kopi');
+      const t = (k.type||k.kategori||k.nama||'').toLowerCase();
+      return t.includes('oleh')||t.includes('toko')||t.includes('kerajinan')||
+             t.includes('kopi')||t.includes('souvenir')||t.includes('batik')||
+             t.includes('dodol')||t.includes('handicraft')||t.includes('cinderamata')||
+             t.includes('pusat')||t.includes('galeri');
     });
   const olehDesc = olehOleh.length > 0
     ? `Belanja oleh-oleh di sekitar ${depPoint.label}: ${olehOleh.map(k=>k.nama).join(', ')}.`
@@ -2644,12 +2655,24 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
     // Titik awal = penginapan
     let prevCoord = getHotelCoords();
 
+    // Hitung waktu tempuh dari penginapan ke spot pertama
+    // Untuk jarak >2km, geser jam mulai (sudah include waktu berangkat di atas untuk >15km)
+    if (mainSpots.length > 0) {
+      const firstCoord   = getDestCoords(mainSpots[0]);
+      const toFirstDist  = firstCoord ? haversineKm(prevCoord.lat, prevCoord.lng, firstCoord.lat, firstCoord.lng) : 0;
+      if (toFirstDist > 2 && distKm <= 15) {
+        // Jarak 2–15km: tidak ada activity transportasi, tapi geser jam mulai
+        const toFirstMin = travelMinutes(prevCoord, firstCoord);
+        cur = addMin('07:00', toFirstMin);
+      }
+      // >15km sudah ada activity berangkat di atas, cur tetap 07:00 (sudah include di berangkat)
+    }
+
     mainSpots.forEach((spot, i) => {
       const ext    = DEST_EXT[spot.id]||{};
       const sCoord = getDestCoords(spot);
-      // Waktu tempuh dari titik sebelumnya
-      const travelMin = travelMinutes(prevCoord, sCoord);
-      cur = addMin(cur, i===0 ? 0 : travelMin); // hari pertama sudah include waktu berangkat
+      // Waktu tempuh dari titik sebelumnya (skip i===0 karena sudah dihitung di atas)
+      if (i > 0) cur = addMin(cur, travelMinutes(prevCoord, sCoord));
       acts.push({ time:cur, name:spot.name,
         location:spot.name+', Banyuwangi', duration:durLabel(ext.dur||180),
         description:ext.desc||spot.desc||'', tips:ext.tips||'',
@@ -2987,40 +3010,39 @@ function initSortableBoard() {
     _sortableInstances.push(inst);
   });
 
-  // Tombol duplikat kartu hotel (+ malam tambahan)
+  // Tombol duplikat kartu hotel — pakai fungsi terpisah agar clone bisa di-clone lagi
   document.querySelectorAll('.btn-clone-hotel').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const name = btn.dataset.hotelName;
-      const idx  = parseInt(btn.dataset.hotelIdx);
-      const uid  = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-      const clone = document.createElement('div');
-      clone.className = 'drag-item';
-      clone.dataset.id = `hotel_checkin_${idx}_${uid}`;
-      clone.style.cssText = 'border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06)';
-      clone.innerHTML = `<span class="drag-handle" style="color:#7a4a8a">≡</span>
-        <span class="drag-emoji">🏨</span>
-        <div class="drag-info">
-          <div class="drag-title" style="color:#c47bd4">Check-in: ${name}</div>
-          <div class="drag-zone" style="color:#8a5a9a">📍 Akomodasi · seret ke hari menginap</div>
-        </div>
-        <button class="btn-clone-hotel" data-hotel-name="${name}" data-hotel-idx="${idx}"
-          title="Duplikat kartu"
-          style="background:rgba(196,123,212,.15);border:1px solid rgba(196,123,212,.3);color:#c47bd4;
-            border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:inherit;
-            flex-shrink:0;white-space:nowrap">+</button>`;
-      // Sisipkan setelah kartu aslinya
-      btn.closest('.drag-item').insertAdjacentElement('afterend', clone);
-      // Pasang listener di clone baru
-      clone.querySelector('.btn-clone-hotel').addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        ev.target.closest('.drag-item').dispatchEvent(
-          new CustomEvent('cloneHotel', { detail:{ name, idx } })
-        );
-      });
-      readPlanFromDOM();
-    });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); duplicateHotelCard(btn); });
   });
+}
+
+// Fungsi duplikat kartu hotel — bisa dipanggil berulang dari kartu asli maupun clone
+function duplicateHotelCard(btn) {
+  const name = btn.dataset.hotelName;
+  const idx  = parseInt(btn.dataset.hotelIdx);
+  const uid  = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+  const clone = document.createElement('div');
+  clone.className = 'drag-item';
+  clone.dataset.id = `hotel_checkin_${idx}_${uid}`;
+  clone.style.cssText = 'border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06)';
+  clone.innerHTML = `<span class="drag-handle" style="color:#7a4a8a">≡</span>
+    <span class="drag-emoji">🏨</span>
+    <div class="drag-info">
+      <div class="drag-title" style="color:#c47bd4">Check-in: ${name}</div>
+      <div class="drag-zone" style="color:#8a5a9a">📍 Akomodasi · seret ke hari menginap</div>
+    </div>
+    <button class="btn-clone-hotel" data-hotel-name="${name}" data-hotel-idx="${idx}"
+      title="Duplikat kartu"
+      style="background:rgba(196,123,212,.15);border:1px solid rgba(196,123,212,.3);color:#c47bd4;
+        border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:inherit;
+        flex-shrink:0;white-space:nowrap">+</button>`;
+  btn.closest('.drag-item').insertAdjacentElement('afterend', clone);
+  // Pasang listener ke tombol + di clone baru — memanggil fungsi yang sama
+  clone.querySelector('.btn-clone-hotel').addEventListener('click', (e) => {
+    e.stopPropagation();
+    duplicateHotelCard(clone.querySelector('.btn-clone-hotel'));
+  });
+  readPlanFromDOM();
 }
 
 // ─── GENERATE (rule-based, no API) ──────────────────────────────────────────

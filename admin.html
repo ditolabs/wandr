@@ -329,7 +329,7 @@ if (auth) auth.onAuthStateChanged(user => { if (user) onLogin(user.email); else 
 else showLogin();
 function showLogin()  { document.getElementById('login-screen').classList.remove('hidden'); }
 function hideLogin()  { document.getElementById('login-screen').classList.add('hidden'); }
-function onLogin(email) { hideLogin(); document.getElementById('tb-user').textContent = email; loadLocalFromStorage(); loadAllTabs(); pasangTombolPembersih(); }
+function onLogin(email) { hideLogin(); document.getElementById('tb-user').textContent = email; loadLocalFromStorage(); loadAllTabs(); }
 
 // ======================== DATA LOADING ======================================
 let _allDocsCache = null;
@@ -369,8 +369,62 @@ function renderTable(type) {
   html += `<button class="page-btn" onclick="setPage('${type}',${page+1})" ${page>=pages?'disabled':''}>›</button>`;
   pag.innerHTML = html;
 }
+function renderTable(type) {
+  const q = (state.search[type]||'').toLowerCase();
+  const filterStatus = state.filter?.[type] || '';
+  const fbData = state.data[type] || [];
+  const lcData = state.local[type] || [];
+  const all = [...lcData.map(d=>({...d,_source:'local'})), ...fbData];
+  let filtered = q ? all.filter(d => (d.nama||d.Nama||'').toLowerCase().includes(q) || (d.kawasan||d.Kawasan||'').toLowerCase().includes(q) || (d.kategori||d.Kategori||'').toLowerCase().includes(q)) : all;
+  // Filter by status
+  if (filterStatus === 'approved') filtered = filtered.filter(d => (d.status||'approved') === 'approved' && d._source !== 'local');
+  else if (filterStatus === 'pending') filtered = filtered.filter(d => d.status === 'pending');
+  else if (filterStatus === 'local') filtered = filtered.filter(d => d._source === 'local');
+  const perPage = PER_PAGE;
+  const total = filtered.length;
+  const page = state.page[type];
+  const start = (page-1)*perPage;
+  const rows = filtered.slice(start, start+perPage);
+  const tbody = document.getElementById('tbody-'+type);
+  if (rows.length === 0) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📭</div>Tidak ada data</div></td></tr>`; }
+  else { tbody.innerHTML = rows.map(d => { const id = d._id || d.Id || '—'; const nama = d.nama || d.Nama || '—'; const kaw = d.kawasan || d.Kawasan || '—'; const kat = d.kategori || d.Kategori || '—'; const status = d._source === 'local' ? 'local' : (d.status || 'approved'); const statLabel = status === 'local' ? '<span class="td-stat stat-local">lokal</span>' : status === 'pending' ? '<span class="td-stat stat-pending">pending</span>' : '<span class="td-stat stat-approved">✓</span>'; const isLocal = d._source === 'local'; return `<tr><td class="td-id">${esc(String(id).slice(0,10))}</td><td class="td-nama">${esc(nama)}${isLocal?'<span class="badge-new">NEW</span>':''}</td><td class="td-kaw">${esc(kaw)}</td><td><span class="td-kat">${esc(kat)}</span></td><td>${statLabel}</td><td class="td-actions"><button class="action-btn" onclick="openEdit('${type}','${id}')">Edit</button>${isLocal ? `<button class="action-btn push" onclick="pushSingle('${type}','${id}')">Push</button>` : `<button class="action-btn" onclick="approveDoc('${type}','${id}','${status}')">${status==='pending'?'Approve':'Pending'}</button>`}<button class="action-btn del" onclick="deleteDoc('${type}','${id}')">Hapus</button></td></tr>`; }).join(''); }
+  const pages = Math.ceil(total/perPage);
+  const pag = document.getElementById('pag-'+type);
+  if (pages <= 1) { pag.innerHTML=''; return; }
+  let html = `<span style="margin-right:8px">${start+1}–${Math.min(start+perPage,total)} dari ${total}</span>`;
+  html += `<button class="page-btn" onclick="setPage('${type}',${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+  const lo = Math.max(1,page-2), hi = Math.min(pages,page+2);
+  for (let i=lo;i<=hi;i++) html += `<button class="page-btn${i===page?' active':''}" onclick="setPage('${type}',${i})">${i}</button>`;
+  html += `<button class="page-btn" onclick="setPage('${type}',${page+1})" ${page>=pages?'disabled':''}>›</button>`;
+  pag.innerHTML = html;
+}
 function setPage(type, page) { state.page[type]=page; renderTable(type); }
-['wisata','penginapan','kuliner'].forEach(t => { const inp = document.getElementById('search-'+t); if (inp) inp.addEventListener('input', () => { state.search[t] = inp.value; state.page[t] = 1; renderTable(t); }); const btn = document.getElementById('btn-add-'+t); if (btn) btn.addEventListener('click', () => openEdit(t, null)); });
+['wisata','penginapan','kuliner'].forEach(t => {
+  const inp = document.getElementById('search-'+t);
+  if (inp) inp.addEventListener('input', () => { state.search[t] = inp.value; state.page[t] = 1; renderTable(t); });
+  const btn = document.getElementById('btn-add-'+t);
+  if (btn) btn.addEventListener('click', () => openEdit(t, null));
+  // Filter status button
+  const filterBtn = document.getElementById('filter-'+t);
+  if (filterBtn) {
+    if (!state.filter) state.filter = {};
+    const cycles = [
+      { val:'', label:'Semua Status' },
+      { val:'approved', label:'✓ Approved' },
+      { val:'pending', label:'⏳ Pending' },
+      { val:'local', label:'📱 Lokal' },
+    ];
+    filterBtn.addEventListener('click', () => {
+      const cur = state.filter[t] || '';
+      const next = cycles[(cycles.findIndex(c=>c.val===cur)+1) % cycles.length];
+      state.filter[t] = next.val;
+      filterBtn.textContent = next.label;
+      filterBtn.style.opacity = next.val ? '1' : '0.7';
+      state.page[t] = 1;
+      renderTable(t);
+    });
+  }
+});
 
 // ======================== CRUD =============================================
 function openEdit(type, id) { state.editType = type; let doc = null; if (id) { doc = [...state.data[type], ...state.local[type]].find(d => (d._id||d.Id) === id); } state.editDoc = doc; document.getElementById('modal-title-text').textContent = doc ? 'Edit Data' : 'Tambah '+capitalize(type); document.getElementById('f-nama').value = doc?.nama || doc?.Nama || ''; document.getElementById('f-kawasan').value = doc?.kawasan || doc?.Kawasan || ''; document.getElementById('f-kategori').value = doc?.kategori || doc?.Kategori || ''; document.getElementById('f-akses').value = doc?.akses || doc?.Akses || 'Mulus'; document.getElementById('f-catatan').value = doc?.catatan || doc?.Catatan || ''; document.getElementById('f-maps').value = doc?.maps || doc?.Maps || ''; document.getElementById('f-lat').value = doc?.lat || ''; document.getElementById('f-lng').value = doc?.lng || ''; document.getElementById('f-status').value = doc?.status || 'approved'; document.getElementById('modalEdit').classList.remove('hidden'); }
@@ -404,8 +458,8 @@ document.getElementById('btn-export-penginapan').addEventListener('click', () =>
 document.getElementById('btn-export-kuliner').addEventListener('click', () => exportData(['kuliner']));
 
 // ======================== CLEANUP BUTTON (safe) ============================
-async function jalankanPembersihan(btn) { try { btn.textContent = '⏳ Memproses...'; btn.disabled = true; const snap = await db.collection('places').get(); let jumlahTerhapus = 0; for (const doc of snap.docs) { const id = doc.id; const isAutoGenerated = id.length > 20 && !/^[a-z][0-9]+$/i.test(id); if (isAutoGenerated) { await doc.ref.delete(); jumlahTerhapus++; } } alert(`🎉 Sukses! Berhasil membersihkan ${jumlahTerhapus} data kotor ber-ID acak panjang.`); window.location.reload(); } catch (e) { alert('Gagal membersihkan database: ' + e.message); btn.textContent = '🧹 Bersihkan Data Kotor'; btn.disabled = false; } }
-function pasangTombolPembersih() { const container = document.querySelector('.tb-right'); if (!container || document.getElementById('btnCleanKotor')) return; const btn = document.createElement('button'); btn.id = 'btnCleanKotor'; btn.textContent = '🧹 Bersihkan Data Kotor'; btn.style.cssText = 'font-size: 11px; color: #fff; background: rgba(239,68,68,.85); border: 1px solid rgba(239,68,68,.3); padding: 4px 12px; border-radius: 20px; cursor: pointer; margin-right: 8px; font-family: inherit; font-weight: 500;'; btn.addEventListener('click', () => { if (confirm('Apakah Anda yakin ingin menghapus SEMUA data ganda ber-ID acak panjang? Data asli (w1, p1, k1, dll) dijamin aman dan tidak akan terhapus.')) { jalankanPembersihan(btn); } }); container.insertBefore(btn, container.firstChild); }
+// Fungsi pembersih data dihapus — logika isAutoGenerated tidak aman
+// karena Firebase auto-generated IDs (panjang acak) adalah ID valid untuk data baru
 
 // ======================== AUTO GEOCODE ======================================
 async function autoGeocode() { const btn = document.getElementById('btn-auto-geocode'); const status = document.getElementById('geocode-status'); const latEl = document.getElementById('f-lat'); const lngEl = document.getElementById('f-lng'); const nama = document.getElementById('f-nama')?.value?.trim() || ''; const kawasan = document.getElementById('f-kawasan')?.value?.trim() || ''; const mapsUrl = document.getElementById('f-maps')?.value?.trim() || ''; const fromUrl = extractCoordsFromUrl(mapsUrl); if (fromUrl) { latEl.value = fromUrl.lat; lngEl.value = fromUrl.lng; setGeocodeStatus('✓ Dari URL Maps', '#48bb78'); return; } if (!nama) { setGeocodeStatus('⚠ Isi nama dulu', '#e07b39'); return; } btn.textContent = '⏳'; btn.disabled = true; setGeocodeStatus('Mencari...', '#63b3ed'); const query = encodeURIComponent(`${nama} ${kawasan} Banyuwangi`); const url = `https://photon.komoot.io/api/?q=${query}&limit=5`; try { const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }); const data = await res.json(); const LAT_MIN = -8.8, LAT_MAX = -7.9, LNG_MIN = 113.9, LNG_MAX = 114.5; const features = data.features || []; let best = features.find(f => { const [lng, lat] = f.geometry.coordinates; return lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX; }) || features[0]; if (best) { const [lng, lat] = best.geometry.coordinates; latEl.value = lat.toFixed(6); lngEl.value = lng.toFixed(6); const displayName = best.properties?.name || ''; const inBbox = lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX; setGeocodeStatus(inBbox ? `✓ ${displayName.slice(0,25)}` : `⚠ Di luar Banyuwangi`, inBbox ? '#48bb78' : '#e07b39'); } else { setGeocodeStatus('✗ Tidak ditemukan', '#fc8181'); } } catch(e) { setGeocodeStatus('✗ Error: ' + e.message.slice(0,30), '#fc8181'); } finally { btn.textContent = '📍 Auto'; btn.disabled = false; } }
