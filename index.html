@@ -560,7 +560,7 @@
   </div>
 
   <!-- NAV -->
-  <div id="nav">
+  <div id="nav" style="position:sticky;bottom:0;z-index:40;background:#f8f7f4;">
     <button class="btn-ghost hidden" id="btn-back">← Kembali</button>
     <span class="dest-count" id="dest-count"></span>
     <button class="btn-pri" id="btn-next" disabled>Lanjut →</button>
@@ -1115,7 +1115,7 @@ function renderStep0() {
   }).join('') : `<div style="text-align:center;padding:28px;color:#444444;font-size:13px;">Tidak ada destinasi</div>`;
 
   // Quick-pick chips: top 8 destinations utk horizontal scroll
-  const QUICK_IDS = ['ijen','baluran','alaspurwo','redisland','greenBay','kawahwurung','plengkung','sukamade'];
+  const QUICK_IDS = ['ijen','baluran','alas_purwo','red_island','green_bay','kawah_wurung','sukamade','tabuhan'];
   const quickDests = DESTINATIONS.filter(d => QUICK_IDS.includes(d.id)).slice(0,8);
   const quickChips = quickDests.map(d => {
     const sel = S.destinations.has(d.id);
@@ -1180,13 +1180,13 @@ function renderStep1() {
     const sel = S.transport===v;
     return `<div data-transport="${v}" style="padding:16px;border-radius:0;cursor:pointer;
       transition:all .2s;margin-bottom:10px;
-      background:${sel?'rgba(192,57,43,.1)':'rgba(255,255,255,.03)'};
-      border:${sel?'1.5px solid #c0392b':'1.5px solid rgba(0,0,0,0.08)'}">
+      background:${sel?'rgba(192,57,43,.08)':'#ffffff'};
+      border:${sel?'2px solid #c0392b':'1px solid #e0dbd4'}">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="width:44px;height:44px;border-radius:0;flex-shrink:0;
-          background:${sel?'rgba(192,57,43,.2)':'rgba(255,255,255,.06)'};
+          background:${sel?'rgba(192,57,43,.12)':'#f0ede8'};
           display:flex;align-items:center;justify-content:center;font-size:20px;
-          border:1px solid ${sel?'rgba(192,57,43,.4)':'rgba(0,0,0,0.08)'}">
+          border:1px solid ${sel?'rgba(192,57,43,.4)':'#e0dbd4'}">
           ${icon}
         </div>
         <div style="flex:1">
@@ -1206,8 +1206,8 @@ function renderStep1() {
     const sel = S.sewaLokal.has(v);
     return `<div data-sewa="${v}" style="padding:13px 14px;border-radius:0;cursor:pointer;
       transition:all .2s;display:flex;align-items:center;gap:12px;margin-bottom:8px;
-      background:${sel?'rgba(107,159,212,.1)':'rgba(255,255,255,.03)'};
-      border:1.5px solid ${sel?'rgba(107,159,212,.5)':'rgba(0,0,0,0.08)'}">
+      background:${sel?'rgba(107,159,212,.1)':'#ffffff'};
+      border:1.5px solid ${sel?'rgba(107,159,212,.5)':'#e0dbd4'}">
       <div style="width:38px;height:38px;border-radius:0;flex-shrink:0;
         background:${sel?'rgba(107,159,212,.2)':'rgba(255,255,255,.05)'};
         display:flex;align-items:center;justify-content:center;font-size:18px">
