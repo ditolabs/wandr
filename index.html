@@ -1929,25 +1929,17 @@ function attachListeners() {
   c.querySelectorAll('[data-transport]').forEach(el => el.addEventListener('click', () => {
     S.transport = el.dataset.transport;
     S.sewaLokal.clear();
-    c.querySelectorAll('[data-transport]').forEach(e => e.classList.toggle('selected', e.dataset.transport===S.transport));
-    const subw = document.getElementById('sub-trans-wrap');
-    if (subw) subw.classList.toggle('open', S.transport==='umum');
-    const sw = document.getElementById('sewa-wrap');
-    if (sw) sw.classList.toggle('open', S.transport==='umum');
     if (S.transport !== 'umum') S.subTransport = '';
-    c.querySelectorAll('[data-sewa]').forEach(e => e.classList.remove('selected','sewa-sel'));
-    updateNav();
+    render(); // re-render agar inline style ${sel?...} update
   }));
   c.querySelectorAll('[data-sewa]').forEach(el => el.addEventListener('click', () => {
     const v = el.dataset.sewa;
     S.sewaLokal.has(v) ? S.sewaLokal.delete(v) : S.sewaLokal.add(v);
-    el.classList.toggle('selected', S.sewaLokal.has(v));
-    el.classList.toggle('sewa-sel', S.sewaLokal.has(v));
+    render();
   }));
   c.querySelectorAll('[data-sub]').forEach(el => el.addEventListener('click', () => {
     S.subTransport = el.dataset.sub;
-    c.querySelectorAll('[data-sub]').forEach(e => e.classList.toggle('selected', e.dataset.sub===S.subTransport));
-    updateNav();
+    render();
   }));
 
   const inpTiba = document.getElementById('input-waktu-tiba');
@@ -2010,13 +2002,11 @@ function attachListeners() {
 
   c.querySelectorAll('[data-durasi]').forEach(el => el.addEventListener('click', () => {
     S.durasi = el.dataset.durasi;
-    c.querySelectorAll('[data-durasi]').forEach(e => e.classList.toggle('selected', e.dataset.durasi===S.durasi));
-    updateNav();
+    render();
   }));
   c.querySelectorAll('[data-gaya]').forEach(el => el.addEventListener('click', () => {
     S.gayaPerjalanan = el.dataset.gaya;
-    c.querySelectorAll('[data-gaya]').forEach(e => e.classList.toggle('selected', e.dataset.gaya===S.gayaPerjalanan));
-    updateNav();
+    render();
   }));
   c.querySelectorAll('[data-penginapan-fb]').forEach(el => el.addEventListener('click', () => {
     const id = el.dataset.penginapanFb;
