@@ -1157,22 +1157,38 @@ function renderStep0() {
   const activeCat = S._catFilter || 'semua';
 
   // Filter & sort
+  // Split query per koma — tiap term dicek terpisah
+  const queryTerms = query.length >= 2
+    ? query.split(',').map(s=>s.trim()).filter(s=>s.length>=2)
+    : [];
+
   let displayDests;
-  if (query.length >= 2) {
+  if (queryTerms.length > 0) {
     displayDests = DESTINATIONS
       .filter(d => activeCat==='semua' || d.cat===activeCat)
       .map(d => {
         const n = d.name.toLowerCase();
         const aliases = d.aliases||[];
-        let score = matchScore(query, d);
-        if (n.includes(query)) score += 30;
-        if (aliases.some(a=>a.includes(query))) score += 20;
-        return { d, score };
+        // Ambil score tertinggi dari semua term
+        let bestScore = 0;
+        for (const term of queryTerms) {
+          let score = matchScore(term, d);
+          if (n.includes(term) && term.length >= 3) score += 30;
+          if (aliases.some(a=>a.includes(term) && term.length >= 3)) score += 20;
+          if (score > bestScore) bestScore = score;
+        }
+        return { d, score: bestScore };
       })
       .filter(x => x.score > 0)
       .sort((a,b) => b.score - a.score)
       .map(x => x.d)
       .slice(0, 14);
+    // Tambahkan selected destinations yang tidak muncul di hasil search
+    const resultIds = new Set(displayDests.map(d=>d.id));
+    const selectedNotShown = DESTINATIONS.filter(d =>
+      S.destinations.has(d.id) && !resultIds.has(d.id)
+    );
+    displayDests = [...selectedNotShown, ...displayDests].slice(0, 16);
   } else {
     const pool = DESTINATIONS.filter(d => activeCat==='semua' || d.cat===activeCat);
     if (!S._shuffledDests || S._lastCat !== activeCat) {
@@ -1276,7 +1292,7 @@ function renderStep0() {
 
     ${query?`<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:10px;scrollbar-width:none;" id="cat-btns">${catBtns}</div>`:''}
 
-    <div id="dest-warn-area" style="display:${query&&displayDests.length===0?'block':'none'};padding:8px 12px;background:rgba(200,150,30,.07);border:1px solid rgba(200,150,30,.2);border-radius:0;font-size:12px;color:#444444;margin-bottom:10px;">
+    <div id="dest-warn-area" style="display:${queryTerms.length>0&&displayDests.length===0?'block':'none'};padding:8px 12px;background:rgba(200,150,30,.07);border:1px solid rgba(200,150,30,.2);border-radius:0;font-size:12px;color:#444444;margin-bottom:10px;">
       ⚠️ Tidak ditemukan untuk "<em>${esc(S.destInput)}</em>"
     </div>
 
