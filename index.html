@@ -502,65 +502,161 @@
     /* ── ITINERARY PRINT LAYOUT ─────────────────────────────────────────────── */
     #itinerary-print {
       position:fixed; left:-9999px; top:0;
-      width:794px; /* A4 width px @96dpi */
-      background:#fff; font-family:'Noto Serif',Georgia,serif;
-      padding:48px 52px;
+      width:794px;
+      background:#fff; font-family:'DM Sans',sans-serif;
+      padding:0;
+      color:#111;
     }
-    .print-header { text-align:center; margin-bottom:36px; border-bottom:2px solid #111; padding-bottom:24px; }
-    .print-logo   { font-size:13px; letter-spacing:.18em; color:#888; text-transform:uppercase; margin-bottom:6px; }
-    .print-title  { font-size:42px; font-weight:700; font-style:italic; color:#111; line-height:1.1; margin-bottom:8px; }
-    .print-subtitle { font-size:14px; color:#888; letter-spacing:.06em; }
-    .print-meta   {
-      display:flex; gap:0; margin-bottom:32px;
-      border:1px solid #e0dbd4; border-right:none;
+    /* Cover strip merah di atas */
+    .print-cover {
+      background:#c0392b; padding:36px 56px 28px;
+      position:relative; overflow:hidden;
+    }
+    .print-cover::after {
+      content:''; position:absolute;
+      right:-40px; top:-40px;
+      width:200px; height:200px;
+      border:40px solid rgba(255,255,255,.08);
+      border-radius:50%;
+    }
+    .print-cover-eyebrow {
+      font-size:11px; letter-spacing:.2em; color:rgba(255,255,255,.7);
+      text-transform:uppercase; margin-bottom:10px;
+    }
+    .print-cover-title {
+      font-family:'Noto Serif',Georgia,serif;
+      font-size:52px; font-weight:700; font-style:italic;
+      color:#fff; line-height:1.05; margin-bottom:4px;
+    }
+    .print-cover-dest {
+      font-size:13px; color:rgba(255,255,255,.8);
+      margin-top:12px; letter-spacing:.04em; line-height:1.6;
+    }
+    /* Meta bar */
+    .print-meta {
+      display:flex; gap:0; border-bottom:2px solid #111;
     }
     .print-meta-item {
-      flex:1; padding:12px 16px;
+      flex:1; padding:14px 20px;
       border-right:1px solid #e0dbd4;
     }
-    .print-meta-label { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; font-family:'DM Sans',sans-serif; }
-    .print-meta-val   { font-size:14px; font-weight:700; color:#111; }
-    .print-day { margin-bottom:32px; }
-    .print-day-header {
-      display:flex; align-items:baseline; gap:14px;
-      padding-bottom:10px; border-bottom:1.5px solid #111; margin-bottom:18px;
+    .print-meta-item:last-child { border-right:none; }
+    .print-meta-label {
+      font-size:9px; color:#888; text-transform:uppercase;
+      letter-spacing:.14em; margin-bottom:5px;
     }
-    .print-day-num  { font-size:40px; font-weight:700; font-style:italic; color:#111; line-height:1; }
+    .print-meta-val { font-size:13px; font-weight:700; color:#111; line-height:1.3; }
+    /* Body padding */
+    .print-body { padding:0 56px 48px; }
+    /* Day section */
+    .print-day { margin-top:40px; }
+    .print-day-header {
+      display:flex; align-items:center; gap:18px;
+      padding:16px 0 14px;
+      border-top:2px solid #111;
+      border-bottom:1px solid #e0dbd4;
+      margin-bottom:22px;
+    }
+    .print-day-num {
+      font-family:'Noto Serif',Georgia,serif;
+      font-size:56px; font-weight:700; font-style:italic;
+      color:#c0392b; line-height:1; flex-shrink:0;
+      min-width:52px;
+    }
+    .print-day-divider { width:2px; height:40px; background:#e0dbd4; flex-shrink:0; }
     .print-day-info { }
-    .print-day-lbl  { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:.1em; font-family:'DM Sans',sans-serif; }
-    .print-day-ttl  { font-size:16px; font-weight:700; color:#111; }
-    .print-act { display:flex; gap:16px; margin-bottom:14px; }
+    .print-day-lbl {
+      font-size:9px; color:#888; text-transform:uppercase;
+      letter-spacing:.14em; margin-bottom:3px;
+    }
+    .print-day-ttl { font-family:'Noto Serif',serif; font-size:18px; font-weight:700; color:#111; }
+    /* Activity */
+    .print-act { display:flex; gap:0; margin-bottom:0; }
     .print-act-line {
       display:flex; flex-direction:column; align-items:center;
-      width:18px; flex-shrink:0; padding-top:3px;
+      width:28px; flex-shrink:0; padding-top:4px;
     }
-    .print-act-dot  { width:8px; height:8px; background:#c0392b; border-radius:50%; flex-shrink:0; }
-    .print-act-rule { width:1px; flex:1; background:#e0dbd4; margin-top:4px; }
-    .print-act-body { flex:1; padding-bottom:4px; }
-    .print-act-time { font-size:10px; color:#c0392b; font-weight:700; letter-spacing:.06em; margin-bottom:3px; font-family:'DM Sans',sans-serif; }
-    .print-act-name { font-size:14px; font-weight:700; color:#111; margin-bottom:3px; }
-    .print-act-desc { font-size:11px; color:#555; line-height:1.55; font-family:'DM Sans',sans-serif; }
-    .print-act-cost { font-size:10px; color:#888; margin-top:3px; font-family:'DM Sans',sans-serif; }
-    .print-act-tip  { font-size:10px; color:#555; margin-top:4px; padding:5px 8px; border-left:2px solid #c0392b; background:#fdf5f5; font-family:'DM Sans',sans-serif; line-height:1.5; }
-    .print-footer   {
-      margin-top:40px; padding-top:16px;
-      border-top:1px solid #e0dbd4;
-      display:flex; justify-content:space-between; align-items:center;
+    .print-act-dot {
+      width:10px; height:10px;
+      background:#c0392b; border-radius:50%;
+      border:2px solid #fff; box-shadow:0 0 0 1.5px #c0392b;
+      flex-shrink:0;
     }
-    .print-footer-left  { font-size:11px; color:#888; font-family:'DM Sans',sans-serif; }
-    .print-footer-brand { font-size:13px; font-weight:700; font-style:italic; color:#111; }
-    .print-packing { margin-top:28px; padding-top:20px; border-top:1.5px solid #111; }
-    .print-packing-title { font-size:14px; font-weight:700; margin-bottom:12px; }
+    .print-act-rule { width:1.5px; flex:1; background:#f0ede8; margin-top:3px; min-height:8px; }
+    .print-act-body {
+      flex:1; padding:0 0 18px 10px;
+      border-bottom:1px solid #f0ede8;
+      margin-bottom:0;
+    }
+    .print-act:last-child .print-act-body { border-bottom:none; }
+    .print-act:last-child .print-act-rule { display:none; }
+    .print-act-time {
+      font-size:10px; color:#c0392b; font-weight:700;
+      letter-spacing:.06em; margin-bottom:4px;
+      display:inline-block;
+      background:rgba(192,57,43,.08); padding:2px 8px;
+    }
+    .print-act-name { font-family:'Noto Serif',serif; font-size:15px; font-weight:700; color:#111; margin-bottom:3px; line-height:1.3; }
+    .print-act-desc { font-size:11px; color:#555; line-height:1.6; }
+    .print-act-cost {
+      display:inline-block; font-size:10px; color:#888;
+      margin-top:4px; padding:1px 6px;
+      border:1px solid #e0dbd4;
+    }
+    .print-act-tip {
+      font-size:10px; color:#555; margin-top:6px;
+      padding:6px 10px; border-left:3px solid #c0392b;
+      background:#fdf8f8; line-height:1.55;
+    }
+    /* Budget */
+    .print-budget {
+      margin:32px 0 0;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 24px;
+      background:#111; color:#fff;
+    }
+    .print-budget-label {
+      font-size:10px; color:rgba(255,255,255,.6);
+      text-transform:uppercase; letter-spacing:.12em; margin-bottom:4px;
+    }
+    .print-budget-val { font-family:'Noto Serif',serif; font-size:24px; font-weight:700; color:#fff; }
+    .print-budget-note { font-size:11px; color:rgba(255,255,255,.5); text-align:right; }
+    /* Packing */
+    .print-packing { margin-top:28px; }
+    .print-packing-header {
+      display:flex; align-items:center; gap:10px;
+      margin-bottom:14px; padding-bottom:10px;
+      border-bottom:1.5px solid #111;
+    }
+    .print-packing-title { font-family:'Noto Serif',serif; font-size:15px; font-weight:700; }
     .print-packing-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
     .print-packing-item {
-      font-size:11px; color:#444; padding:5px 8px;
-      border:1px solid #e0dbd4; font-family:'DM Sans',sans-serif;
-      display:flex; align-items:center; gap:6px;
+      font-size:11px; color:#444; padding:7px 10px;
+      border:1px solid #e0dbd4;
+      display:flex; align-items:center; gap:8px; line-height:1.4;
     }
-    .print-packing-item::before { content:'☐'; font-size:12px; color:#888; flex-shrink:0; }
-    .print-budget { margin-top:20px; padding:14px 16px; background:#f8f7f4; border:1px solid #e0dbd4; display:flex; justify-content:space-between; align-items:center; }
-    .print-budget-label { font-size:11px; color:#888; text-transform:uppercase; letter-spacing:.1em; font-family:'DM Sans',sans-serif; }
-    .print-budget-val   { font-size:18px; font-weight:700; color:#c0392b; }
+    .print-packing-cb {
+      width:13px; height:13px; border:1.5px solid #ccc;
+      flex-shrink:0; display:inline-block;
+    }
+    /* Notes */
+    .print-notes {
+      margin-top:16px; padding:10px 14px;
+      border-left:3px solid #c0392b; background:#fdf8f8;
+      font-size:11px; color:#555; line-height:1.6;
+    }
+    /* Footer */
+    .print-footer {
+      margin-top:32px; padding:14px 56px;
+      border-top:2px solid #111;
+      display:flex; justify-content:space-between; align-items:center;
+      background:#f8f7f4;
+    }
+    .print-footer-left { font-size:10px; color:#888; line-height:1.6; }
+    .print-footer-brand {
+      font-family:'Noto Serif',serif;
+      font-size:16px; font-weight:700; font-style:italic; color:#111;
+    }
   </style>
   <!-- Export libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1819,13 +1915,15 @@ function renderStep3() {
 
 // ─── EXPORT FUNCTIONS ──────────────────────────────────────────────────────────
 function buildPrintHTML(it) {
-  const totalDays = it.days?.length || 1;
-  const destinations = Array.from(S.destinations).map(id => DESTINATIONS.find(d=>d.id===id)?.name).filter(Boolean);
-  const transport = { motor:'Motor Pribadi', mobil:'Mobil Pribadi', umum:'Kendaraan Umum' }[S.transport] || S.transport;
-  const budget = it.estimatedBudget;
-  const budgetStr = budget ? `Rp${(budget.min/1e6).toFixed(1)}jt – Rp${(budget.max/1e6).toFixed(1)}jt` : '–';
-  const today = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const totalDays  = it.days?.length || 1;
+  const dests      = Array.from(S.destinations).map(id=>DESTINATIONS.find(d=>d.id===id)?.name).filter(Boolean);
+  const transport  = {motor:'Motor Pribadi',mobil:'Mobil Pribadi',umum:'Kendaraan Umum'}[S.transport]||S.transport;
+  const budget     = it.estimatedBudget;
+  const budgetStr  = budget ? `Rp${(budget.min/1e6).toFixed(1)}jt \u2013 Rp${(budget.max/1e6).toFixed(1)}jt` : '\u2013';
+  const today      = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const highlights = (it.highlights||[]).slice(0,4);
 
+  // Days HTML
   const daysHTML = (it.days||[]).map((day, di) => {
     const acts = (day.activities||[]).map((act, ai) => {
       const isLast = ai === day.activities.length - 1;
@@ -1835,11 +1933,11 @@ function buildPrintHTML(it) {
           ${!isLast ? '<div class="print-act-rule"></div>' : ''}
         </div>
         <div class="print-act-body">
-          <div class="print-act-time">${esc(act.time||'')}${act.duration?' · '+esc(act.duration):''}</div>
+          <div><span class="print-act-time">${esc(act.time||'')}${act.duration?' &middot; '+esc(act.duration):''}</span></div>
           <div class="print-act-name">${esc(act.name)}</div>
           ${act.description ? `<div class="print-act-desc">${esc(act.description)}</div>` : ''}
-          ${act.estimatedCost>0 ? `<div class="print-act-cost">~Rp${act.estimatedCost.toLocaleString('id-ID')}</div>` : ''}
-          ${act.tips ? `<div class="print-act-tip">💡 ${esc(act.tips)}</div>` : ''}
+          ${act.estimatedCost>0 ? `<span class="print-act-cost">~Rp${act.estimatedCost.toLocaleString('id-ID')}</span>` : ''}
+          ${act.tips ? `<div class="print-act-tip">\uD83D\uDCA1 ${esc(act.tips)}</div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -1847,6 +1945,7 @@ function buildPrintHTML(it) {
     return `<div class="print-day">
       <div class="print-day-header">
         <div class="print-day-num">${di+1}</div>
+        <div class="print-day-divider"></div>
         <div class="print-day-info">
           <div class="print-day-lbl">Hari ke-${di+1}</div>
           <div class="print-day-ttl">${esc(day.title||'')}</div>
@@ -1856,25 +1955,40 @@ function buildPrintHTML(it) {
     </div>`;
   }).join('');
 
+  // Packing
   const packingHTML = (it.packingTips||[]).length > 0 ? `
     <div class="print-packing">
-      <div class="print-packing-title">🎒 Persiapan & Perlengkapan</div>
+      <div class="print-packing-header">
+        <span style="font-size:18px">\uD83C\uDF92</span>
+        <div class="print-packing-title">Persiapan &amp; Perlengkapan</div>
+      </div>
       <div class="print-packing-grid">
-        ${(it.packingTips||[]).map(t=>`<div class="print-packing-item">${esc(t)}</div>`).join('')}
+        ${(it.packingTips||[]).map(t=>`
+          <div class="print-packing-item">
+            <span class="print-packing-cb"></span>${esc(t)}
+          </div>`).join('')}
       </div>
     </div>` : '';
 
+  // Notes
+  const notesHTML = it.importantNotes ? `
+    <div class="print-notes">\u26A0\uFE0F ${esc(it.importantNotes)}</div>` : '';
+
   return `
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <div class="print-header">
-      <div class="print-logo">Wandr · Banyuwangi Explorer</div>
-      <div class="print-title">Itinerary<br>Banyuwangi</div>
-      <div class="print-subtitle">${esc((it.highlights||[]).join(' · '))}</div>
+
+    <!-- COVER -->
+    <div class="print-cover">
+      <div class="print-cover-eyebrow">Wandr &middot; Banyuwangi Explorer</div>
+      <div class="print-cover-title">Travel<br>Itinerary</div>
+      <div class="print-cover-dest">${esc(dests.slice(0,5).join(' &middot; '))}${dests.length>5?' &middot; +lainnya':''}</div>
     </div>
+
+    <!-- META BAR -->
     <div class="print-meta">
       <div class="print-meta-item">
         <div class="print-meta-label">Destinasi</div>
-        <div class="print-meta-val">${esc(destinations.slice(0,3).join(', '))}${destinations.length>3?' +lainnya':''}</div>
+        <div class="print-meta-val">${esc(dests.slice(0,2).join(', '))}${dests.length>2?'<br>+'+( dests.length-2)+' lainnya':''}</div>
       </div>
       <div class="print-meta-item">
         <div class="print-meta-label">Durasi</div>
@@ -1889,21 +2003,28 @@ function buildPrintHTML(it) {
         <div class="print-meta-val">${today}</div>
       </div>
     </div>
-    ${daysHTML}
-    <div class="print-budget">
-      <div>
-        <div class="print-budget-label">Estimasi Total Biaya</div>
-        <div class="print-budget-val">${esc(budgetStr)}</div>
+
+    <!-- BODY -->
+    <div class="print-body">
+      ${daysHTML}
+
+      <!-- BUDGET -->
+      <div class="print-budget">
+        <div>
+          <div class="print-budget-label">Estimasi Total Biaya</div>
+          <div class="print-budget-val">${esc(budgetStr)}</div>
+        </div>
+        <div class="print-budget-note">Belum termasuk<br>akomodasi &amp; tiket transport</div>
       </div>
-      <div style="font-size:11px;color:#888;font-family:'DM Sans',sans-serif;text-align:right">
-        Belum termasuk<br>akomodasi & tiket transport
-      </div>
+
+      ${packingHTML}
+      ${notesHTML}
     </div>
-    ${packingHTML}
-    ${it.importantNotes ? `<div style="margin-top:16px;padding:10px 14px;border-left:3px solid #c0392b;background:#fdf5f5;font-size:11px;color:#555;font-family:'DM Sans',sans-serif;line-height:1.5">⚠️ ${esc(it.importantNotes)}</div>` : ''}
+
+    <!-- FOOTER -->
     <div class="print-footer">
       <div class="print-footer-left">
-        Generated by Wandr · wandr.ditolabs.io<br>
+        Generated by Wandr &middot; ditolabs.github.io/bwi-app<br>
         ${today}
       </div>
       <div class="print-footer-brand">Wandr</div>
@@ -1942,13 +2063,20 @@ async function exportItinerary(format) {
     setProgress(30, 'Merender halaman...');
 
     const canvas = await html2canvas(printEl, {
-      scale: 2,
+      scale: 2.5,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       width: 794,
       windowWidth: 794,
+      scrollX: 0,
+      scrollY: 0,
       logging: false,
+      onclone: (doc) => {
+        // pastikan print element visible saat di-render
+        const el = doc.getElementById('itinerary-print');
+        if (el) { el.style.position='relative'; el.style.left='0'; el.style.top='0'; }
+      }
     });
 
     setProgress(70, 'Memproses file...');
@@ -1973,13 +2101,18 @@ async function exportItinerary(format) {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
       if (pdfH <= pageH) {
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+        // Fit ke satu halaman, trim tinggi supaya tidak ada halaman kosong
+        const actualH = Math.min(pdfH, pageH);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, actualH);
       } else {
-        // Split into multiple pages
+        // Split multi-page dengan overlap 0
         const totalPages = Math.ceil(pdfH / pageH);
         for (let pg = 0; pg < totalPages; pg++) {
           if (pg > 0) pdf.addPage();
           const yOffset = -(pg * pageH);
+          // Kalau halaman terakhir, trim supaya tidak kosong
+          const remaining = pdfH - pg * pageH;
+          const thisH = Math.min(pageH, remaining);
           pdf.addImage(imgData, 'JPEG', 0, yOffset, pdfW, pdfH);
           setProgress(80 + (pg / totalPages) * 15, `Halaman ${pg+1}/${totalPages}...`);
         }
