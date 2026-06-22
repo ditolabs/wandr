@@ -917,7 +917,8 @@ function haversineKm(lat1,lng1,lat2,lng2) {
 
 function parseDestInput(text) {
   S.destinations.clear();
-  const terms = text.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  // Normalize: hapus spasi berlebih tapi jangan ubah nilai S.destInput
+  const terms = text.split(',').map(s=>s.trim().toLowerCase()).filter(s=>s.length>=2);
   terms.forEach(term => {
     if (!term) return;
     let bestMatch = null, bestScore = 0;
@@ -925,7 +926,7 @@ function parseDestInput(text) {
       const score = matchScore(term, d);
       if (score > bestScore) { bestScore = score; bestMatch = d; }
     });
-    if (bestMatch && bestScore >= 50) S.destinations.add(bestMatch.id);
+    if (bestMatch && bestScore >= 45) S.destinations.add(bestMatch.id);
   });
 }
 
@@ -1872,24 +1873,34 @@ function attachListeners() {
 
   const destInput = document.getElementById('dest-input');
   if (destInput) {
+    let _destTimer = null;
     destInput.addEventListener('input', () => {
       const val = destInput.value;
       const pos = destInput.selectionStart;
       S.destInput = val;
       const q = val.toLowerCase().trim();
-      // Hanya parse jika bukan di tengah mengetik setelah koma
-      const lastTerm = val.split(',').pop().trim();
-      const isTyping = lastTerm.length > 0 && lastTerm.length < 3;
-      if (!isTyping) parseDestInput(S.destInput);
-      if (q.length >= 2 || q.length === 0) {
+
+      // Selalu parse langsung — trim sudah handle spasi
+      parseDestInput(S.destInput);
+
+      // Debounce render 120ms agar tidak re-render tiap keystroke
+      clearTimeout(_destTimer);
+      _destTimer = setTimeout(() => {
         if (q.length === 0) S._shuffledDests = null;
         render();
-        const newInp = document.getElementById('dest-input');
-        if (newInp) { newInp.focus(); try { newInp.setSelectionRange(pos, pos); } catch(e){} }
-      } else {
-        updateDestFeedback();
-        updateNav();
-      }
+        // Restore cursor setelah re-render
+        requestAnimationFrame(() => {
+          const newInp = document.getElementById('dest-input');
+          if (newInp) {
+            newInp.focus();
+            try { newInp.setSelectionRange(pos, pos); } catch(e){}
+          }
+        });
+      }, 120);
+
+      // Langsung update nav tanpa tunggu render
+      updateDestFeedback();
+      updateNav();
     });
   }
   const btnClear = document.getElementById('btn-clear-input');
