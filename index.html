@@ -1556,7 +1556,7 @@ function renderStep2() {
 
   const allHotels = S.allPenginapan || [];
   const hotelQuery = S.penginapanSearchQuery || '';
-  const filteredHotels = hotelQuery.length >= 2
+  const filteredHotels = hotelQuery.length >= 1
     ? allHotels.filter(p => {
         const n = (p.nama||'').toLowerCase();
         const q = hotelQuery.toLowerCase();
@@ -1599,9 +1599,10 @@ function renderStep2() {
         dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
         placeholder="🔍 Cari nama penginapan..."
         value="${esc(hotelQuery)}"
+        oninput="S.penginapanSearchQuery=this.value;render();"
         style="padding-right:36px">
       ${hotelQuery ? `<span id="btn-clear-hotel" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#888888;font-size:14px;padding:4px;z-index:1">✕</span>` : ''}
-      <div class="autocomplete-dropdown" id="hotel-autocomplete" style="${hotelQuery.length>=1?'':'display:none'}">
+      <div class="autocomplete-dropdown" id="hotel-autocomplete" style="${hotelQuery.length>=1?'display:block':'display:none'}">
         ${filteredHotels.length > 0
           ? filteredHotels.map(p => {
               const sel = S.penginapanIds.has(p.id);
@@ -2035,99 +2036,397 @@ async function exportItinerary(format) {
   const it = S.itinerary;
   if (!it) return;
 
-  const modal = document.getElementById('export-modal');
-  const progress = document.getElementById('export-progress');
+  const modal       = document.getElementById('export-modal');
+  const progress    = document.getElementById('export-progress');
   const progressBar = document.getElementById('export-progress-bar');
-  const progressText = document.getElementById('export-progress-text');
+  const progressText= document.getElementById('export-progress-text');
+  const btns        = modal.querySelectorAll('button:not([onclick])');
 
-  // Show progress
   progress.style.display = 'block';
-  const btns = modal.querySelectorAll('button:not([onclick])');
   btns.forEach(b => b.disabled = true);
 
-  function setProgress(pct, text) {
+  function setP(pct, txt) {
     progressBar.style.width = pct + '%';
-    progressText.textContent = text;
+    progressText.textContent = txt;
   }
 
   try {
-    setProgress(10, 'Menyiapkan layout...');
+    setP(5, 'Membangun dokumen...');
 
-    // Build print canvas
-    const printEl = document.getElementById('itinerary-print');
-    printEl.innerHTML = buildPrintHTML(it);
-    printEl.style.left = '-9999px';
+    const { jsPDF } = window.jspdf;
+    const pdf   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const PW    = 210;   // page width mm
+    const PH    = 297;   // page height mm
+    const ML    = 14;    // margin left
+    const MR    = 14;    // margin right
+    const CW    = PW - ML - MR; // content width
+    const RED   = [192, 57, 43];
+    const INK   = [17, 17, 17];
+    const GRAY  = [136, 136, 136];
+    const LGRAY = [224, 219, 212];
+    const WHITE = [255, 255, 255];
+    const CREAM = [248, 247, 244];
 
-    // Wait for fonts/images
-    await new Promise(r => setTimeout(r, 600));
-    setProgress(30, 'Merender halaman...');
+    const totalDays = it.days?.length || 1;
+    const dests     = Array.from(S.destinations).map(id=>DESTINATIONS.find(d=>d.id===id)?.name).filter(Boolean);
+    const transport = {motor:'Motor Pribadi',mobil:'Mobil Pribadi',umum:'Kendaraan Umum'}[S.transport]||S.transport||'-';
+    const budget    = it.estimatedBudget;
+    const budgetStr = budget ? `Rp${(budget.min/1e6).toFixed(1)}jt \u2013 Rp${(budget.max/1e6).toFixed(1)}jt` : '-';
+    const today     = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    const filename  = `itinerary-banyuwangi-${new Date().toISOString().slice(0,10)}`;
 
-    const canvas = await html2canvas(printEl, {
-      scale: 2.5,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      width: 794,
-      windowWidth: 794,
-      scrollX: 0,
-      scrollY: 0,
-      logging: false,
-      onclone: (doc) => {
-        // pastikan print element visible saat di-render
-        const el = doc.getElementById('itinerary-print');
-        if (el) { el.style.position='relative'; el.style.left='0'; el.style.top='0'; }
+    // ── Helper: wrap text ────────────────────────────────────────────────────
+    function wrapText(pdf, text, x, y, maxW, lineH) {
+      const lines = pdf.splitTextToSize(String(text||''), maxW);
+      lines.forEach((line, i) => pdf.text(line, x, y + i * lineH));
+      return y + lines.length * lineH;
+    }
+
+    // ── Helper: new page if needed ───────────────────────────────────────────
+    let curY = 0;
+    function ensureSpace(needed) {
+      if (curY + needed > PH - 16) {
+        pdf.addPage();
+        curY = 16;
+        // Footer tiap halaman
+        drawFooter();
       }
+    }
+
+    function drawFooter() {
+      pdf.setFontSize(8);
+      pdf.setTextColor(...GRAY);
+      pdf.text('Wandr \u00B7 ditolabs.github.io/bwi-app \u00B7 ' + today, ML, PH - 8);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica','bolditalic');
+      pdf.text('Wandr', PW - MR, PH - 8, { align:'right' });
+      pdf.setFont('helvetica','normal');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // COVER - halaman 1
+    // ═══════════════════════════════════════════════════════════════════════
+    setP(10, 'Cover...');
+
+    // Red header block
+    const coverH = 72;
+    pdf.setFillColor(...RED);
+    pdf.rect(0, 0, PW, coverH, 'F');
+
+    // Decorative circle
+    pdf.setFillColor(255,255,255);
+    pdf.setGState(new pdf.GState({opacity: 0.06}));
+    pdf.circle(PW - 10, 10, 44, 'F');
+    pdf.setGState(new pdf.GState({opacity: 1}));
+
+    // Eyebrow
+    pdf.setFontSize(8);
+    pdf.setTextColor(...WHITE);
+    pdf.setFont('helvetica','normal');
+    pdf.text('WANDR \u00B7 BANYUWANGI EXPLORER', ML, 14);
+
+    // Title
+    pdf.setFontSize(32);
+    pdf.setFont('helvetica','bolditalic');
+    pdf.setTextColor(...WHITE);
+    pdf.text('Travel', ML, 30);
+    pdf.text('Itinerary', ML, 46);
+
+    // Dest subtitle
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica','normal');
+    pdf.setTextColor(255, 200, 200);
+    const destLine = dests.join(' \u00B7 ');
+    const destLines = pdf.splitTextToSize(destLine, CW - 20);
+    destLines.forEach((line, i) => pdf.text(line, ML, 58 + i * 5));
+
+    // ── Meta bar ─────────────────────────────────────────────────────────
+    const metaY = coverH;
+    const metaH = 22;
+    const colW  = CW / 4;
+
+    // Border bawah cover
+    pdf.setDrawColor(...INK);
+    pdf.setLineWidth(0.5);
+    pdf.line(0, metaY + metaH, PW, metaY + metaH);
+
+    const metaCols = [
+      { label:'DESTINASI', val: dests.slice(0,2).join(', ') + (dests.length>2 ? '\n+'+( dests.length-2)+' lainnya':'') },
+      { label:'DURASI',    val: totalDays+' Hari'+(totalDays>1?' / '+(totalDays-1)+' Malam':'') },
+      { label:'TRANSPORT', val: transport },
+      { label:'DIBUAT',    val: today },
+    ];
+    metaCols.forEach((col, ci) => {
+      const cx = ML + ci * (CW / 4);
+      // Divider vertikal
+      if (ci > 0) {
+        pdf.setDrawColor(...LGRAY);
+        pdf.setLineWidth(0.3);
+        pdf.line(cx, metaY + 4, cx, metaY + metaH - 4);
+      }
+      pdf.setFontSize(7);
+      pdf.setTextColor(...GRAY);
+      pdf.setFont('helvetica','normal');
+      pdf.text(col.label, cx + (ci===0?0:4), metaY + 8);
+      pdf.setFontSize(9);
+      pdf.setTextColor(...INK);
+      pdf.setFont('helvetica','bold');
+      const valLines = col.val.split('\n');
+      valLines.forEach((vl, vi) => pdf.text(vl, cx + (ci===0?0:4), metaY + 14 + vi * 4.5));
     });
 
-    setProgress(70, 'Memproses file...');
-    const filename = `itinerary-banyuwangi-${new Date().toISOString().slice(0,10)}`;
+    curY = metaY + metaH + 10;
 
-    if (format === 'jpg') {
-      setProgress(85, 'Membuat JPG...');
+    // ═══════════════════════════════════════════════════════════════════════
+    // DAYS
+    // ═══════════════════════════════════════════════════════════════════════
+    setP(20, 'Menyusun hari...');
+
+    const dayColors = [RED, [42,110,154], [42,140,90], [140,90,42], [90,42,140]];
+
+    (it.days||[]).forEach((day, di) => {
+      setP(20 + di / totalDays * 55, `Hari ${di+1}...`);
+      const dayCol = dayColors[di % dayColors.length];
+
+      ensureSpace(30);
+
+      // Day header line
+      pdf.setDrawColor(...INK);
+      pdf.setLineWidth(0.5);
+      pdf.line(ML, curY, PW - MR, curY);
+      curY += 2;
+
+      // Day number (big)
+      pdf.setFontSize(36);
+      pdf.setFont('helvetica','bolditalic');
+      pdf.setTextColor(...dayCol);
+      pdf.text(String(di + 1), ML, curY + 12);
+
+      // Vertical divider
+      pdf.setDrawColor(...LGRAY);
+      pdf.setLineWidth(0.4);
+      pdf.line(ML + 18, curY + 2, ML + 18, curY + 14);
+
+      // Day label + title
+      pdf.setFontSize(7);
+      pdf.setFont('helvetica','normal');
+      pdf.setTextColor(...GRAY);
+      pdf.text('HARI KE-' + (di+1), ML + 22, curY + 5);
+      pdf.setFontSize(13);
+      pdf.setFont('helvetica','bold');
+      pdf.setTextColor(...INK);
+      const titleLines = pdf.splitTextToSize(day.title||'', CW - 26);
+      titleLines.forEach((tl, ti) => pdf.text(tl, ML + 22, curY + 12 + ti * 6));
+
+      curY += 20;
+
+      // ── Activities ────────────────────────────────────────────────────
+      (day.activities||[]).forEach((act, ai) => {
+        const isLast = ai === (day.activities.length - 1);
+
+        // Estimate height needed
+        const nameLines = pdf.splitTextToSize(act.name||'', CW - 22).length;
+        const descLines = act.description ? pdf.splitTextToSize(act.description, CW - 22).length : 0;
+        const tipLines  = act.tips ? pdf.splitTextToSize(act.tips, CW - 24).length : 0;
+        const needed    = 6 + nameLines * 5 + (descLines > 0 ? descLines * 4.5 + 2 : 0)
+                          + (act.estimatedCost > 0 ? 6 : 0)
+                          + (tipLines > 0 ? tipLines * 4.5 + 6 : 0) + 8;
+        ensureSpace(needed);
+
+        const dotX = ML + 3;
+        const dotY = curY + 1.5;
+
+        // Dot merah
+        pdf.setFillColor(...RED);
+        pdf.circle(dotX, dotY, 1.8, 'F');
+
+        // Timeline line (ke bawah)
+        if (!isLast) {
+          pdf.setDrawColor(...LGRAY);
+          pdf.setLineWidth(0.5);
+          pdf.line(dotX, dotY + 2, dotX, dotY + needed - 6);
+        }
+
+        const tx = ML + 10;
+
+        // Time badge
+        const timeStr = (act.time||'') + (act.duration ? ' \u00B7 ' + act.duration : '');
+        pdf.setFillColor(...RED);
+        pdf.setFillColor(252, 240, 238);
+        const twid = pdf.getStringUnitWidth(timeStr) * 8 / pdf.internal.scaleFactor + 6;
+        pdf.roundedRect(tx, curY - 2.5, twid, 5.5, 1, 1, 'F');
+        pdf.setFontSize(7.5);
+        pdf.setFont('helvetica','bold');
+        pdf.setTextColor(...RED);
+        pdf.text(timeStr, tx + 3, curY + 1.5);
+        curY += 6;
+
+        // Name
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica','bold');
+        pdf.setTextColor(...INK);
+        const nLines = pdf.splitTextToSize(act.name||'', CW - 14);
+        nLines.forEach((nl, ni) => pdf.text(nl, tx, curY + ni * 5.5));
+        curY += nLines.length * 5.5 + 1;
+
+        // Description
+        if (act.description) {
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica','normal');
+          pdf.setTextColor(85, 85, 85);
+          const dLines = pdf.splitTextToSize(act.description, CW - 14);
+          dLines.forEach((dl, di2) => pdf.text(dl, tx, curY + di2 * 4.5));
+          curY += dLines.length * 4.5 + 1;
+        }
+
+        // Cost badge
+        if (act.estimatedCost > 0) {
+          const costStr = '~Rp' + act.estimatedCost.toLocaleString('id-ID');
+          pdf.setFillColor(240,240,240);
+          const cw = pdf.getStringUnitWidth(costStr) * 8 / pdf.internal.scaleFactor + 5;
+          pdf.roundedRect(tx, curY, cw, 5, 1, 1, 'F');
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica','normal');
+          pdf.setTextColor(...GRAY);
+          pdf.text(costStr, tx + 2.5, curY + 3.5);
+          curY += 7;
+        }
+
+        // Tip
+        if (act.tips) {
+          pdf.setFillColor(253, 248, 248);
+          const tipLn = pdf.splitTextToSize('\uD83D\uDCA1 ' + act.tips, CW - 20);
+          const tipH  = tipLn.length * 4.5 + 5;
+          pdf.rect(tx, curY, CW - 14, tipH, 'F');
+          pdf.setFillColor(...RED);
+          pdf.rect(tx, curY, 2, tipH, 'F');
+          pdf.setFontSize(8.5);
+          pdf.setFont('helvetica','normal');
+          pdf.setTextColor(85,85,85);
+          tipLn.forEach((tl, ti) => pdf.text(tl, tx + 5, curY + 3.5 + ti * 4.5));
+          curY += tipH + 3;
+        }
+
+        curY += 6; // gap antar aktivitas
+      });
+
+      curY += 8; // gap antar hari
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // BUDGET BLOCK
+    // ═══════════════════════════════════════════════════════════════════════
+    setP(78, 'Budget & perlengkapan...');
+    ensureSpace(28);
+
+    pdf.setFillColor(...INK);
+    pdf.rect(ML, curY, CW, 22, 'F');
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica','normal');
+    pdf.setTextColor(180,180,180);
+    pdf.text('ESTIMASI TOTAL BIAYA', ML + 6, curY + 7);
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica','bold');
+    pdf.setTextColor(...WHITE);
+    pdf.text(budgetStr, ML + 6, curY + 17);
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica','normal');
+    pdf.setTextColor(160,160,160);
+    pdf.text('Belum termasuk akomodasi & tiket transport', PW - MR - 2, curY + 12, { align:'right' });
+    curY += 28;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PACKING LIST
+    // ═══════════════════════════════════════════════════════════════════════
+    const packing = it.packingTips||[];
+    if (packing.length > 0) {
+      ensureSpace(20 + Math.ceil(packing.length/3) * 10);
+
+      // Header
+      pdf.setDrawColor(...INK);
+      pdf.setLineWidth(0.5);
+      pdf.line(ML, curY, PW - MR, curY);
+      curY += 6;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica','bold');
+      pdf.setTextColor(...INK);
+      pdf.text('\uD83C\uDF92 Persiapan & Perlengkapan', ML, curY + 4);
+      curY += 12;
+
+      // Grid 3 kolom
+      const itemW = CW / 3;
+      packing.forEach((item, pi) => {
+        const col = pi % 3;
+        const row = Math.floor(pi / 3);
+        const ix  = ML + col * itemW;
+        const iy  = curY + row * 9;
+        // Checkbox
+        pdf.setDrawColor(...LGRAY);
+        pdf.setLineWidth(0.4);
+        pdf.rect(ix, iy - 2.5, 4, 4);
+        pdf.setFontSize(8.5);
+        pdf.setFont('helvetica','normal');
+        pdf.setTextColor(68,68,68);
+        pdf.text(item, ix + 6, iy + 1);
+      });
+      curY += Math.ceil(packing.length/3) * 9 + 6;
+    }
+
+    // Notes
+    if (it.importantNotes) {
+      ensureSpace(18);
+      const noteLines = pdf.splitTextToSize('\u26A0\uFE0F  ' + it.importantNotes, CW - 10);
+      const noteH = noteLines.length * 4.5 + 8;
+      pdf.setFillColor(253,248,248);
+      pdf.rect(ML, curY, CW, noteH, 'F');
+      pdf.setFillColor(...RED);
+      pdf.rect(ML, curY, 2.5, noteH, 'F');
+      pdf.setFontSize(8.5);
+      pdf.setFont('helvetica','normal');
+      pdf.setTextColor(85,85,85);
+      noteLines.forEach((nl, ni) => pdf.text(nl, ML + 7, curY + 5 + ni * 4.5));
+      curY += noteH + 8;
+    }
+
+    // Footer semua halaman
+    const totalPg = pdf.internal.getNumberOfPages();
+    for (let pg = 1; pg <= totalPg; pg++) {
+      pdf.setPage(pg);
+      drawFooter();
+      // Nomor halaman
+      pdf.setFontSize(8);
+      pdf.setTextColor(...GRAY);
+      pdf.text(pg + ' / ' + totalPg, PW/2, PH - 8, { align:'center' });
+    }
+
+    setP(92, 'Menyimpan...');
+
+    if (format === 'pdf') {
+      pdf.save(filename + '.pdf');
+    } else {
+      // JPG: render halaman 1 via canvas dari PDF blob
+      const pdfBlob = pdf.output('blob');
+      // Fallback: gunakan html2canvas pada print div untuk JPG
+      const printEl = document.getElementById('itinerary-print');
+      printEl.innerHTML = buildPrintHTML(it);
+      await new Promise(r => setTimeout(r, 500));
+      const canvas = await html2canvas(printEl, {
+        scale: 2, useCORS: true, backgroundColor:'#ffffff', width:794, windowWidth:794,
+        onclone: doc => { const el=doc.getElementById('itinerary-print'); if(el){el.style.position='relative';el.style.left='0';} }
+      });
       const link = document.createElement('a');
       link.download = filename + '.jpg';
       link.href = canvas.toDataURL('image/jpeg', 0.92);
       link.click();
-
-    } else {
-      setProgress(80, 'Membuat PDF...');
-      const { jsPDF } = window.jspdf;
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdfW = 210; // A4 mm
-      const pdfH = (canvas.height / canvas.width) * pdfW;
-
-      // Multi-page jika terlalu panjang
-      const pageH = 297; // A4 height mm
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-      if (pdfH <= pageH) {
-        // Fit ke satu halaman, trim tinggi supaya tidak ada halaman kosong
-        const actualH = Math.min(pdfH, pageH);
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, actualH);
-      } else {
-        // Split multi-page dengan overlap 0
-        const totalPages = Math.ceil(pdfH / pageH);
-        for (let pg = 0; pg < totalPages; pg++) {
-          if (pg > 0) pdf.addPage();
-          const yOffset = -(pg * pageH);
-          // Kalau halaman terakhir, trim supaya tidak kosong
-          const remaining = pdfH - pg * pageH;
-          const thisH = Math.min(pageH, remaining);
-          pdf.addImage(imgData, 'JPEG', 0, yOffset, pdfW, pdfH);
-          setProgress(80 + (pg / totalPages) * 15, `Halaman ${pg+1}/${totalPages}...`);
-        }
-      }
-
-      pdf.save(filename + '.pdf');
     }
 
-    setProgress(100, 'Selesai! ✓');
+    setP(100, 'Selesai! \u2713');
     await new Promise(r => setTimeout(r, 800));
     modal.classList.remove('open');
 
   } catch(err) {
     console.error('Export error:', err);
-    progressText.textContent = '⚠️ Gagal export. Coba lagi.';
+    progressText.textContent = '\u26A0\uFE0F Gagal: ' + err.message;
     progressText.style.color = '#c0392b';
   } finally {
     btns.forEach(b => b.disabled = false);
@@ -2135,7 +2434,7 @@ async function exportItinerary(format) {
       progress.style.display = 'none';
       progressBar.style.width = '0%';
       progressText.style.color = '';
-    }, 1200);
+    }, 1500);
   }
 }
 
@@ -2314,7 +2613,6 @@ function render() {
           c.innerHTML = renderStep3();
         } else {
           c.innerHTML = renderPlanningBoard();
-          requestAnimationFrame(() => initSortableBoard());
         }
         break;
     }
@@ -2569,6 +2867,10 @@ function attachListeners() {
     S.penginapanDataList = [];
     render();
   });
+  // Re-init Sortable setiap kali DOM di-rebuild (planning board)
+  if (S.step === 3 && !S.loading && !S.itinerary && !S.error) {
+    requestAnimationFrame(() => initSortableBoard());
+  }
 }
 
 // ─── STATIC NAV LISTENERS ────────────────────────────────────────────────────
