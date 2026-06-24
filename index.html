@@ -2071,434 +2071,443 @@ async function exportItinerary(format) {
     progressText.textContent = txt;
   }
 
+  // ── Clean text: strip semua non-ASCII ──────────────────────────────────────
+  function clean(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/[\u2013\u2014]/g, '-')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/\u00B7/g, '·')
+      .replace(/[^\x00-\xFF]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function session(time) {
+    if (!time) return 'siang';
+    const h = parseInt(time.split(':')[0]);
+    if (h < 10) return 'pagi';
+    if (h < 14) return 'siang';
+    if (h < 18) return 'sore';
+    return 'malam';
+  }
+  const SESS_ORDER = ['pagi','siang','sore','malam'];
+  const SESS_LBL   = { pagi:'PAGI', siang:'SIANG', sore:'SORE', malam:'MALAM' };
+
   try {
     setP(5, 'Membangun dokumen...');
 
     const { jsPDF } = window.jspdf;
-    const pdf  = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const PW   = 210; const PH = 297;
-    const ML   = 16; const MR = 16;
-    const CW   = PW - ML - MR;
 
-    // ── Color palette ──────────────────────────────────────────────────────
-    const C = {
-      ink:    [17,  17,  17 ],
-      red:    [192, 57,  43 ],
-      gray:   [120, 120, 120],
-      lgray:  [220, 215, 208],
-      cream:  [248, 247, 244],
-      white:  [255, 255, 255],
-      teal:   [42,  120, 100],
-      navy:   [30,  60,  100],
-    };
+    // ── Constants ─────────────────────────────────────────────────────────────
+    const PW=210, PH=297, ML=18, MR=18, CW=PW-ML-MR;
 
-    // Day accent colors — berbeda tiap hari
-    const DAY_COLORS = [C.red, C.teal, C.navy, [140,80,20], [80,40,120], [20,100,80]];
+    // Color palette
+    const RED   = [192,57,43],  DRED  = [150,40,30];
+    const INK   = [20,20,20],   GRAY  = [110,110,110];
+    const LGRAY = [210,205,198], CREAM = [248,247,244];
+    const WHITE = [255,255,255], BLACK = [0,0,0];
+    const DAY_C = [
+      [192,57,43],  // hari 1: merah
+      [30,90,140],  // hari 2: biru
+      [40,110,70],  // hari 3: hijau
+      [120,60,20],  // hari 4: coklat
+      [80,40,120],  // hari 5: ungu
+    ];
 
-    // ── Data ───────────────────────────────────────────────────────────────
-    const totalDays = it.days?.length || 1;
-    const dests     = Array.from(S.destinations)
-                       .map(id => DESTINATIONS.find(d=>d.id===id)?.name)
-                       .filter(Boolean);
-    const transport = {motor:'Motor Pribadi',mobil:'Mobil Pribadi',umum:'Kendaraan Umum'}[S.transport]||S.transport||'-';
-    const budget    = it.estimatedBudget;
-    const budgetStr = budget ? `Rp${(budget.min/1e6).toFixed(1)}jt - Rp${(budget.max/1e6).toFixed(1)}jt` : '-';
-    const today     = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-    const filename  = `itinerary-banyuwangi-${new Date().toISOString().slice(0,10)}`;
+    const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
 
-    // ── Helpers ────────────────────────────────────────────────────────────
-    let curY   = 0;
-    let curPage = 1;
+    // ── State ─────────────────────────────────────────────────────────────────
+    let curY = 0, pageNum = 1, totalPages = 1;
 
-    function rgb(col) { pdf.setDrawColor(...col); }
-    function fill(col) { pdf.setFillColor(...col); }
-    function ink(col) { pdf.setTextColor(...col); }
-    function font(style, size) {
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    const f = (style,size) => {
       pdf.setFont('helvetica', style||'normal');
       if (size) pdf.setFontSize(size);
-    }
+    };
+    const col  = (rgb) => pdf.setTextColor(...rgb);
+    const fill = (rgb) => pdf.setFillColor(...rgb);
+    const draw = (rgb, w) => { pdf.setDrawColor(...rgb); if(w) pdf.setLineWidth(w); };
+    const wrap = (txt, w, sz) => { f('normal',sz||9); return pdf.splitTextToSize(clean(txt)||'', w); };
+    const txt  = (s, x, y, opts) => pdf.text(clean(s)||'', x, y, opts||{});
 
-    function addPageIfNeeded(need) {
-      if (curY + need > PH - 18) {
-        drawPageFooter();
+    function checkPage(need) {
+      if (curY + need > PH - 20) {
+        // Footer halaman ini
+        pageFooter();
         pdf.addPage();
-        curPage++;
-        curY = 14;
+        pageNum++;
+        curY = 16;
+        // Header tipis di halaman baru
+        f('bolditalic',8); col(GRAY);
+        txt('Wandr  Banyuwangi  –  Itinerary', ML, curY);
+        curY += 7;
       }
     }
 
-    function drawPageFooter() {
-      font('normal', 7.5);
-      ink(C.gray);
-      pdf.text('Wandr · ditolabs.github.io/bwi-app · ' + today, ML, PH - 8);
-      font('bolditalic', 9);
-      ink(C.ink);
-      pdf.text('Wandr', PW - MR, PH - 8, {align:'right'});
-      // Page number
-      const total = pdf.internal.getNumberOfPages();
-      font('normal', 7.5);
-      ink(C.gray);
-      pdf.text(curPage + ' / ' + total, PW/2, PH - 8, {align:'center'});
+    function pageFooter() {
+      const today = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+      // Garis bawah
+      draw(LGRAY, 0.4);
+      pdf.line(ML, PH-13, PW-MR, PH-13);
+      // Teks
+      f('normal',7.5); col(GRAY);
+      txt('Wandr · ditolabs.github.io/bwi-app · '+today, ML, PH-8);
+      f('bolditalic',8.5); col(INK);
+      txt('Wandr', PW-MR, PH-8, {align:'right'});
+      // Nomor halaman — update di akhir
     }
 
-    function hline(y, col, w) {
-      pdf.setDrawColor(...(col||C.lgray));
-      pdf.setLineWidth(w||0.3);
-      pdf.line(ML, y, PW-MR, y);
-    }
+    // ── Data ──────────────────────────────────────────────────────────────────
+    const totalDays = it.days?.length||1;
+    const dests     = Array.from(S.destinations).map(id=>DESTINATIONS.find(d=>d.id===id)?.name).filter(Boolean);
+    const transport = {motor:'Motor Pribadi',mobil:'Mobil Pribadi',umum:'Kendaraan Umum'}[S.transport]||S.transport||'-';
+    const budget    = it.estimatedBudget;
+    const budMin    = budget ? (budget.min/1e6).toFixed(1) : '?';
+    const budMax    = budget ? (budget.max/1e6).toFixed(1) : '?';
+    const today     = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    const filename  = 'itinerary-banyuwangi-'+new Date().toISOString().slice(0,10);
 
-    function wrapLines(txt, maxW, fontSize) {
-      font('normal', fontSize||9);
-      return pdf.splitTextToSize(stripEmoji(txt)||'', maxW);
-    }
+    // ════════════════════════════════════════════════════════════════════════════
+    // HALAMAN 1: COVER
+    // ════════════════════════════════════════════════════════════════════════════
+    setP(8, 'Cover...');
 
-    // Group activities by session
-    function sessionOf(time) {
-      if (!time) return 'siang';
-      const h = parseInt(time.split(':')[0]);
-      if (h < 10) return 'pagi';
-      if (h < 14) return 'siang';
-      if (h < 18) return 'sore';
-      return 'malam';
-    }
-    const SESSION_LABEL = { pagi:'PAGI', siang:'SIANG', sore:'SORE', malam:'MALAM' };
-    const SESSION_ORDER = ['pagi','siang','sore','malam'];
+    // ── Background putih bersih ───────────────────────────────────────────────
+    fill(WHITE); pdf.rect(0, 0, PW, PH, 'F');
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PAGE 1: COVER
-    // ══════════════════════════════════════════════════════════════════════
-    setP(10, 'Cover...');
+    // ── Blok merah di atas (40% halaman) ─────────────────────────────────────
+    const coverH = 115;
+    fill(RED); pdf.rect(0, 0, PW, coverH, 'F');
 
-    // Full-width cover strip
-    fill(C.red); pdf.rect(0, 0, PW, 88, 'F');
-
-    // Decorative elements — concentric arcs kanan atas
-    pdf.setDrawColor(255,255,255);
-    pdf.setGState(new pdf.GState({opacity:0.08}));
-    for (let r = 20; r <= 70; r += 16) {
-      pdf.setLineWidth(8);
-      pdf.circle(PW + 10, -10, r, 'S');
+    // Garis diagonal dekoratif
+    draw([255,255,255], 0.3);
+    pdf.setGState(new pdf.GState({opacity:0.12}));
+    for (let i=0; i<5; i++) {
+      pdf.line(PW-60+i*18, 0, PW+20+i*18, coverH);
     }
     pdf.setGState(new pdf.GState({opacity:1}));
-    pdf.setLineWidth(0.3);
+    draw(LGRAY, 0.3);
 
     // Eyebrow
-    font('normal', 8);
-    ink([255,255,255]);
-    pdf.setCharSpace(1.5);
-    pdf.text('WANDR   BANYUWANGI EXPLORER', ML, 18);
+    f('normal',7.5); col(WHITE);
+    pdf.setCharSpace(2.5);
+    txt('WANDR   BANYUWANGI EXPLORER', ML, 16);
     pdf.setCharSpace(0);
 
-    // Main title
-    font('bolditalic', 38);
-    ink([255,255,255]);
-    pdf.text('Travel', ML, 42);
-    font('bold', 48);
-    pdf.text('ITINERARY', ML, 60);
+    // Main title: "Travel"
+    f('bolditalic', 52); col(WHITE);
+    txt('Travel', ML, 52);
 
-    // Diagonal accent line
-    pdf.setDrawColor(255,255,255);
-    pdf.setGState(new pdf.GState({opacity:0.3}));
-    pdf.setLineWidth(0.5);
-    pdf.line(ML, 68, ML + 40, 68);
+    // "ITINERARY" di bawah, lebih besar
+    f('bold', 42); col(WHITE);
+    pdf.setCharSpace(3);
+    txt('ITINERARY', ML, 74);
+    pdf.setCharSpace(0);
+
+    // Garis aksen
+    draw(WHITE, 1);
+    pdf.setGState(new pdf.GState({opacity:0.4}));
+    pdf.line(ML, 82, ML+55, 82);
     pdf.setGState(new pdf.GState({opacity:1}));
 
-    // Destination list di cover
-    font('normal', 9);
-    ink([255,220,210]);
-    const coverDest = dests.slice(0,6).join('  ·  ');
-    const cdLines = pdf.splitTextToSize(stripEmoji(coverDest), CW - 20);
-    cdLines.forEach((l, i) => pdf.text(l, ML, 76 + i*5));
+    // Destinasi utama
+    f('normal', 9); col([255,210,205]);
+    const destStr = dests.slice(0,5).join('  /  ');
+    const destLines = wrap(destStr, CW-10, 9);
+    destLines.forEach((l,i) => pdf.text(l, ML, 92+i*5));
 
-    // ── Meta bar (di bawah cover, putih) ──────────────────────────────────
-    const metaY = 88;
-    fill(C.white); pdf.rect(0, metaY, PW, 28, 'F');
-    pdf.setDrawColor(...C.ink);
-    pdf.setLineWidth(0.6);
-    pdf.line(0, metaY + 28, PW, metaY + 28);
+    // ── Meta panel (di bawah cover, di atas putih) ────────────────────────────
+    const metaY = coverH;
+    fill(WHITE); pdf.rect(0, metaY, PW, 32, 'F');
 
-    const metaCols = [
-      { lbl:'DESTINASI', val: dests.slice(0,2).join(', ') + (dests.length>2 ? ` +${dests.length-2}`:'' ) },
-      { lbl:'DURASI',    val: `${totalDays} Hari${totalDays>1?' / '+(totalDays-1)+' Malam':''}` },
-      { lbl:'TRANSPORT', val: stripEmoji(transport) },
-      { lbl:'DIBUAT',    val: today },
+    // Border bawah meta
+    draw(INK, 0.8);
+    pdf.line(0, metaY+32, PW, metaY+32);
+
+    const mCols = [
+      {lbl:'DESTINASI', val: dests.slice(0,2).join(', ')+(dests.length>2?'\n+'+(dests.length-2)+' lainnya':'')},
+      {lbl:'DURASI',    val: totalDays+' Hari'+(totalDays>1?' / '+(totalDays-1)+' Malam':'')},
+      {lbl:'TRANSPORT', val: transport},
+      {lbl:'DIBUAT',    val: today},
     ];
-    const mcW = CW / 4;
-    metaCols.forEach((col, ci) => {
-      const cx = ML + ci * mcW;
-      if (ci > 0) {
-        pdf.setDrawColor(...C.lgray);
-        pdf.setLineWidth(0.3);
-        pdf.line(cx, metaY + 5, cx, metaY + 23);
+    const mW = CW/4;
+    mCols.forEach((mc,ci) => {
+      const cx = ML + ci*mW;
+      // Divider vertikal
+      if (ci>0) {
+        draw(LGRAY, 0.3);
+        pdf.line(cx, metaY+5, cx, metaY+27);
       }
-      font('normal', 7); ink(C.gray);
+      // Label
+      f('normal',7); col(GRAY);
       pdf.setCharSpace(0.8);
-      pdf.text(col.lbl, cx + (ci>0?4:0), metaY + 9);
+      txt(mc.lbl, cx+(ci>0?5:0), metaY+10);
       pdf.setCharSpace(0);
-      font('bold', 10); ink(C.ink);
-      const valL = pdf.splitTextToSize(stripEmoji(col.val), mcW - 6);
-      valL.forEach((vl, vi) => pdf.text(vl, cx + (ci>0?4:0), metaY + 17 + vi*4.5));
+      // Value
+      f('bold',10); col(INK);
+      const vLines = clean(mc.val).split('\n');
+      vLines.forEach((vl,vi) => txt(vl, cx+(ci>0?5:0), metaY+19+vi*5));
     });
 
-    curY = metaY + 36;
+    // ── Highlights ─────────────────────────────────────────────────────────────
+    curY = metaY + 40;
+    if (it.highlights?.length) {
+      f('normal',9); col(GRAY);
+      const hlStr = clean((it.highlights||[]).slice(0,4).join('   ·   '));
+      txt(hlStr, ML, curY);
+      curY += 7;
+    }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // Garis pemisah
+    draw(LGRAY, 0.3);
+    pdf.line(ML, curY, PW-MR, curY);
+    curY += 10;
+
+    // ════════════════════════════════════════════════════════════════════════════
     // DAYS
-    // ══════════════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════════════════
     (it.days||[]).forEach((day, di) => {
-      setP(15 + di/totalDays * 55, `Hari ${di+1}...`);
-      const dayCol = DAY_COLORS[di % DAY_COLORS.length];
+      setP(15+di/totalDays*55, 'Hari '+(di+1)+'...');
+      const dc = DAY_C[di%DAY_C.length];
 
-      addPageIfNeeded(38);
+      checkPage(40);
 
-      // ── Day header bar ───────────────────────────────────────────────
-      // Nomor hari — kotak warna
-      fill(dayCol);
-      pdf.rect(ML, curY, 22, 22, 'F');
-      font('bolditalic', 20); ink(C.white);
-      pdf.text(String(di+1), ML + 11, curY + 14.5, {align:'center'});
+      // ── Day header ─────────────────────────────────────────────────────────
+      // Accent bar kiri
+      fill(dc); pdf.rect(ML, curY, 3, 24, 'F');
 
-      // Judul hari
-      font('bold', 15); ink(C.ink);
-      const dayTtl = stripEmoji(day.title||'Hari '+( di+1));
-      const dayTtlLines = pdf.splitTextToSize(dayTtl, CW - 28);
-      dayTtlLines.forEach((tl, ti) => pdf.text(tl, ML + 26, curY + 8 + ti*6.5));
+      // Nomor besar
+      f('bolditalic',30); col(dc);
+      txt(String(di+1), ML+8, curY+17);
 
-      // Hari ke-N label
-      font('normal', 7.5); ink(C.gray);
+      // Label + Judul
+      f('normal',7.5); col(GRAY);
       pdf.setCharSpace(0.6);
-      pdf.text('HARI KE-' + (di+1), ML + 26, curY + 18);
+      txt('HARI KE-'+(di+1), ML+22, curY+7);
       pdf.setCharSpace(0);
+      f('bold',14); col(INK);
+      const dtLines = wrap(day.title||'', CW-26, 14);
+      dtLines.forEach((tl,ti) => txt(tl, ML+22, curY+15+ti*6.5));
 
-      // Garis bawah header
-      pdf.setDrawColor(...dayCol);
-      pdf.setLineWidth(1.5);
-      pdf.line(ML, curY + 23, PW - MR, curY + 23);
-      pdf.setLineWidth(0.3);
+      // Garis bawah header — warna hari
+      draw(dc, 0.8);
+      pdf.line(ML, curY+25, PW-MR, curY+25);
+      draw(LGRAY, 0.3);
 
       curY += 30;
 
-      // ── Group activities by session ──────────────────────────────────
-      const groups = {};
-      (day.activities||[]).forEach(act => {
-        const sess = sessionOf(act.time);
-        if (!groups[sess]) groups[sess] = [];
-        groups[sess].push(act);
+      // ── Group by session ───────────────────────────────────────────────────
+      const grps = {};
+      (day.activities||[]).forEach(a => {
+        const s = session(a.time);
+        (grps[s] = grps[s]||[]).push(a);
       });
 
-      SESSION_ORDER.forEach(sess => {
-        if (!groups[sess]?.length) return;
+      SESS_ORDER.forEach(sess => {
+        if (!grps[sess]?.length) return;
+        checkPage(16);
 
-        addPageIfNeeded(20);
-
-        // Session label
-        fill(C.cream);
-        pdf.rect(ML, curY, CW, 8, 'F');
-        font('bold', 8); ink(dayCol);
-        pdf.setCharSpace(1.2);
-        pdf.text(SESSION_LABEL[sess], ML + 4, curY + 5.5);
+        // Session bar
+        fill(CREAM); pdf.rect(ML, curY, CW, 7, 'F');
+        f('bold',7.5); col(dc);
+        pdf.setCharSpace(1);
+        txt(SESS_LBL[sess], ML+4, curY+5);
         pdf.setCharSpace(0);
 
-        // Time range
-        const times = groups[sess].map(a=>a.time).filter(Boolean);
-        if (times.length >= 2) {
-          font('normal', 7.5); ink(C.gray);
-          pdf.text(`( ${times[0]} - ${times[times.length-1]} )`, PW-MR-2, curY+5.5, {align:'right'});
+        // Waktu range
+        const times = grps[sess].map(a=>a.time).filter(Boolean);
+        if (times.length) {
+          f('normal',7); col(GRAY);
+          txt('( '+times[0]+' – '+times[times.length-1]+' )', PW-MR, curY+5, {align:'right'});
         }
         curY += 10;
 
-        // Activities in session
-        groups[sess].forEach((act, ai) => {
+        // Activities
+        grps[sess].forEach((act, ai) => {
           // Estimate height
-          const nameH   = pdf.splitTextToSize(stripEmoji(act.name||''), CW-28).length * 5.5;
-          const descH   = act.description ? pdf.splitTextToSize(stripEmoji(act.description), CW-28).length * 4.3 + 3 : 0;
-          const tipH    = act.tips ? pdf.splitTextToSize(stripEmoji(act.tips), CW-32).length * 4.3 + 7 : 0;
-          const costH   = act.estimatedCost > 0 ? 7 : 0;
-          const needed  = nameH + descH + tipH + costH + 12;
+          const nL  = wrap(act.name||'', CW-20, 11.5).length;
+          const dL  = act.description ? wrap(act.description, CW-20, 8.5).length : 0;
+          const tL  = act.tips ? wrap(act.tips, CW-24, 8).length : 0;
+          const need = 8 + nL*5.5 + (dL?dL*4+3:0) + (act.estimatedCost>0?7:0) + (tL?tL*4+7:0) + 6;
 
-          addPageIfNeeded(needed);
+          checkPage(need);
 
-          const isLast = ai === groups[sess].length - 1;
-          const dotX   = ML + 5;
-          const dotY   = curY + 3;
-          const lineX  = ML + 14;
+          const isLast = ai === grps[sess].length-1;
+          const dotX   = ML+4.5;
+          const lineX  = ML+13;
 
-          // Timeline dot
-          fill(dayCol);
-          pdf.circle(dotX, dotY, 2.2, 'F');
-
-          // Timeline vertical line
-          if (!isLast || Object.keys(groups).indexOf(sess) < SESSION_ORDER.filter(s=>groups[s]?.length).length - 1) {
-            pdf.setDrawColor(...C.lgray);
-            pdf.setLineWidth(0.8);
-            pdf.line(dotX, dotY + 2.5, dotX, dotY + needed - 4);
+          // Dot
+          fill(dc); pdf.circle(dotX, curY+3, 2, 'F');
+          // Garis vertikal
+          if (!isLast) {
+            draw(LGRAY, 0.7);
+            pdf.line(dotX, curY+5.2, dotX, curY+need-3);
           }
 
-          // Time + duration badge
-          const tStr = stripEmoji((act.time||'') + (act.duration ? '  ·  ' + act.duration : ''));
-          const tW   = pdf.getStringUnitWidth(tStr) * 8.5 / pdf.internal.scaleFactor + 8;
-          fill([255,240,238]);
-          pdf.roundedRect(lineX, curY, tW, 6, 1, 1, 'F');
-          font('bold', 8); ink(dayCol);
-          pdf.text(tStr, lineX + 4, curY + 4.3);
-          curY += 8;
-
-          // Activity name
-          const nLines = pdf.splitTextToSize(stripEmoji(act.name||''), CW - 22);
-          font('bold', 12); ink(C.ink);
-          nLines.forEach((nl, ni) => pdf.text(nl, lineX, curY + ni * 5.5));
-          curY += nLines.length * 5.5 + 2;
-
-          // Description
-          if (act.description) {
-            const dLines = pdf.splitTextToSize(stripEmoji(act.description), CW - 22);
-            font('normal', 9); ink([80,80,80]);
-            dLines.forEach((dl, di2) => pdf.text(dl, lineX, curY + di2 * 4.3));
-            curY += dLines.length * 4.3 + 2;
-          }
-
-          // Cost
-          if (act.estimatedCost > 0) {
-            const cs = '~Rp' + act.estimatedCost.toLocaleString('id-ID');
-            fill([240,240,240]);
-            const csW = pdf.getStringUnitWidth(cs) * 8 / pdf.internal.scaleFactor + 7;
-            pdf.roundedRect(lineX, curY, csW, 5.5, 1, 1, 'F');
-            font('normal', 7.5); ink(C.gray);
-            pdf.text(cs, lineX + 3.5, curY + 3.8);
+          // Badge waktu
+          const ts = clean((act.time||'')+(act.duration?' · '+act.duration:''));
+          if (ts) {
+            fill([255,240,238]);
+            const tsW = Math.min(pdf.getStringUnitWidth(ts)*8.5/pdf.internal.scaleFactor+8, CW-20);
+            pdf.roundedRect(lineX, curY-0.5, tsW, 6, 1, 1, 'F');
+            f('bold',7.5); col(dc);
+            txt(ts, lineX+4, curY+4);
             curY += 8;
           }
 
-          // Tips box
-          if (act.tips) {
-            const tLines = pdf.splitTextToSize(stripEmoji(act.tips), CW - 30);
-            const tH = tLines.length * 4.3 + 8;
-            fill([253,248,248]);
-            pdf.rect(lineX, curY, CW - 22, tH, 'F');
-            fill(dayCol);
-            pdf.rect(lineX, curY, 2.5, tH, 'F');
-            font('normal', 8); ink([80,80,80]);
-            tLines.forEach((tl, ti) => pdf.text(tl, lineX + 6, curY + 5 + ti * 4.3));
-            curY += tH + 3;
+          // Nama aktivitas
+          f('bold',11.5); col(INK);
+          const nLines = wrap(act.name||'', CW-20, 11.5);
+          nLines.forEach((nl,ni) => txt(nl, lineX, curY+ni*5.5));
+          curY += nLines.length*5.5+2;
+
+          // Deskripsi
+          if (act.description) {
+            f('normal',8.5); col([75,75,75]);
+            const dLines = wrap(act.description, CW-20, 8.5);
+            dLines.forEach((dl,di2) => txt(dl, lineX, curY+di2*4));
+            curY += dLines.length*4+2;
           }
 
-          curY += 5; // gap antar aktivitas
-        });
+          // Cost
+          if (act.estimatedCost>0) {
+            const cs = '~Rp'+act.estimatedCost.toLocaleString('id-ID');
+            fill([238,238,238]);
+            const csW = pdf.getStringUnitWidth(clean(cs))*8/pdf.internal.scaleFactor+8;
+            pdf.roundedRect(lineX, curY, csW, 5.5, 1, 1, 'F');
+            f('normal',7.5); col(GRAY);
+            txt(cs, lineX+4, curY+3.8);
+            curY += 8;
+          }
 
-        curY += 4; // gap antar sesi
+          // Tips
+          if (act.tips) {
+            const tLines = wrap(act.tips, CW-24, 8);
+            const tH = tLines.length*4+8;
+            fill([252,246,245]); pdf.rect(lineX, curY, CW-16, tH, 'F');
+            fill(dc);            pdf.rect(lineX, curY, 2.5, tH, 'F');
+            f('normal',8); col([70,70,70]);
+            tLines.forEach((tl,ti) => txt(tl, lineX+6, curY+5+ti*4));
+            curY += tH+3;
+          }
+
+          curY += 5;
+        });
+        curY += 3;
       });
 
-      curY += 8; // gap antar hari
+      // Garis pemisah hari
+      draw(LGRAY, 0.3);
+      pdf.line(ML, curY, PW-MR, curY);
+      curY += 8;
     });
 
-    // ══════════════════════════════════════════════════════════════════════
-    // BUDGET + PACKING
-    // ══════════════════════════════════════════════════════════════════════
-    setP(75, 'Budget & perlengkapan...');
-    addPageIfNeeded(36);
+    // ════════════════════════════════════════════════════════════════════════════
+    // BUDGET + PACKING + NOTES
+    // ════════════════════════════════════════════════════════════════════════════
+    setP(78, 'Budget...');
+    checkPage(32);
 
-    // Budget bar
-    fill(C.ink); pdf.rect(ML, curY, CW, 24, 'F');
-    font('normal', 7.5); ink([160,160,160]);
+    // Budget bar hitam
+    fill(BLACK); pdf.rect(ML, curY, CW, 26, 'F');
+    // Accent strip merah kiri
+    fill(RED); pdf.rect(ML, curY, 4, 26, 'F');
+    f('normal',7.5); col([160,160,160]);
     pdf.setCharSpace(0.8);
-    pdf.text('ESTIMASI TOTAL BIAYA', ML + 7, curY + 8);
+    txt('ESTIMASI TOTAL BIAYA', ML+9, curY+9);
     pdf.setCharSpace(0);
-    font('bold', 20); ink(C.white);
-    pdf.text(stripEmoji(budgetStr), ML + 7, curY + 19);
-    font('normal', 8); ink([140,140,140]);
-    pdf.text('Belum termasuk akomodasi & tiket transport', PW-MR-3, curY+15, {align:'right'});
-    curY += 30;
+    f('bold',20); col(WHITE);
+    txt('Rp'+budMin+'jt  -  Rp'+budMax+'jt', ML+9, curY+20);
+    f('normal',7.5); col([140,140,140]);
+    txt('Belum termasuk akomodasi & tiket transport', PW-MR, curY+20, {align:'right'});
+    curY += 32;
 
     // Packing
     const packing = it.packingTips||[];
     if (packing.length) {
-      addPageIfNeeded(28 + Math.ceil(packing.length/3)*9);
+      setP(85, 'Perlengkapan...');
+      checkPage(20+Math.ceil(packing.length/3)*9);
 
-      pdf.setDrawColor(...C.ink);
-      pdf.setLineWidth(1);
-      pdf.line(ML, curY, PW-MR, curY);
-      curY += 7;
+      draw(INK, 0.8); pdf.line(ML, curY, PW-MR, curY); curY += 8;
+      f('bold',11); col(INK);
+      txt('Persiapan & Perlengkapan', ML, curY+4); curY += 12;
 
-      font('bold', 12); ink(C.ink);
-      pdf.text('Persiapan & Perlengkapan', ML, curY + 5);
-      curY += 12;
-
-      const colW3 = CW / 3;
-      packing.forEach((item, pi) => {
-        const col = pi % 3;
-        const row = Math.floor(pi/3);
-        const ix  = ML + col * colW3;
-        const iy  = curY + row * 9;
-        // Checkbox border
-        pdf.setDrawColor(...C.lgray);
-        pdf.setLineWidth(0.5);
-        pdf.rect(ix, iy - 2.5, 4.5, 4.5);
-        font('normal', 8.5); ink([68,68,68]);
-        pdf.text(stripEmoji(item), ix + 7, iy + 1.5);
+      const pw3 = CW/3;
+      packing.forEach((item,pi) => {
+        const ci = pi%3, ri = Math.floor(pi/3);
+        const ix = ML+ci*pw3, iy = curY+ri*9;
+        // Checkbox
+        draw(LGRAY, 0.5); pdf.rect(ix, iy-3, 4.5, 4.5);
+        f('normal',8.5); col([60,60,60]);
+        txt(item, ix+7, iy+1);
       });
-      curY += Math.ceil(packing.length/3) * 9 + 6;
+      curY += Math.ceil(packing.length/3)*9+8;
     }
 
     // Notes
     if (it.importantNotes) {
-      addPageIfNeeded(18);
-      const nLines = pdf.splitTextToSize('[!] ' + stripEmoji(it.importantNotes), CW - 10);
-      const nH = nLines.length * 4.3 + 9;
-      fill([253,248,248]); pdf.rect(ML, curY, CW, nH, 'F');
-      fill(C.red); pdf.rect(ML, curY, 2.5, nH, 'F');
-      font('normal', 8.5); ink([80,80,80]);
-      nLines.forEach((nl, ni) => pdf.text(nl, ML+7, curY+5.5+ni*4.3));
-      curY += nH + 8;
+      checkPage(20);
+      const nLines = wrap('[!] '+it.importantNotes, CW-10, 8.5);
+      const nH = nLines.length*4+9;
+      fill([252,246,245]); pdf.rect(ML, curY, CW, nH, 'F');
+      fill(RED);           pdf.rect(ML, curY, 3, nH, 'F');
+      f('normal',8.5); col([70,70,70]);
+      nLines.forEach((nl,ni) => txt(nl, ML+8, curY+5.5+ni*4));
+      curY += nH+6;
     }
 
-    // Fix page numbers setelah semua halaman selesai
-    setP(92, 'Finalisasi...');
-    const totalPages = pdf.internal.getNumberOfPages();
-    for (let pg = 1; pg <= totalPages; pg++) {
+    // ── Footer semua halaman ──────────────────────────────────────────────────
+    setP(94, 'Finalisasi...');
+    totalPages = pdf.internal.getNumberOfPages();
+    for (let pg=1; pg<=totalPages; pg++) {
       pdf.setPage(pg);
-      drawPageFooter();
-      font('normal', 7.5); ink(C.gray);
-      pdf.text(pg + ' / ' + totalPages, PW/2, PH-8, {align:'center'});
+      pageFooter();
+      f('normal',7.5); col(GRAY);
+      pdf.text(pg+' / '+totalPages, PW/2, PH-8, {align:'center'});
     }
 
-    setP(98, 'Menyimpan...');
+    setP(99, 'Menyimpan...');
 
-    if (format === 'pdf') {
-      pdf.save(filename + '.pdf');
+    if (format==='pdf') {
+      pdf.save(filename+'.pdf');
     } else {
-      // JPG — render via html2canvas dari print div
+      // JPG fallback via html2canvas
       const printEl = document.getElementById('itinerary-print');
       printEl.innerHTML = buildPrintHTML(it);
-      await new Promise(r => setTimeout(r, 600));
-      const canvas = await html2canvas(printEl, {
-        scale:2.5, useCORS:true, backgroundColor:'#ffffff', width:794, windowWidth:794,
+      await new Promise(r=>setTimeout(r,600));
+      const canvas = await html2canvas(printEl,{
+        scale:2.5, useCORS:true, backgroundColor:'#fff', width:794, windowWidth:794,
         onclone: doc => {
-          const el = doc.getElementById('itinerary-print');
-          if (el) { el.style.position='relative'; el.style.left='0'; }
+          const el=doc.getElementById('itinerary-print');
+          if(el){el.style.position='relative';el.style.left='0';}
         }
       });
-      const link = document.createElement('a');
-      link.download = filename + '.jpg';
-      link.href = canvas.toDataURL('image/jpeg', 0.92);
+      const link=document.createElement('a');
+      link.download=filename+'.jpg';
+      link.href=canvas.toDataURL('image/jpeg',0.93);
       link.click();
     }
 
-    setP(100, 'Selesai! v');
-    await new Promise(r => setTimeout(r, 800));
+    setP(100, 'Selesai!');
+    await new Promise(r=>setTimeout(r,700));
     modal.classList.remove('open');
 
   } catch(err) {
     console.error('Export error:', err);
-    progressText.textContent = '[!] Gagal: ' + err.message;
+    progressText.textContent = 'Gagal: '+err.message;
     progressText.style.color = '#c0392b';
   } finally {
-    btns.forEach(b => b.disabled = false);
-    setTimeout(() => {
-      progress.style.display = 'none';
-      progressBar.style.width = '0%';
-      progressText.style.color = '';
+    btns.forEach(b=>b.disabled=false);
+    setTimeout(()=>{
+      progress.style.display='none';
+      progressBar.style.width='0%';
+      progressText.style.color='';
     }, 1500);
   }
 }
+
 
 
 
@@ -3744,7 +3753,7 @@ function renderPlanningBoard() {
   }
 
   function hotelCard(idx, name) {
-    return `<div class="drag-item" data-id="hotel_checkin_${idx}_${Date.now()}_${Math.random().toString(36).slice(2,6)}"
+    return `<div class="drag-item" data-id="hotel_checkin_${idx}_${Date.now()}_${Math.random().toString(36).slice(2,6)}" style="touch-action:none"
       style="border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06)">
       <span class="drag-handle" style="color:#7a4a8a">≡</span>
       <span class="drag-emoji">🏨</span>
@@ -3796,7 +3805,11 @@ function renderPlanningBoard() {
         ${warnHTML}
         <div class="plan-col-body" id="bucket-day${i}">
           ${ids.map(id=>id.startsWith('hotel_checkin_')?hotelCard(parseInt(id.split('_')[2]),hotelNames[parseInt(id.split('_')[2])]||'Penginapan'):destCard(id)).join('')}
-          ${ids.length===0?'<div class="plan-empty">Seret destinasi ke sini</div>':''}
+          ${ids.length===0?`<div class="plan-empty" style="padding:14px;text-align:center">
+            <div style="font-size:20px;margin-bottom:6px">✈️</div>
+            <div style="font-size:12px;font-weight:700;color:#444;margin-bottom:3px">Hari Kosong</div>
+            <div style="font-size:11px;color:#888;line-height:1.5">Hari ini akan otomatis jadi<br>hari kepulangan saat generate</div>
+          </div>`:''}
         </div>
       </div>`;
   }).join('');
@@ -3856,7 +3869,7 @@ function duplicateHotelCard(btn) {
   const uid=Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   const clone=document.createElement('div');
   clone.className='drag-item'; clone.dataset.id=`hotel_checkin_${idx}_${uid}`;
-  clone.style.cssText='border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06)';
+  clone.style.cssText='border-color:rgba(196,123,212,.3);background:rgba(196,123,212,.06);touch-action:none;';
   clone.innerHTML=`<span class="drag-handle" style="color:#7a4a8a">≡</span>
     <span class="drag-emoji">🏨</span>
     <div class="drag-info">
