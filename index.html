@@ -995,17 +995,32 @@ function showLoadingDest() {
 async function loadDestinations() {
   showLoadingDest();
   if (!db) {
-    DESTINATIONS = DESTINATIONS_FALLBACK; return;
+    DESTINATIONS = DESTINATIONS_FALLBACK; 
+    return;
   }
+  
   try {
-    if (firebase.auth && !firebase.auth().currentUser) {
-      try { await firebase.auth().signInAnonymously(); } catch(ae) { console.warn('anon auth gagal:', ae.message); }
-    }
-    const timeout = new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 10000));
-    const query   = db.collection('places').get();
-    const snap    = await Promise.race([query, timeout]);
+    // 1. Pindahkan inisialisasi timeout ke paling atas
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Firebase timeout')), 10000));
+    
+    // 2. Bungkus Auth dan Query dalam satu async task
+    const firebaseTask = (async () => {
+      if (firebase.auth && !firebase.auth().currentUser) {
+        try { 
+          await firebase.auth().signInAnonymously(); 
+        } catch(ae) { 
+          console.warn('anon auth gagal:', ae.message); 
+        }
+      }
+      return await db.collection('places').get();
+    })();
+    
+    // 3. Race antara keseluruhan proses Firebase vs Timeout 10 detik
+    const snap = await Promise.race([firebaseTask, timeout]);
+    
     window._placesCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const loaded = snap.docs.map(doc => mapToWandr(doc.id, doc.data())).filter(Boolean);
+    
     if (loaded.length > 0) {
       DESTINATIONS = loaded;
     } else {
@@ -1016,6 +1031,7 @@ async function loadDestinations() {
     console.warn('Firebase gagal (' + e.message + '), pakai fallback');
   }
 }
+
 
 const KOTA = ['Surabaya','Jakarta','Bali/Denpasar','Malang','Yogyakarta','Semarang','Bandung','Lainnya'];
 const DURASI = [
