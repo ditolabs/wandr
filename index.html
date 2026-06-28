@@ -1923,14 +1923,14 @@ function renderStep3() {
 
       <!-- title row -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px">
-        <div style="font-family:'Inter',sans-serif;font-size:22px;
-          font-weight:700;color:#fff;line-height:1.2;flex:1">
+        <div style="font-family:'Inter',sans-serif;font-size:15px;
+          font-weight:700;color:#fff;line-height:1.35;flex:1">
           ${esc(it.summary?.split('.')[0] || 'Itinerary Banyuwangi')}
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">Estimasi</div>
           <div style="font-size:19px;font-weight:700;color:#fff;font-family:'Inter',sans-serif;line-height:1">
-            ${((it.estimatedBudget?.min||0)/1000000).toFixed(1)}<span style="font-size:11px;opacity:.6">–</span>${((it.estimatedBudget?.max||0)/1000000).toFixed(1)}<span style="font-size:11px;font-weight:400;opacity:.7"> JT</span>
+            ${((it.estimatedBudget?.min||0)/1000000).toFixed(1)}<span style="font-size:10px;opacity:.6">–</span>${((it.estimatedBudget?.max||0)/1000000).toFixed(1)}<span style="font-size:10px;font-weight:500;opacity:.7"> JT</span>
           </div>
         </div>
       </div>
@@ -1938,15 +1938,15 @@ function renderStep3() {
       <!-- stats pills row -->
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <div style="background:rgba(255,255,255,.13);border-radius:20px;padding:5px 12px;
-          font-size:11px;color:rgba(255,255,255,.9);font-weight:500">
+          font-size:10px;color:rgba(255,255,255,.9);font-weight:500;white-space:nowrap">
           📅 ${totalDays} Hari${totalDays>1?' · '+(totalDays-1)+' Malam':''}
         </div>
         <div style="background:rgba(255,255,255,.13);border-radius:20px;padding:5px 12px;
-          font-size:11px;color:rgba(255,255,255,.9);font-weight:500">
+          font-size:10px;color:rgba(255,255,255,.9);font-weight:500;white-space:nowrap">
           ${transportLabel}
         </div>
         ${kota ? `<div style="background:rgba(255,255,255,.13);border-radius:20px;padding:5px 12px;
-          font-size:11px;color:rgba(255,255,255,.9);font-weight:500">
+          font-size:10px;color:rgba(255,255,255,.9);font-weight:500;white-space:nowrap">
           📍 dari ${esc(kota)}
         </div>` : ''}
         <div style="background:rgba(233,69,96,.25);border:1px solid rgba(233,69,96,.4);border-radius:20px;padding:5px 12px;
@@ -2327,17 +2327,17 @@ function buildPrintPage(it) {
   /* ── COVER ──────────────────────────────────────── */
   .cover {
     display:flex;align-items:flex-start;gap:0;
-    margin-bottom:8mm;
-    border-bottom:3px solid #c0392b;
-    padding-bottom:6mm;
+    margin-bottom:5mm;
+    border-bottom:2px solid #c0392b;
+    padding-bottom:4mm;
   }
   .cover-left { flex:1; }
   .cover-eyebrow {
     font-size:7pt;letter-spacing:.18em;color:#888;
-    text-transform:uppercase;margin-bottom:3mm;font-weight:500;
+    text-transform:uppercase;margin-bottom:2mm;font-weight:500;
   }
   .cover-title {
-    font-size:34pt;font-weight:800;
+    font-size:28pt;font-weight:800;
     color:#1a1a1a;line-height:1.05;
     letter-spacing:-0.02em;margin-bottom:2mm;
   }
@@ -2365,7 +2365,7 @@ function buildPrintPage(it) {
   /* ── INFO BOX (like Image 1 flight/hotel info) ── */
   .info-box {
     border:1px solid #e0dbd4;border-radius:3mm;
-    padding:4mm 5mm;margin-bottom:7mm;
+    padding:3mm 4mm;margin-bottom:4mm;
     display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4mm;
     background:#fafafa;
   }
@@ -2379,7 +2379,7 @@ function buildPrintPage(it) {
 
   /* ── DEST TAGS ───────────────────────────────────── */
   .dest-tags {
-    display:flex;flex-wrap:wrap;gap:1.5mm;margin-bottom:7mm;
+    display:flex;flex-wrap:wrap;gap:1.5mm;margin-bottom:4mm;
   }
   .dest-tag {
     font-size:8pt;padding:1.5mm 3.5mm;
@@ -3725,8 +3725,8 @@ function buildDepartureDay(dayNum, kota, transport) {
 }
 
 function buildActivityDay(dayNum, spots, zone, form, opts={}) {
-  const hasIjen      = spots.some(s=>s.id==='ijen');
-  const hasSukamade  = spots.some(s=>s.id==='sukamade');
+  const hasIjen      = spots.some(s=>s.id==='ijen'||s.isIjen===true);
+  const hasSukamade  = spots.some(s=>s.id==='sukamade'||s.isNight===true&&(s.name||'').toLowerCase().includes('sukamade'));
   const hasMenjangan = spots.some(s=>s.id==='menjangan'||(s.name||'').toLowerCase().includes('menjangan'));
   const hasTabuhan   = spots.some(s=>s.id==='tabuhan'  ||(s.name||'').toLowerCase().includes('tabuhan'));
 
@@ -3767,15 +3767,51 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
   if (hasIjen) {
     const ijenExt=DEST_EXT['ijen']||{};
     const hotelC=getHotelCoords();
-    const extraSpots=spots.filter(s=>s.id!=='ijen');
+    const extraSpots=spots.filter(s=>s.id!=='ijen'&&!s.isIjen);
+    const travelToIjen = hasMotor()||hasMobil() ? 90 : 120;
+    const departTime   = addMin('00:00', -(travelToIjen));   // e.g. 22:30 malam sebelumnya
+    const arrPaltuding = '00:30';
     const acts=[
-      {time:'01:00',name:'Bangun & Persiapan Ijen',location:getFinalHotelName(),duration:'30 menit',description:'Bangun dini hari. Pakai jaket paling tebal, masker N95, dan headlamp. Sarapan ringan atau skip.',tips:'Atur alarm 00:45. Simpan barang berharga di hotel.',estimatedCost:0,type:'istirahat'},
-      {time:'01:30',name:'Perjalanan ke Paltuding (Basecamp Ijen)',location:`${getFinalHotelName()} → Paltuding`,duration:'1.5 jam',description:`Perjalanan dari ${getFinalHotelName()} ke Paltuding (basecamp Kawah Ijen). Jalannya berliku dan gelap.`,tips:`Pakai ${getTransportLabel()}. Perjalanan ±1.5 jam dari kota, pastikan kendaraan prima. Parkir di Paltuding.`,estimatedCost:0,type:'transport'},
-      {time:'03:00',name:'Trekking Kawah Ijen — Blue Fire',location:'Paltuding → Puncak Kawah Ijen',duration:'2.5 jam',description:'Trek 3km dengan elevasi 900m dari Paltuding ke puncak. Di kawah, saksikan blue fire misterius dari jarak dekat.',tips:'Beli tiket di gerbang (Rp5.000 WNI, Rp150.000 WNA). Masker gas WAJIB. Porter tersedia ~150K.',estimatedCost:5000,type:'aktivitas'},
-      {time:'05:30',name:'Sunrise di Puncak Ijen',location:'Puncak Kawah Ijen (2.386m)',duration:'1 jam',description:'Matahari terbit di puncak dengan pemandangan kawah biru di bawah. Momen paling dramatis di Banyuwangi.',tips:'Suhu di puncak <10°C saat subuh. Jangan buang sampah, jaga kebersihan kawasan.',estimatedCost:0,type:'aktivitas'},
-      {time:'07:00',name:'Turun dari Ijen',location:'Puncak → Paltuding',duration:'1.5 jam',description:'Turun dengan santai, nikmati pemandangan hutan hujan tropis.',tips:'Turunan lebih licin dari pada naik. Hati-hati.',estimatedCost:0,type:'transport'},
+      {time:'22:00',name:'Istirahat Awal — Persiapan Ijen',location:getFinalHotelName(),duration:'3 jam',
+        description:'Tidur lebih awal — kamu akan bangun tengah malam. Siapkan tas: jaket tebal, masker N95, headlamp, snack.',
+        tips:'Set alarm 23:30. Simpan barang berharga di hotel. Ijen buka mulai 00:00 WIB.',
+        estimatedCost:0,type:'istirahat'},
+      {time:'23:30',name:'Bangun & Persiapan Keberangkatan',location:getFinalHotelName(),duration:'30 menit',
+        description:'Bangun, pakai jaket paling tebal (suhu turun hingga 5°C di puncak), masker N95, dan headlamp.',
+        tips:'Sarapan ringan atau bawa snack bar. Isi air minum 1L.',
+        estimatedCost:0,type:'istirahat'},
+      {time:'00:00',name:`Perjalanan ke Paltuding (Basecamp Ijen)`,location:`${getFinalHotelName()} → Paltuding, Licin`,
+        duration:`±${Math.round(travelToIjen/60)}.5 jam`,
+        description:'Perjalanan malam menuju Paltuding, basecamp Kawah Ijen. Jalan sempit dan berliku, disarankan pelan-pelan.',
+        tips:`${hasMotor()||hasMobil()?'Pastikan kendaraan prima, isi bensin penuh sebelum berangkat.':'Sewa ojek khusus Ijen ~150-200K dari kota, pesan H-1.'} Parkir di Paltuding 10K/motor.`,
+        estimatedCost:hasMotor()||hasMobil()?10000:175000,type:'transport'},
+      {time:'01:00',name:'Trek Paltuding → Puncak Kawah Ijen',location:'Paltuding (2.025m) → Puncak (2.386m)',
+        duration:'2–2.5 jam',
+        description:'Trek 3km dari Paltuding ke puncak kawah. Jalur cukup terjal di 1km terakhir. Tiba puncak sebelum subuh untuk melihat blue fire.',
+        tips:'Tiket masuk Rp5.000 (WNI) | Rp150.000 (WNA). Masker gas N95 WAJIB di area kawah. Porter opsional ~Rp150K.',
+        estimatedCost:5000,type:'aktivitas'},
+      {time:'03:30',name:'Blue Fire Kawah Ijen 🔵🔥',location:'Kawah Ijen (2.386m dpl)',
+        duration:'1.5–2 jam',
+        description:'Fenomena langka blue fire hanya ada 2 di dunia — salah satunya di sini. Api biru misterius membakar gas sulfur di tepi kawah asam terbesar di dunia.',
+        tips:'Jangan turun ke kawah tanpa ranger. Masker N95 wajib — gas SO₂ berbahaya. Foto terbaik: ISO tinggi, no flash.',
+        estimatedCost:0,type:'aktivitas'},
+      {time:'05:30',name:'Sunrise di Puncak Ijen 🌄',location:'Puncak Kawah Ijen',
+        duration:'1 jam',
+        description:'Matahari terbit dengan backdrop kawah biru toska dan kepulan asap sulfur. Pemandangan paling dramatis di Pulau Jawa.',
+        tips:'Suhu puncak 5–10°C. Tetap pakai masker. Jaga jarak dari tepi kawah.',
+        estimatedCost:0,type:'aktivitas'},
+      {time:'07:00',name:'Turun ke Paltuding',location:'Puncak Kawah Ijen → Paltuding',
+        duration:'1.5 jam',
+        description:'Turun santai sambil menikmati pemandangan hutan hujan tropis Ijen yang spektakuler di siang hari.',
+        tips:'Turunan lebih licin dari tanjakan. Gunakan tongkat jika tersedia. Pintu kawasan tutup jam 12:00.',
+        estimatedCost:0,type:'transport'},
+      {time:'09:00',name:'Sarapan & Istirahat di Paltuding',location:'Warung Paltuding / Area Basecamp',
+        duration:'45 menit',
+        description:'Sarapan di warung sekitar Paltuding sebelum pulang. Menu sederhana: nasi goreng, mi instan, kopi panas.',
+        tips:'Harga warung sedikit lebih mahal karena lokasi. Manfaatkan fasilitas toilet dan bilas.',
+        estimatedCost:20000,type:'makan'},
     ];
-    const ijenEnd='09:30';
+    const ijenEnd='10:30';
     if (extraSpots.length>0 && S.gayaPerjalanan==='eksplorasi') {
       let curTime=addMin(ijenEnd,60);
       acts.push(buildMakan('siang',zone,curTime,getHotelCoords()?.lat,getHotelCoords()?.lng));
@@ -3787,7 +3823,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         curTime=addMin(curTime,dur+30);
       });
     } else {
-      acts.push({time:'10:00',name:'Kembali ke Penginapan & Istirahat',location:getFinalHotelName(),duration:'Sisa hari',description:'Tidur siang total — ini yang paling dibutuhkan setelah trekking semalam suntuk.',tips:'Selamat, kamu baru menyelesaikan petualangan terberat di Banyuwangi! 🌋',estimatedCost:0,type:'istirahat'});
+      acts.push({time:'10:30',name:'Kembali ke Penginapan — Tidur Siang Total',location:getFinalHotelName(),duration:'Sisa hari',description:'Tidur siang panjang — ini yang paling dibutuhkan setelah trek malam semalam suntuk. Jangan jadwalkan aktivitas sore hari ini.',tips:'🌋 Selamat! Kawah Ijen adalah salah satu pengalaman terbesar di Banyuwangi. Badan kamu butuh istirahat.',estimatedCost:0,type:'istirahat'});
     }
     return {day:dayNum,date_label:`Hari ${dayNum}`,title:'Petualangan Kawah Ijen',activities:sortActivities(acts)};
   }
@@ -3900,7 +3936,9 @@ function initPlanDays() {
   S.planArrivalExtras=[];
   const byZone={};
   selected.forEach(d=>{const z=DEST_EXT[d.id]?.zone||d.zone||'kota';if(!byZone[z])byZone[z]=[];byZone[z].push(d.id);});
-  if(byZone.barat){const ord=['ijen','kawah_wurung','jagir'];byZone.barat.sort((a,b)=>ord.indexOf(a)-ord.indexOf(b));}
+  if(byZone.barat){const ord=['ijen','kawah_wurung','jagir'];const ordIds=['ijen','kawah_ijen','kawah ijen'];
+  const ordFn=(x)=>{const n=(x.name||x.id||'').toLowerCase();return ordIds.findIndex(k=>x.id===k||n.includes('ijen'));};
+  byZone.barat.sort((a,b)=>ordFn(a)-ordFn(b));}
   if(byZone.selatan){byZone.selatan.sort((a,b)=>(a==='sukamade'?1:0)-(b==='sukamade'?1:0));}
   let di=0;
   ['barat','utara','selatan','kota'].forEach(zone=>{
@@ -4109,8 +4147,8 @@ function generate() {
       ['barat','utara','selatan','kota'].forEach(zone=>{
         if(!byZone[zone]||dayNum>actDayLimit) return;
         const spots=byZone[zone];
-        if(zone==='barat'&&spots.some(s=>s.id==='ijen')){
-          const ijenSpot=spots.find(s=>s.id==='ijen'),others=spots.filter(s=>s.id!=='ijen');
+        if(zone==='barat'&&spots.some(s=>s.id==='ijen'||s.isIjen===true)){
+          const ijenSpot=spots.find(s=>s.id==='ijen'||s.isIjen===true),others=spots.filter(s=>s.id!=='ijen'&&!s.isIjen);
           const ijenGroup=S.gayaPerjalanan==='eksplorasi'&&others.length?[ijenSpot,others[0]]:[ijenSpot];
           if(dayNum<=actDayLimit) days.push(buildActivityDay(dayNum++,ijenGroup,zone,S));
           const remaining=S.gayaPerjalanan==='eksplorasi'?others.slice(1):others;
