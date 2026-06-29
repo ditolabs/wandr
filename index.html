@@ -1072,7 +1072,8 @@ function mapToWandr(id, d) {
   const emojiBase = {alam:'🌿',pantai:'🌊',diving:'🤿',budaya:'🏛️'};
   const emojiOvr  = {'kawah ijen':'🌋','ijen':'🌋','air terjun':'💧','baluran':'🦌',
     'sukamade':'🐢','red island':'🏄','g-land':'🏄','menjangan':'🤿',
-    'tabuhan':'🏝️','kawah wurung':'🏔️','green bay':'🌊','city tour':'🏛️'};
+    'tabuhan':'🏝️','kawah wurung':'🏔️','green bay':'🌊','city tour':'🏛️',
+    'plengsengan':'🏖️','bangsring':'🤿','pulau merah':'🏄','boom':'🌊'};
   let emoji = emojiBase[cat]||'🗺️';
   for (const [k,v] of Object.entries(emojiOvr)) { if(nama.includes(k)){emoji=v;break;} }
   const isIjen=nama.includes('ijen'), isSunset=nama.includes('red island')||nama.includes('pulau merah');
@@ -1086,6 +1087,7 @@ function mapToWandr(id, d) {
     'sukamade':'selatan','alas purwo':'selatan','red island':'selatan',
     'pulau merah':'selatan','green bay':'selatan','teluk ijo':'selatan',
     'g-land':'selatan','grajagan':'selatan','wedi ireng':'selatan',
+    'plengsengan':'kota','bangsring':'utara','boom':'kota',
   };
   let zone = KAWASAN_ZONE[d.kawasan] || 'kota';
   for (const [key, z] of Object.entries(NAMA_ZONE_OVERRIDE)) {
@@ -1131,6 +1133,11 @@ const DESTINATIONS_FALLBACK = [
   { id:'pantai_boom',    name:'Pantai Boom',            cat:'pantai', emoji:'🌊', desc:'Pantai bersejarah Banyuwangi',    bestTime:'sore',      zone:'kota',    tiket:5000,  dur:120, aliases:['boom','pantai boom'] },
   { id:'sendang_seruni', name:'Sendang Seruni',         cat:'alam',   emoji:'🌿', desc:'Pemandian alam air murni jernih', bestTime:'pagi',      zone:'kota',    tiket:5000,  dur:120, aliases:['sendang seruni','seruni','pemandian seruni'] },
   { id:'lider',          name:'Air Terjun Lider',       cat:'alam',   emoji:'💧', desc:'Air terjun tertinggi di BWI',     bestTime:'pagi',      zone:'barat',   tiket:10000, dur:240, aliases:['lider','air terjun lider'] },
+  { id:'plengsengan',   name:'Pantai Plengsengan',       cat:'pantai', emoji:'🏖️', desc:'Pantai kota ikonik Banyuwangi, tempat nongkrong seafood sore hari', bestTime:'pagi-sore', zone:'kota',   tiket:0,     dur:90,  aliases:['plengsengan','pantai plengsengan'] },
+  { id:'boom',          name:'Pantai Boom',               cat:'pantai', emoji:'🌊', desc:'Pantai di pusat kota, dekat pendopo dan city tour',               bestTime:'sore',      zone:'kota',   tiket:5000,  dur:60,  aliases:['boom','pantai boom'] },
+  { id:'bangsring',     name:'Bangsring Underwater',      cat:'diving', emoji:'🤿', desc:'Snorkeling dan diving di perairan jernih Selat Bali',             bestTime:'pagi',      zone:'utara',  tiket:10000, dur:180, aliases:['bangsring','bangsring underwater','buw'] },
+  { id:'pulau_merah',   name:'Pulau Merah',               cat:'pantai', emoji:'🏄', desc:'Pantai ombak besar surganya para surfer, pasir merah eksotis',   bestTime:'pagi-sore', zone:'selatan',tiket:10000, dur:180, aliases:['pulau merah','red island','merah'] },
+  { id:'rajegwesi',     name:'Pantai Rajegwesi',          cat:'pantai', emoji:'🐢', desc:'Pantai dalam kawasan Alas Purwo, gerbang menuju Sukamade',       bestTime:'pagi',      zone:'selatan',tiket:5000,  dur:120, aliases:['rajegwesi','pantai rajegwesi'] },
 ];
 
 function showLoadingDest() {
@@ -1303,10 +1310,10 @@ function matchScore(term, d) {
   if (n === t) return 100;
   if (d.aliases) {
     for (const a of d.aliases) {
-      if (a.length < 4) continue;
+      if (a.length < 3) continue;
       if (a === t) return 98;
-      if (a.includes(t) && t.length >= 5) return 90;
-      if (t.includes(a) && a.length >= 8) return 85;
+      if (a.includes(t) && t.length >= 4) return 90;
+      if (t.includes(a) && a.length >= 4) return 85;
     }
   }
   if (t.length >= 4 && n.includes(t)) return 80;
