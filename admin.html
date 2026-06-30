@@ -233,7 +233,7 @@
     <div class="form-grid"><div class="form-row"><label class="form-label">Nama *</label><input type="text" class="form-input" id="f-nama" placeholder="Nama tempat" dir="ltr"></div><div class="form-row"><label class="form-label">Kawasan *</label><select class="form-select" id="f-kawasan"><option value="">Pilih Kawasan</option><option>Licin / Paltuding</option><option>Kalibendo</option><option>Kalibaru</option><option>Songgon</option><option>Kemiren</option><option>Glenmore</option><option>Sempol</option><option>Wongsorejo</option><option>Banyuputih</option><option>Kalipuro</option><option>Pesanggaran</option><option>Tegaldlimo</option><option>Purwoharjo</option><option>Muncar</option><option>Benculuk</option><option>Grajagan</option><option>Pusat Kota</option><option>Glagah</option><option>Rogojampi</option><option>Kabat</option><option>Singojuruh</option><option>Gombengsari</option></select></div></div>
     <div class="form-grid"><div class="form-row"><label class="form-label">Kategori</label><input type="text" class="form-input" id="f-kategori" placeholder="Pantai, Hutan, Hotel..." dir="ltr"></div><div class="form-row"><label class="form-label">Akses</label><select class="form-select" id="f-akses"><option value="Mulus">Mulus</option><option value="Menengah">Menengah</option><option value="Offroad">Offroad</option><option value="Trekking">Trekking</option></select></div></div>
     <div class="form-row"><label class="form-label">Catatan / Deskripsi</label><textarea class="form-textarea" id="f-catatan" placeholder="Deskripsi singkat, tips, info tiket..."></textarea></div>
-    <div class="form-row"><label class="form-label">Google Maps URL</label><input type="text" class="form-input" id="f-maps" placeholder="https://maps.google.com/..." dir="ltr"></div>
+    <div class="form-row"><label class="form-label">Google Maps URL</label><input type="text" class="form-input" id="f-maps" placeholder="Tempel URL lengkap (ada @-8.xxx,114.xxx) — bukan short link goo.gl" dir="ltr"></div>
     <div class="form-grid"><div class="form-row"><label class="form-label" style="display:flex;align-items:center;justify-content:space-between"><span>Latitude</span><button type="button" id="btn-auto-geocode" style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(99,179,237,.15);border:1px solid rgba(99,179,237,.35);color:#63b3ed;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s">📍 Auto</button></label><input type="number" class="form-input" id="f-lat" placeholder="-8.2xxx" step="0.000001"></div><div class="form-row"><label class="form-label" style="display:flex;align-items:center;justify-content:space-between"><span>Longitude</span><span id="geocode-status" style="font-size:10px;color:#5a7a5a"></span></label><input type="number" class="form-input" id="f-lng" placeholder="114.3xxx" step="0.000001"></div></div>
     <div class="form-row"><label class="form-label">Status</label><select class="form-select" id="f-status"><option value="approved">✅ Approved (tampil di app)</option><option value="pending">⏳ Pending (review dulu)</option></select></div>
     <div class="modal-actions"><button class="btn btn-ghost" id="btnCancelEdit">Batal</button><button class="btn btn-primary" id="btnSaveEdit">Simpan</button></div>
@@ -431,6 +431,23 @@ function openEdit(type, id) { state.editType = type; let doc = null; if (id) { d
 function closeModal() { document.getElementById('modalEdit').classList.add('hidden'); }
 document.getElementById('btnCloseModal').addEventListener('click', closeModal);
 document.getElementById('btnCancelEdit').addEventListener('click', closeModal);
+const btnAutoGeocode = document.getElementById('btn-auto-geocode');
+if (btnAutoGeocode) btnAutoGeocode.addEventListener('click', autoGeocode);
+const fMapsInput = document.getElementById('f-maps');
+if (fMapsInput) fMapsInput.addEventListener('paste', () => {
+  // Beri waktu browser memasukkan teks yang di-paste ke value sebelum dibaca
+  setTimeout(() => {
+    const url = fMapsInput.value.trim();
+    const coords = extractCoordsFromUrl(url);
+    if (coords) {
+      document.getElementById('f-lat').value = coords.lat;
+      document.getElementById('f-lng').value = coords.lng;
+      setGeocodeStatus('✓ Otomatis terisi dari URL', '#48bb78');
+    } else if (isShortMapsLink(url)) {
+      setGeocodeStatus('⚠ Short link — klik tombol Auto untuk cari via nama', '#e07b39');
+    }
+  }, 50);
+});
 document.getElementById('modalEdit').addEventListener('click', e => { if(e.target===document.getElementById('modalEdit')) closeModal(); });
 document.getElementById('btnSaveEdit').addEventListener('click', async () => { const nama = document.getElementById('f-nama').value.trim(); if (!nama) { toast('Nama wajib diisi', 'err'); return; } const data = { nama, type: state.editType === 'kuliner' ? 'kuliner' : state.editType, kawasan: document.getElementById('f-kawasan').value, kategori: document.getElementById('f-kategori').value.trim(), akses: document.getElementById('f-akses').value, catatan: document.getElementById('f-catatan').value.trim(), maps: document.getElementById('f-maps').value.trim(), status: document.getElementById('f-status').value, updatedAt: new Date().toISOString(), }; const lat = parseFloat(document.getElementById('f-lat').value); const lng = parseFloat(document.getElementById('f-lng').value); if (!isNaN(lat)) data.lat = lat; if (!isNaN(lng)) data.lng = lng; const doc = state.editDoc; const type = state.editType; if (doc && doc._id && db && doc._source !== 'local') { try { await db.collection('places').doc(doc._id).update(data); const idx = state.data[type].findIndex(d=>d._id===doc._id); if (idx>=0) state.data[type][idx] = {...state.data[type][idx], ...data}; toast('Data berhasil diupdate ✓'); } catch(e) { toast('Gagal update: '+e.message, 'err'); return; } } else if (doc && doc._source === 'local') { const idx = state.local[type].findIndex(d=>(d._id||d.Id)===doc._id); if (idx>=0) state.local[type][idx] = {...state.local[type][idx], ...data}; toast('Data lokal diupdate'); saveLocalToStorage(); } else { if (db) { try { const ref = await db.collection('places').add(data); state.data[type].unshift({ _id:ref.id, ...data, _source:'firebase' }); toast('Data berhasil ditambah ke Firebase ✓'); } catch(e) { const localId = 'local_' + Date.now(); state.local[type].unshift({ _id:localId, ...data, _source:'local' }); toast('Simpan lokal (Firebase gagal: '+e.message+')', 'info'); saveLocalToStorage(); } } else { const localId = 'local_' + Date.now(); state.local[type].unshift({ _id:localId, ...data, _source:'local' }); toast('Simpan lokal (offline mode)', 'info'); saveLocalToStorage(); } } updateStats(); renderTable(type); closeModal(); });
 async function approveDoc(type, id, currentStatus) { if (!db) { toast('Firebase tidak tersambung', 'err'); return; } const newStatus = currentStatus === 'pending' ? 'approved' : 'pending'; try { await db.collection('places').doc(id).update({ status: newStatus }); const doc = state.data[type].find(d=>d._id===id); if (doc) doc.status = newStatus; toast(`Status diubah ke: ${newStatus}`); renderTable(type); } catch(e) { toast('Gagal: '+e.message, 'err'); } }
@@ -462,8 +479,92 @@ document.getElementById('btn-export-kuliner').addEventListener('click', () => ex
 // karena Firebase auto-generated IDs (panjang acak) adalah ID valid untuk data baru
 
 // ======================== AUTO GEOCODE ======================================
-async function autoGeocode() { const btn = document.getElementById('btn-auto-geocode'); const status = document.getElementById('geocode-status'); const latEl = document.getElementById('f-lat'); const lngEl = document.getElementById('f-lng'); const nama = document.getElementById('f-nama')?.value?.trim() || ''; const kawasan = document.getElementById('f-kawasan')?.value?.trim() || ''; const mapsUrl = document.getElementById('f-maps')?.value?.trim() || ''; const fromUrl = extractCoordsFromUrl(mapsUrl); if (fromUrl) { latEl.value = fromUrl.lat; lngEl.value = fromUrl.lng; setGeocodeStatus('✓ Dari URL Maps', '#48bb78'); return; } if (!nama) { setGeocodeStatus('⚠ Isi nama dulu', '#e07b39'); return; } btn.textContent = '⏳'; btn.disabled = true; setGeocodeStatus('Mencari...', '#63b3ed'); const query = encodeURIComponent(`${nama} ${kawasan} Banyuwangi`); const url = `https://photon.komoot.io/api/?q=${query}&limit=5`; try { const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }); const data = await res.json(); const LAT_MIN = -8.8, LAT_MAX = -7.9, LNG_MIN = 113.9, LNG_MAX = 114.5; const features = data.features || []; let best = features.find(f => { const [lng, lat] = f.geometry.coordinates; return lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX; }) || features[0]; if (best) { const [lng, lat] = best.geometry.coordinates; latEl.value = lat.toFixed(6); lngEl.value = lng.toFixed(6); const displayName = best.properties?.name || ''; const inBbox = lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX; setGeocodeStatus(inBbox ? `✓ ${displayName.slice(0,25)}` : `⚠ Di luar Banyuwangi`, inBbox ? '#48bb78' : '#e07b39'); } else { setGeocodeStatus('✗ Tidak ditemukan', '#fc8181'); } } catch(e) { setGeocodeStatus('✗ Error: ' + e.message.slice(0,30), '#fc8181'); } finally { btn.textContent = '📍 Auto'; btn.disabled = false; } }
-function extractCoordsFromUrl(url) { if (!url) return null; let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/); if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) }; m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/); if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) }; m = url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/); if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) }; return null; }
+async function autoGeocode() {
+  const btn = document.getElementById('btn-auto-geocode');
+  const latEl = document.getElementById('f-lat');
+  const lngEl = document.getElementById('f-lng');
+  const nama = document.getElementById('f-nama')?.value?.trim() || '';
+  const kawasan = document.getElementById('f-kawasan')?.value?.trim() || '';
+  const mapsUrl = document.getElementById('f-maps')?.value?.trim() || '';
+
+  // 1) Coba ekstrak langsung dari URL (kalau link sudah lengkap dengan koordinat)
+  const fromUrl = extractCoordsFromUrl(mapsUrl);
+  if (fromUrl) {
+    latEl.value = fromUrl.lat;
+    lngEl.value = fromUrl.lng;
+    setGeocodeStatus('✓ Dari URL Maps', '#48bb78');
+    return;
+  }
+
+  // 2) Kalau ini short link (maps.app.goo.gl), kasih tahu user kenapa gagal —
+  //    short link tidak mengandung koordinat & browser tidak bisa resolve-nya
+  //    karena cross-origin restriction (CORS).
+  if (isShortMapsLink(mapsUrl)) {
+    setGeocodeStatus('⚠ Short link tidak bisa dibaca — buka link itu di Maps, lalu salin URL lengkap dari address bar (yang ada @lat,lng)', '#e07b39');
+    // Lanjut ke pencarian by nama sebagai fallback otomatis kalau nama sudah diisi
+    if (!nama) return;
+  }
+
+  // 3) Fallback: cari berdasarkan nama + kawasan via Photon (OpenStreetMap geocoder)
+  if (!nama) { setGeocodeStatus('⚠ Isi nama dulu, atau pakai URL Maps lengkap (ada @lat,lng)', '#e07b39'); return; }
+  btn.textContent = '⏳'; btn.disabled = true;
+  setGeocodeStatus('Mencari nama lokasi...', '#63b3ed');
+  const query = encodeURIComponent(`${nama} ${kawasan} Banyuwangi`);
+  const url = `https://photon.komoot.io/api/?q=${query}&limit=5`;
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const data = await res.json();
+    const LAT_MIN = -8.8, LAT_MAX = -7.9, LNG_MIN = 113.9, LNG_MAX = 114.5;
+    const features = data.features || [];
+    let best = features.find(f => {
+      const [lng, lat] = f.geometry.coordinates;
+      return lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX;
+    }) || features[0];
+    if (best) {
+      const [lng, lat] = best.geometry.coordinates;
+      latEl.value = lat.toFixed(6);
+      lngEl.value = lng.toFixed(6);
+      const displayName = best.properties?.name || '';
+      const inBbox = lat >= LAT_MIN && lat <= LAT_MAX && lng >= LNG_MIN && lng <= LNG_MAX;
+      setGeocodeStatus(inBbox ? `✓ ${displayName.slice(0,25)}` : `⚠ Di luar Banyuwangi — cek manual`, inBbox ? '#48bb78' : '#e07b39');
+    } else {
+      setGeocodeStatus('✗ Tidak ditemukan, isi manual', '#fc8181');
+    }
+  } catch(e) {
+    setGeocodeStatus('✗ Error: ' + e.message.slice(0,30), '#fc8181');
+  } finally {
+    btn.textContent = '📍 Auto'; btn.disabled = false;
+  }
+}
+function isShortMapsLink(url) {
+  if (!url) return false;
+  return /maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url);
+}
+function extractCoordsFromUrl(url) {
+  if (!url) return null;
+  // Format 1: .../@-8.xxx,114.xxx,17z (paling umum, dari "Share > Copy link" setelah buka lokasi)
+  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format 2: ?q=-8.xxx,114.xxx
+  m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format 3: ll=-8.xxx,114.xxx
+  m = url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format 4: !3d-8.xxx!4d114.xxx (muncul di beberapa link /place/ dengan data terenkripsi)
+  m = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // Format 5: !4d-8.xxx!3d114.xxx (variasi urutan 3d/4d terbalik)
+  m = url.match(/!4d(-?\d+\.\d+)!3d(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[2]), lng: parseFloat(m[1]) };
+  // Format 6: koordinat polos dipisah koma di mana saja dalam string (fallback terakhir)
+  m = url.match(/(-?\d{1,2}\.\d{4,})\s*,\s*(-?\d{2,3}\.\d{4,})/);
+  if (m) {
+    const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+    if (lat >= -11 && lat <= 6 && lng >= 95 && lng <= 141) return { lat, lng }; // sanity check wilayah Indonesia
+  }
+  return null;
+}
 function setGeocodeStatus(msg, color) { const el = document.getElementById('geocode-status'); if (el) { el.textContent = msg; el.style.color = color; } }
 window.autoGeocode = autoGeocode;
 
