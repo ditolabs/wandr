@@ -1255,7 +1255,22 @@ async function loadDestinations() {
 
     window._placesCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const loaded = snap.docs.map(doc => mapToWandr(doc.id, doc.data())).filter(Boolean);
-    DESTINATIONS = loaded.length > 0 ? loaded : DESTINATIONS_FALLBACK;
+    // Deduplicate: kalau ada >1 entry isIjen, hanya pakai yang pertama
+    const seen = { ijen: false };
+    const deduped = loaded.filter(d => {
+      if (d.isIjen) { if (seen.ijen) return false; seen.ijen = true; }
+      return true;
+    });
+    DESTINATIONS = deduped.length > 0 ? deduped : DESTINATIONS_FALLBACK;
+    // Migrate S.destinations: kalau ada id lama ('ijen') yang sudah tidak ada,
+    // tapi ada entry isIjen baru → ganti id-nya
+    if (deduped.length > 0 && S.destinations.has('ijen')) {
+      const ijenNew = deduped.find(d => d.isIjen);
+      if (ijenNew && ijenNew.id !== 'ijen') {
+        S.destinations.delete('ijen');
+        S.destinations.add(ijenNew.id);
+      }
+    }
   } catch(e) {
     DESTINATIONS = DESTINATIONS_FALLBACK;
     console.warn('Firebase gagal (' + e.message + '), pakai fallback');
@@ -2770,29 +2785,31 @@ async function exportItinerary(format) {
   const btns         = modal.querySelectorAll('button:not([onclick])');
 
   if (format === 'pdf') {
-    // Print langsung di tab yang sama — tidak buka tab baru
     modal.classList.remove('open');
-    
-    // Inject print CSS + content ke dalam halaman sementara
     const html = buildPrintPage(it);
-    
-    // Buka di iframe tersembunyi lalu print
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;';
+    // Blob URL + iframe lebih reliable di Android Chrome dibanding srcdoc
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const url  = URL.createObjectURL(blob);
+
+    let iframe = document.getElementById('_print_iframe');
+    if (iframe) iframe.remove();
+    iframe = document.createElement('iframe');
+    iframe.id = '_print_iframe';
+    iframe.style.cssText = 'position:fixed;width:1px;height:1px;top:-999px;left:-999px;border:none;opacity:0;';
     document.body.appendChild(iframe);
-    
+
     iframe.onload = () => {
       setTimeout(() => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        // Hapus iframe setelah dialog print ditutup
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 2000);
-      }, 600);
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch(e) {
+          window.open(url, '_blank');
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }, 400);
     };
-    
-    iframe.srcdoc = html;
+    iframe.src = url;
     return;
 
   } else {
@@ -3907,10 +3924,11 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
 
   if (hasIjen) {
     const hotelC       = getHotelCoords();
-    const isUmum       = S.transport === 'umum';
     // Sewa lokal motor/mobil override skenario DAMRI
     const isPribadiOrSewa = hasMotor() || hasMobil()
       || S.sewaLokal.has('motor') || S.sewaLokal.has('mobil');
+    // isUmum = false jika ada sewa kendaraan lokal (override)
+    const isUmum = S.transport === 'umum' && !isPribadiOrSewa;
 
     // Deteksi apakah penginapan di sekitar Paltuding (< 5km)
     const PALTUDING = { lat: -8.0584, lng: 114.2422 };
