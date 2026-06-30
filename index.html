@@ -2843,14 +2843,36 @@ async function exportItinerary(format) {
       }
 
       progressBar.style.width = '90%';
-      pdf.save('itinerary-banyuwangi-' + new Date().toISOString().slice(0,10) + '.pdf');
+      progressText.textContent = 'Menyimpan file...';
+
+      const fileName = 'itinerary-banyuwangi-' + new Date().toISOString().slice(0,10) + '.pdf';
+      const pdfBlob  = pdf.output('blob');
+
+      if (!pdfBlob || pdfBlob.size === 0) {
+        throw new Error('PDF gagal dibuat (blob kosong)');
+      }
+
+      // Manual download via <a> element — lebih reliable di Android Chrome
+      // daripada pdf.save() bawaan jsPDF yang bisa silent-fail di async context
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+
+      // Beri waktu browser memproses download sebelum cleanup
+      await new Promise(r => setTimeout(r, 600));
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
 
       if (styleEl) styleEl.remove();
       printEl.innerHTML = '';
 
       progressBar.style.width = '100%';
-      progressText.textContent = 'PDF berhasil diunduh!';
-      await new Promise(r => setTimeout(r, 900));
+      progressText.textContent = `PDF tersimpan (${(pdfBlob.size/1024).toFixed(0)} KB) — cek folder Download`;
+      await new Promise(r => setTimeout(r, 1800));
       modal.classList.remove('open');
 
     } catch(err) {
@@ -2893,14 +2915,30 @@ async function exportItinerary(format) {
       });
 
       progressBar.style.width = '90%';
+      progressText.textContent = 'Menyimpan file...';
+
+      const jpgDataUrl = canvas.toDataURL('image/jpeg', 0.93);
+      const jpgBlob = await (await fetch(jpgDataUrl)).blob();
+
+      if (!jpgBlob || jpgBlob.size === 0) {
+        throw new Error('Gambar gagal dibuat (blob kosong)');
+      }
+
+      const blobUrl = URL.createObjectURL(jpgBlob);
       const link = document.createElement('a');
+      link.href = blobUrl;
       link.download = 'itinerary-banyuwangi-'+new Date().toISOString().slice(0,10)+'.jpg';
-      link.href = canvas.toDataURL('image/jpeg', 0.93);
+      link.style.display = 'none';
+      document.body.appendChild(link);
       link.click();
 
+      await new Promise(r => setTimeout(r, 600));
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+
       progressBar.style.width = '100%';
-      progressText.textContent = 'Selesai!';
-      await new Promise(r => setTimeout(r, 700));
+      progressText.textContent = `Tersimpan (${(jpgBlob.size/1024).toFixed(0)} KB) — cek folder Download`;
+      await new Promise(r => setTimeout(r, 1500));
       modal.classList.remove('open');
 
     } catch(err) {
@@ -3977,6 +4015,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
   }
 
   if (hasIjen) {
+    const hotelName     = opts.hotelNameOverride || hotelName;
     const hotelC       = getHotelCoords();
     // Sewa lokal motor/mobil override skenario DAMRI
     const isPribadiOrSewa = hasMotor() || hasMobil()
@@ -4050,7 +4089,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         acts.push({
           time: '20:00',
           name: 'Istirahat Total — Persiapan Mental Ijen',
-          location: getFinalHotelName(),
+          location: hotelName,
           duration: '3 jam',
           description: 'Istirahat dan tidur lebih awal. Malam ini kamu akan naik DAMRI pukul 23:00 menuju Kawah Ijen.',
           tips: 'Set alarm 22:30. Siapkan semua perlengkapan dari sekarang: jaket tebal, masker N95, headlamp, snack.',
@@ -4059,7 +4098,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         acts.push({
           time: '22:30',
           name: 'Berangkat ke Titik Penjemputan DAMRI',
-          location: `${getFinalHotelName()} → Taman Sritanjung`,
+          location: `${hotelName} → Taman Sritanjung`,
           duration: '30 menit',
           description: 'Menuju Taman Sritanjung untuk naik DAMRI pukul 23:00. Bus juga melewati Stasiun Banyuwangi Kota.',
           tips: 'Gunakan ojek online atau taksi. Jangan sampai ketinggalan — DAMRI berangkat tepat waktu.',
@@ -4143,7 +4182,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.push({
         time: '10:30',
         name: 'Kembali ke Penginapan — Istirahat Total',
-        location: getFinalHotelName(),
+        location: hotelName,
         duration: 'Sisa hari',
         description: 'Check-in atau kembali ke penginapan. Tidur siang total adalah pilihan terbaik setelah semalaman tanpa tidur.',
         tips: '🌋 Selamat! Kamu baru saja menyelesaikan salah satu pengalaman terbaik di Indonesia.',
@@ -4155,7 +4194,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.push({
         time: '20:00',
         name: 'Istirahat Awal di Penginapan Paltuding',
-        location: getFinalHotelName(),
+        location: hotelName,
         duration: '4 jam',
         description: 'Tidur lebih awal — jarak ke pintu loket Ijen hanya beberapa menit jalan kaki dari penginapan ini.',
         tips: 'Siapkan semua perlengkapan dari sekarang. Set alarm 00:30. Minta wake-up call ke staff penginapan sebagai cadangan.',
@@ -4164,7 +4203,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.push({
         time: '00:45',
         name: 'Jalan Kaki ke Loket Paltuding',
-        location: `${getFinalHotelName()} → Gerbang Paltuding`,
+        location: `${hotelName} → Gerbang Paltuding`,
         duration: '5–10 menit',
         description: 'Keuntungan menginap di area Paltuding — cukup jalan kaki beberapa menit ke gerbang masuk Kawah Ijen.',
         tips: 'Beli tiket di gerbang. Headlamp sudah harus dinyalakan. Udara sangat dingin — jaket paling tebal.',
@@ -4209,7 +4248,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.push({
         time: '08:30',
         name: 'Sarapan & Bilas di Penginapan',
-        location: getFinalHotelName(),
+        location: hotelName,
         duration: '1.5 jam',
         description: 'Kembali ke penginapan — mandi, sarapan, dan istirahat sejenak sebelum lanjut ke Kawah Wurung.',
         tips: 'Istirahat 1–2 jam dulu. Kawah Wurung hanya 15–20 menit dari Paltuding, tidak perlu terburu-buru.',
@@ -4237,7 +4276,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.push({
         time: '14:00',
         name: 'Kembali ke Penginapan — Istirahat Sore',
-        location: getFinalHotelName(),
+        location: hotelName,
         duration: 'Sisa hari',
         description: 'Kembali ke penginapan. Tidur siang yang panjang sangat disarankan setelah dua aktivitas berat hari ini.',
         tips: '🌋 Ijen + Kawah Wurung dalam satu hari — pencapaian luar biasa!',
@@ -4254,7 +4293,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         acts.push({
           time: '20:00',
           name: 'Istirahat Awal — Persiapan Ijen',
-          location: getFinalHotelName(),
+          location: hotelName,
           duration: '3 jam',
           description: 'Tidur lebih awal. Malam ini kamu akan berangkat ke Paltuding sekitar pukul 23:30.',
           tips: 'Set alarm 23:00. Siapkan semua perlengkapan: jaket tebal, masker N95, headlamp, snack, air 1L.',
@@ -4264,7 +4303,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         acts.push({
           time: '21:00',
           name: 'Istirahat & Persiapan Ijen',
-          location: getFinalHotelName(),
+          location: hotelName,
           duration: '2 jam',
           description: 'Istirahat sebentar sebelum berangkat ke Paltuding tengah malam.',
           tips: 'Set alarm 23:00. Siapkan perlengkapan dari sekarang. Isi bensin penuh sebelum tidur.',
@@ -4274,7 +4313,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.push({
         time: '23:30',
         name: `Berangkat ke Paltuding dengan ${hasMotor()?'Motor':'Mobil'}`,
-        location: `${getFinalHotelName()} → Paltuding, Licin`,
+        location: `${hotelName} → Paltuding, Licin`,
         duration: '±1.5 jam',
         description: 'Perjalanan malam ke Paltuding. Jalan berliku dan sempit di area pegunungan — hati-hati dan pelan-pelan.',
         tips: `Isi bensin PENUH sebelum berangkat — SPBU terakhir ada di area Licin. ${hasMotor()||S.sewaLokal.has('motor')?'Cek ban dan rantai motor':'Cek ban, oli, dan radiator'} sebelum berangkat malam.`,
@@ -4357,7 +4396,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
       acts.push({
         time: '13:00',
         name: 'Kembali ke Penginapan — Tidur Siang Total',
-        location: getFinalHotelName(),
+        location: hotelName,
         duration: 'Sisa hari',
         description: 'Perjalanan pulang ke penginapan. Tidur siang panjang sangat dianjurkan setelah Ijen + Kawah Wurung.',
         tips: `🌋 Ijen + Kawah Wurung dalam sehari — luar biasa!`,
@@ -4749,6 +4788,7 @@ function generateFromPlan() {
       });
     }
 
+    let currentHotelName = getFinalHotelName(); // hotel awal (hari kedatangan)
     S.planDays.forEach((allIds,i)=>{
       const dayNum=i+2;
       if(dayNum>=totalDays||allIds.length===0) return;
@@ -4757,8 +4797,10 @@ function generateFromPlan() {
       if(spots.length===0&&hotelCheckIns.length>0){const act=hotelCheckIns.map(h=>({time:'14:00',name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}));days.push({day:dayNum,date_label:`Hari ${dayNum}`,title:'Check-in Penginapan',activities:sortActivities(act)});return;}
       if(spots.length===0) return;
       const zone=spots[0]?.zone||'kota';
-      const builtDay=buildActivityDay(dayNum,spots,zone,S,{honorOrder:true});
+      const builtDay=buildActivityDay(dayNum,spots,zone,S,{honorOrder:true,hotelNameOverride:currentHotelName});
       if(hotelCheckIns.length>0){
+        // Update hotel aktif untuk hari-hari berikutnya setelah check-in baru
+        currentHotelName=hotelCheckIns[hotelCheckIns.length-1].hotelName||currentHotelName;
         const isIjenDay=spots.some(s=>s.id==='ijen'||s.isIjen===true);
         const isMenjanganTabuhanDay=spots.some(s=>s.id==='menjangan'||s.id==='tabuhan'||(s.name||'').toLowerCase().includes('menjangan')||(s.name||'').toLowerCase().includes('tabuhan'));
         const lastAct=builtDay.activities.filter(a=>a.type==='aktivitas'||a.type==='transport').slice(-1)[0];
