@@ -681,7 +681,7 @@
       color:#fff; line-height:1.05; margin-bottom:4px;
     }
     .print-cover-dest {
-      font-size:13px; color:rgba(255,255,255,.8);
+      font-size:15px; color:rgba(255,255,255,.8);
       margin-top:12px; letter-spacing:.04em; line-height:1.6;
     }
     /* Meta bar */
@@ -694,10 +694,10 @@
     }
     .print-meta-item:last-child { border-right:none; }
     .print-meta-label {
-      font-size:9px; color:#888; text-transform:uppercase;
+      font-size:10px; color:#888; text-transform:uppercase;
       letter-spacing:.14em; margin-bottom:5px;
     }
-    .print-meta-val { font-size:13px; font-weight:700; color:#111; line-height:1.3; }
+    .print-meta-val { font-size:15px; font-weight:700; color:#111; line-height:1.3; }
     /* Body padding */
     .print-body { padding:0 56px 48px; }
     /* Day section */
@@ -718,10 +718,10 @@
     .print-day-divider { width:2px; height:40px; background:#e0dbd4; flex-shrink:0; }
     .print-day-info { }
     .print-day-lbl {
-      font-size:9px; color:#888; text-transform:uppercase;
+      font-size:10px; color:#888; text-transform:uppercase;
       letter-spacing:.14em; margin-bottom:3px;
     }
-    .print-day-ttl { font-family:'Inter',sans-serif; font-size:18px; font-weight:700; color:#111; }
+    .print-day-ttl { font-family:'Inter',sans-serif; font-size:21px; font-weight:700; color:#111; }
     /* Activity */
     .print-act { display:flex; gap:0; margin-bottom:0; }
     .print-act-line {
@@ -743,22 +743,22 @@
     .print-act:last-child .print-act-body { border-bottom:none; }
     .print-act:last-child .print-act-rule { display:none; }
     .print-act-time {
-      font-size:10px; color:#0F3460; font-weight:700;
-      letter-spacing:.06em; margin-bottom:4px;
+      font-size:12px; color:#0F3460; font-weight:700;
+      letter-spacing:.06em; margin-bottom:5px;
       display:inline-block;
       background:rgba(192,57,43,.08); padding:2px 8px;
     }
-    .print-act-name { font-family:'Inter',sans-serif; font-size:15px; font-weight:700; color:#111; margin-bottom:3px; line-height:1.3; }
-    .print-act-desc { font-size:11px; color:#555; line-height:1.6; }
+    .print-act-name { font-family:'Inter',sans-serif; font-size:18px; font-weight:700; color:#111; margin-bottom:4px; line-height:1.3; }
+    .print-act-desc { font-size:14px; color:#555; line-height:1.65; }
     .print-act-cost {
-      display:inline-block; font-size:10px; color:#888;
-      margin-top:4px; padding:1px 6px;
+      display:inline-block; font-size:12px; color:#888;
+      margin-top:5px; padding:2px 7px;
       border:1px solid #e0dbd4;
     }
     .print-act-tip {
-      font-size:10px; color:#555; margin-top:6px;
-      padding:6px 10px; border-left:3px solid #0F3460;
-      background:#e8f0fa; line-height:1.55;
+      font-size:13px; color:#555; margin-top:7px;
+      padding:8px 12px; border-left:3px solid #0F3460;
+      background:#e8f0fa; line-height:1.6;
     }
     /* Budget */
     .print-budget {
@@ -768,11 +768,11 @@
       background:#111; color:#fff;
     }
     .print-budget-label {
-      font-size:10px; color:rgba(255,255,255,.6);
+      font-size:11px; color:rgba(255,255,255,.6);
       text-transform:uppercase; letter-spacing:.12em; margin-bottom:4px;
     }
-    .print-budget-val { font-family:'Inter',sans-serif; font-size:24px; font-weight:700; color:#fff; }
-    .print-budget-note { font-size:11px; color:rgba(255,255,255,.5); text-align:right; }
+    .print-budget-val { font-family:'Inter',sans-serif; font-size:26px; font-weight:700; color:#fff; }
+    .print-budget-note { font-size:12px; color:rgba(255,255,255,.5); text-align:right; }
     /* Packing */
     .print-packing { margin-top:28px; }
     .print-packing-header {
@@ -780,10 +780,10 @@
       margin-bottom:14px; padding-bottom:10px;
       border-bottom:1.5px solid #111;
     }
-    .print-packing-title { font-family:'Inter',sans-serif; font-size:15px; font-weight:700; }
+    .print-packing-title { font-family:'Inter',sans-serif; font-size:17px; font-weight:700; }
     .print-packing-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
     .print-packing-item {
-      font-size:11px; color:#444; padding:7px 10px;
+      font-size:13px; color:#444; padding:8px 10px;
       border:1px solid #e0dbd4;
       display:flex; align-items:center; gap:8px; line-height:1.4;
     }
@@ -795,7 +795,7 @@
     .print-notes {
       margin-top:16px; padding:10px 14px;
       border-left:3px solid #E94560; background:#fdedf0;
-      font-size:11px; color:#555; line-height:1.6;
+      font-size:13px; color:#555; line-height:1.6;
     }
     /* Footer */
     .print-footer {
@@ -804,10 +804,10 @@
       display:flex; justify-content:space-between; align-items:center;
       background:#f8f7f4;
     }
-    .print-footer-left { font-size:10px; color:#888; line-height:1.6; }
+    .print-footer-left { font-size:11px; color:#888; line-height:1.6; }
     .print-footer-brand {
       font-family:'Inter',sans-serif;
-      font-size:16px; font-weight:700;  color:#111;
+      font-size:17px; font-weight:700;  color:#111;
     }
   </style>
   <!-- Export libraries -->
@@ -2815,6 +2815,19 @@ async function exportItinerary(format) {
       progressBar.style.width = '35%';
       progressText.textContent = 'Merender halaman...';
 
+      // Ukur posisi tiap "blok" konten (kartu aktivitas, header hari, budget, dll)
+      // SEBELUM di-render ke canvas, supaya nanti potongan halaman PDF tidak jatuh
+      // di tengah-tengah satu blok (penyebab teks/kartu kepotong).
+      const printRect = printEl.getBoundingClientRect();
+      const blockEls = printEl.querySelectorAll(
+        '.print-act, .print-day-header, .print-cover, .print-meta, .print-budget, .print-packing, .print-notes, .print-footer'
+      );
+      const cssBoundaries = [0, printEl.scrollHeight];
+      blockEls.forEach(el => {
+        const r = el.getBoundingClientRect();
+        cssBoundaries.push(r.top - printRect.top, r.bottom - printRect.top);
+      });
+
       const canvas = await html2canvas(printEl, {
         scale: 2, useCORS: true, backgroundColor: '#fff',
         width: printEl.scrollWidth, windowWidth: printEl.scrollWidth,
@@ -2826,24 +2839,47 @@ async function exportItinerary(format) {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageW = 210, pageH = 297;
-      const imgW = pageW;
-      const imgH = (canvas.height * imgW) / canvas.width;
+      const pxPerMm = canvas.width / pageW; // konversi mm <-> px canvas
+      const pageHpx = pageH * pxPerMm;
 
-      let heightLeft = imgH;
-      let position = 0;
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      // Toleransi minimal sisa konten (mm) — kalau sisa lebih kecil dari ini,
-      // anggap sudah habis dan jangan buat halaman baru (mencegah halaman kosong di akhir)
-      const MIN_CONTENT_MM = 5;
+      // Skala rect CSS (px browser) ke ruang canvas (px hasil render, scale:2)
+      const scaleFactor = canvas.width / printEl.scrollWidth;
+      let boundaries = Array.from(new Set(
+        cssBoundaries.map(v => Math.round(v * scaleFactor))
+      )).sort((a, b) => a - b).filter(v => v >= 0 && v <= canvas.height);
 
-      pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-      heightLeft -= pageH;
+      // Susun titik potong per halaman: cari boundary blok terdekat yang <= target,
+      // supaya potongan jatuh di celah antar-kartu, bukan di tengah kartu.
+      const cutPoints = [0];
+      let cursor = 0;
+      while (cursor < canvas.height - 2) {
+        const target = Math.min(cursor + pageHpx, canvas.height);
+        if (target >= canvas.height - 2) { cutPoints.push(canvas.height); break; }
+        const candidates = boundaries.filter(b => b > cursor + pageHpx * 0.4 && b <= target);
+        const cut = candidates.length ? candidates[candidates.length - 1] : target;
+        cutPoints.push(cut);
+        cursor = cut;
+      }
 
-      while (heightLeft > MIN_CONTENT_MM) {
-        position = heightLeft - imgH;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-        heightLeft -= pageH;
+      // Render tiap halaman dari slice canvas sesuai cutPoints (bukan overlap posisi negatif)
+      for (let i = 0; i < cutPoints.length - 1; i++) {
+        const sliceStart = cutPoints[i];
+        const sliceEnd = cutPoints[i + 1];
+        const sliceHpx = sliceEnd - sliceStart;
+        if (sliceHpx <= 2) continue; // skip sisa sangat kecil (cegah halaman kosong)
+
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHpx;
+        const ctx = pageCanvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, sliceStart, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
+
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+        const sliceHmm = sliceHpx / pxPerMm;
+        if (i > 0) pdf.addPage();
+        pdf.addImage(pageImgData, 'JPEG', 0, 0, pageW, sliceHmm);
       }
 
       progressBar.style.width = '90%';
@@ -4806,6 +4842,16 @@ function generateFromPlan() {
       const zone=spots[0]?.zone||'kota';
       const builtDay=buildActivityDay(dayNum,spots,zone,S,{honorOrder:true,hotelNameOverride:currentHotelName});
       if(hotelCheckIns.length>0){
+        // Fix: aktivitas "Istirahat Awal di Penginapan Paltuding" dibuat oleh buildActivityDay
+        // memakai hotel AWAL hari itu (hotelNameOverride), padahal aktivitas tsb menggambarkan
+        // istirahat di penginapan BARU (area Paltuding) yang baru saja di-check-in hari ini.
+        // Ganti location-nya ke hotel checkin yang baru supaya tidak mismatch.
+        const paltudingHotelName=hotelCheckIns[0].hotelName;
+        builtDay.activities.forEach(a=>{
+          if(a.name==='Istirahat Awal di Penginapan Paltuding'){ a.location=paltudingHotelName; }
+        });
+        // Simpan nama hotel LAMA (sebelum di-update) untuk aktivitas checkout di bawah
+        const oldHotelName=currentHotelName;
         // Update hotel aktif untuk hari-hari berikutnya setelah check-in baru
         currentHotelName=hotelCheckIns[hotelCheckIns.length-1].hotelName||currentHotelName;
         const isIjenDay=spots.some(s=>s.id==='ijen'||s.isIjen===true);
@@ -4818,7 +4864,10 @@ function generateFromPlan() {
           checkInHour=lastIjenAct?.time?addMin(lastIjenAct.time,30):'15:00';
         } else if(isMenjanganTabuhanDay){checkInHour='16:00';}
         else if(lastAct?.time){const afterLast=addMin(lastAct.time,(lastAct.duration?.includes('jam')?parseInt(lastAct.duration)*60:60)+30);checkInHour=timeToMin(afterLast)>timeToMin('14:00')?afterLast:'14:00';}
-        const checkinActs=hotelCheckIns.map(h=>({time:checkInHour,name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}));
+        // Checkout eksplisit dari penginapan lama, ditaruh tepat sebelum check-in penginapan baru
+        // supaya user tidak bingung kapan harus bawa barang turun / selesaikan pembayaran.
+        const checkoutAct={time:addMin(checkInHour,-20),name:`Checkout: ${oldHotelName}`,location:oldHotelName,duration:'15 menit',description:`Checkout dari ${oldHotelName} sebelum lanjut ke penginapan berikutnya.`,tips:'Pastikan tidak ada barang tertinggal dan selesaikan pembayaran/deposit sebelum berangkat.',estimatedCost:0,type:'penginapan'};
+        const checkinActs=[checkoutAct,...hotelCheckIns.map(h=>({time:checkInHour,name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}))];
         builtDay.activities=sortActivities([...builtDay.activities,...checkinActs]);
       }
       days.push(builtDay);
