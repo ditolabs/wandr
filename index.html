@@ -2861,6 +2861,17 @@ async function exportItinerary(format) {
         cursor = cut;
       }
 
+      // Gabungkan halaman terakhir kalau isinya cuma sisa kecil (mis. footer sendirian)
+      // supaya tidak menghasilkan 1 halaman PDF yang nyaris kosong di akhir.
+      const MIN_TAIL_PX = 40 * pxPerMm; // ~40mm — kalau sisa konten lebih kecil dari ini, gabung ke halaman sebelumnya
+      if (cutPoints.length > 2) {
+        const lastSeg = cutPoints[cutPoints.length - 1] - cutPoints[cutPoints.length - 2];
+        const secondLastSeg = cutPoints[cutPoints.length - 2] - cutPoints[cutPoints.length - 3];
+        if (lastSeg < MIN_TAIL_PX && (lastSeg + secondLastSeg) <= pageHpx) {
+          cutPoints.splice(cutPoints.length - 2, 1);
+        }
+      }
+
       // Render tiap halaman dari slice canvas sesuai cutPoints (bukan overlap posisi negatif)
       for (let i = 0; i < cutPoints.length - 1; i++) {
         const sliceStart = cutPoints[i];
@@ -4842,33 +4853,54 @@ function generateFromPlan() {
       const zone=spots[0]?.zone||'kota';
       const builtDay=buildActivityDay(dayNum,spots,zone,S,{honorOrder:true,hotelNameOverride:currentHotelName});
       if(hotelCheckIns.length>0){
-        // Fix: aktivitas "Istirahat Awal di Penginapan Paltuding" dibuat oleh buildActivityDay
-        // memakai hotel AWAL hari itu (hotelNameOverride), padahal aktivitas tsb menggambarkan
-        // istirahat di penginapan BARU (area Paltuding) yang baru saja di-check-in hari ini.
-        // Ganti location-nya ke hotel checkin yang baru supaya tidak mismatch.
         const paltudingHotelName=hotelCheckIns[0].hotelName;
-        builtDay.activities.forEach(a=>{
-          if(a.name==='Istirahat Awal di Penginapan Paltuding'){ a.location=paltudingHotelName; }
-        });
-        // Simpan nama hotel LAMA (sebelum di-update) untuk aktivitas checkout di bawah
         const oldHotelName=currentHotelName;
-        // Update hotel aktif untuk hari-hari berikutnya setelah check-in baru
-        currentHotelName=hotelCheckIns[hotelCheckIns.length-1].hotelName||currentHotelName;
-        const isIjenDay=spots.some(s=>s.id==='ijen'||s.isIjen===true);
-        const isMenjanganTabuhanDay=spots.some(s=>s.id==='menjangan'||s.id==='tabuhan'||(s.name||'').toLowerCase().includes('menjangan')||(s.name||'').toLowerCase().includes('tabuhan'));
-        const lastAct=builtDay.activities.filter(a=>a.type==='aktivitas'||a.type==='transport').slice(-1)[0];
-        let checkInHour='14:00';
-        if(isIjenDay){
-          // Hari Ijen sudah padat sampai sekitar jam 10:30/14:00 — checkin ditaruh setelah istirahat
-          const lastIjenAct=builtDay.activities.slice(-1)[0];
-          checkInHour=lastIjenAct?.time?addMin(lastIjenAct.time,30):'15:00';
-        } else if(isMenjanganTabuhanDay){checkInHour='16:00';}
-        else if(lastAct?.time){const afterLast=addMin(lastAct.time,(lastAct.duration?.includes('jam')?parseInt(lastAct.duration)*60:60)+30);checkInHour=timeToMin(afterLast)>timeToMin('14:00')?afterLast:'14:00';}
-        // Checkout eksplisit dari penginapan lama, ditaruh tepat sebelum check-in penginapan baru
-        // supaya user tidak bingung kapan harus bawa barang turun / selesaikan pembayaran.
-        const checkoutAct={time:addMin(checkInHour,-20),name:`Checkout: ${oldHotelName}`,location:oldHotelName,duration:'15 menit',description:`Checkout dari ${oldHotelName} sebelum lanjut ke penginapan berikutnya.`,tips:'Pastikan tidak ada barang tertinggal dan selesaikan pembayaran/deposit sebelum berangkat.',estimatedCost:0,type:'penginapan'};
-        const checkinActs=[checkoutAct,...hotelCheckIns.map(h=>({time:checkInHour,name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}))];
-        builtDay.activities=sortActivities([...builtDay.activities,...checkinActs]);
+        const istirahatAwalAct=builtDay.activities.find(a=>a.name==='Istirahat Awal di Penginapan Paltuding');
+        const kembaliSoreAct=builtDay.activities.find(a=>a.name==='Kembali ke Penginapan — Istirahat Sore');
+        const sarapanBilasAct=builtDay.activities.find(a=>a.name==='Sarapan & Bilas di Penginapan');
+
+        if(istirahatAwalAct && kembaliSoreAct){
+          // Skenario ganti penginapan di hari yang sama (mis. hari Ijen → Kawah Wurung):
+          // - Checkout dari hotel LAMA SEBELUM berangkat ke Kawah Wurung, karena tidak akan
+          //   kembali lagi ke penginapan itu hari ini.
+          // - Setelah Kawah Wurung, LANGSUNG check-in ke hotel BARU (bukan balik ke hotel lama).
+          istirahatAwalAct.location = paltudingHotelName;
+
+          const checkoutTime = sarapanBilasAct?.time ? addMin(sarapanBilasAct.time, 90) : '10:00';
+          const checkoutAct = {
+            time: checkoutTime,
+            name: `Checkout: ${oldHotelName}`,
+            location: oldHotelName,
+            duration: '15 menit',
+            description: `Checkout dari ${oldHotelName} sebelum berangkat ke Kawah Wurung — tidak kembali lagi ke penginapan ini hari ini.`,
+            tips: 'Bawa turun semua barang sekarang, karena setelah Kawah Wurung langsung menuju penginapan berikutnya.',
+            estimatedCost: 0, type: 'penginapan'
+          };
+
+          // Ganti "Kembali ke Penginapan — Istirahat Sore" jadi check-in ke hotel BARU
+          kembaliSoreAct.name = hotelCheckIns[0].name;
+          kembaliSoreAct.location = paltudingHotelName;
+          kembaliSoreAct.description = `Check-in ${paltudingHotelName}. Istirahat sore setelah dua aktivitas berat hari ini.`;
+          kembaliSoreAct.tips = 'Siapkan dokumen booking. 🌋 Ijen + Kawah Wurung dalam satu hari — pencapaian luar biasa!';
+          kembaliSoreAct.type = 'penginapan';
+
+          currentHotelName = hotelCheckIns[hotelCheckIns.length-1].hotelName || currentHotelName;
+          builtDay.activities.push(checkoutAct);
+          builtDay.activities = sortActivities(builtDay.activities);
+        } else {
+          // Skenario umum: hotel baru di-checkin setelah rangkaian aktivitas hari itu selesai
+          currentHotelName = hotelCheckIns[hotelCheckIns.length-1].hotelName || currentHotelName;
+          const isMenjanganTabuhanDay=spots.some(s=>s.id==='menjangan'||s.id==='tabuhan'||(s.name||'').toLowerCase().includes('menjangan')||(s.name||'').toLowerCase().includes('tabuhan'));
+          const lastAct=builtDay.activities.filter(a=>a.type==='aktivitas'||a.type==='transport').slice(-1)[0];
+          let checkInHour='14:00';
+          if(isMenjanganTabuhanDay){checkInHour='16:00';}
+          else if(lastAct?.time){const afterLast=addMin(lastAct.time,(lastAct.duration?.includes('jam')?parseInt(lastAct.duration)*60:60)+30);checkInHour=timeToMin(afterLast)>timeToMin('14:00')?afterLast:'14:00';}
+          // Checkout eksplisit dari penginapan lama, ditaruh tepat sebelum check-in penginapan baru
+          // supaya user tidak bingung kapan harus bawa barang turun / selesaikan pembayaran.
+          const checkoutAct={time:addMin(checkInHour,-20),name:`Checkout: ${oldHotelName}`,location:oldHotelName,duration:'15 menit',description:`Checkout dari ${oldHotelName} sebelum lanjut ke penginapan berikutnya.`,tips:'Pastikan tidak ada barang tertinggal dan selesaikan pembayaran/deposit sebelum berangkat.',estimatedCost:0,type:'penginapan'};
+          const checkinActs=[checkoutAct,...hotelCheckIns.map(h=>({time:checkInHour,name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}))];
+          builtDay.activities=sortActivities([...builtDay.activities,...checkinActs]);
+        }
       }
       days.push(builtDay);
     });
