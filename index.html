@@ -4864,7 +4864,11 @@ function generateFromPlan() {
           // - Checkout dari hotel LAMA SEBELUM berangkat ke Kawah Wurung, karena tidak akan
           //   kembali lagi ke penginapan itu hari ini.
           // - Setelah Kawah Wurung, LANGSUNG check-in ke hotel BARU (bukan balik ke hotel lama).
-          istirahatAwalAct.location = paltudingHotelName;
+          // Kartu "Istirahat Awal di Penginapan Paltuding" (jam 20:00) jadi redundan —
+          // isinya soal persiapan trek Ijen tengah malam, padahal trek Ijen di hari ini
+          // sudah selesai pagi tadi, dan check-in ke hotel baru sudah dipindah ke jam 14:00.
+          // Hapus supaya tidak ada kartu "Paltuding" nyasar lagi di malam hari.
+          builtDay.activities = builtDay.activities.filter(a => a !== istirahatAwalAct);
 
           const checkoutTime = sarapanBilasAct?.time ? addMin(sarapanBilasAct.time, 90) : '10:00';
           const checkoutAct = {
