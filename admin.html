@@ -22,7 +22,7 @@
       --purple:   #c084fc;
       --text:     #e2f0e2;
       --muted:    #5a7a5a;
-      --muted2:   #3a5a3a;
+      --muted2:   #3a5a5a;
     }
     html { font-size: 14px; }
     body {
@@ -78,6 +78,9 @@
     .btn-import  { background: rgba(96,165,250,.1); color: var(--blue); border: 1px solid rgba(96,165,250,.2); }
     .btn-export  { background: rgba(249,115,22,.1); color: var(--orange); border: 1px solid rgba(249,115,22,.2); }
     .btn-push    { background: rgba(192,132,252,.1); color: var(--purple); border: 1px solid rgba(192,132,252,.2); }
+    .btn-push:hover { background: rgba(192,132,252,.2); }
+    .btn-warning { background: rgba(249,115,22,.1); color: var(--orange); border: 1px solid rgba(249,115,22,.2); }
+    .btn-warning:hover { background: rgba(249,115,22,.2); }
     .btn:disabled { opacity: .4; cursor: not-allowed; }
     .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
@@ -93,11 +96,12 @@
     .stat-approved { background: rgba(74,222,128,.1); color: var(--accent); border: 1px solid rgba(74,222,128,.2); }
     .stat-pending  { background: rgba(249,115,22,.1); color: var(--orange); border: 1px solid rgba(249,115,22,.2); }
     .stat-local    { background: rgba(96,165,250,.1); color: var(--blue); border: 1px solid rgba(96,165,250,.15); }
-    .td-actions { display: flex; gap: 4px; }
+    .td-actions { display: flex; gap: 4px; flex-wrap: wrap; }
     .action-btn { background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; transition: all .15s; }
     .action-btn:hover { border-color: var(--accent2); color: var(--accent); }
     .action-btn.del:hover { border-color: var(--red); color: var(--red); }
     .action-btn.push:hover { border-color: var(--purple); color: var(--purple); }
+    .action-btn.rewrite:hover { border-color: var(--orange); color: var(--orange); }
     .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .modal-bg.hidden { display: none; }
     .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 24px; }
@@ -135,6 +139,7 @@
     .login-sub  { font-size: 11px; color: var(--muted); margin-bottom: 24px; }
     .login-err  { font-size: 11px; color: var(--red); margin-top: 10px; text-align: center; display: none; }
     .badge-new { font-size: 9px; background: rgba(249,115,22,.15); color: var(--orange); border: 1px solid rgba(249,115,22,.3); padding: 1px 6px; border-radius: 10px; font-weight: 700; margin-left: 4px; }
+    .badge-duplicate { font-size: 9px; background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); padding: 1px 6px; border-radius: 10px; font-weight: 700; margin-left: 4px; }
     @media (max-width: 600px) {
       #sidebar { display: none; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -153,6 +158,13 @@
     .push-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 6px; }
     .push-bar { height: 100%; background: var(--accent2); transition: width .3s; border-radius: 4px; }
     .push-log { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 8px; max-height: 80px; overflow-y: auto; line-height: 1.7; }
+    .dup-group { background: var(--surface2); border-radius: 8px; padding: 12px; margin-bottom: 12px; border-left: 3px solid var(--orange); }
+    .dup-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+    .dup-group-name { font-weight: 600; font-size: 13px; }
+    .dup-group-actions { display: flex; gap: 6px; }
+    .dup-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 12px; border-bottom: 1px dashed var(--border); }
+    .dup-item:last-child { border-bottom: none; }
+    .dup-item-source { font-size: 10px; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -198,6 +210,7 @@
       <div class="nav-label">Tools</div>
       <div class="nav-item" data-tab="import">📥 Import JSON</div>
       <div class="nav-item" data-tab="export">📤 Export</div>
+      <div class="nav-item" data-tab="clean">🧹 Bersihkan Duplikat</div>
     </div>
   </div>
 
@@ -222,6 +235,16 @@
 
     <div id="panel-export" style="display:none">
       <div class="import-panel"><div class="import-title">📤 Export Database</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px"><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Semua</div><div style="font-size:11px;color:var(--muted)">Wisata + Penginapan + Kuliner dari Firebase</div><button class="btn btn-export" style="margin-top:auto" id="btn-export-all">📤 Export JSON</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Wisata</div><div style="font-size:11px;color:var(--muted)">Hanya data wisata (type: wisata)</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-wisata">Export</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Penginapan</div><div style="font-size:11px;color:var(--muted)">Hanya data penginapan</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-penginapan">Export</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Kuliner</div><div style="font-size:11px;color:var(--muted)">Hanya data kuliner & cafe</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-kuliner">Export</button></div></div><div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">💡 Export mengambil langsung dari Firebase Firestore. File JSON yang dihasilkan kompatibel untuk re-import.</div></div>
+    </div>
+
+    <!-- PANEL CLEAN DUPLICATES -->
+    <div id="panel-clean" style="display:none">
+      <div class="import-panel">
+        <div class="import-title">🧹 Bersihkan Data Duplikat</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Deteksi duplikat berdasarkan <strong>nama</strong> (case-insensitive) per koleksi. Anda dapat me-<em>rewrite</em> (perbarui data lama dengan data baru) atau <em>auto-delete</em> (hapus semua kecuali satu yang terbaik).</p>
+        <div id="clean-status" style="font-size:12px;margin-bottom:12px;color:var(--muted)">🔍 Memeriksa duplikat...</div>
+        <div id="clean-results"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -277,6 +300,7 @@ const state = {
   editDoc: null,
   editType: null,
   importData: null,
+  filter: { wisata:'', penginapan:'', kuliner:'' },
 };
 
 // Load local drafts from localStorage
@@ -302,7 +326,7 @@ function saveLocalToStorage() {
 }
 
 const TYPE_MAP = { wisata:'wisata', penginapan:'penginapan', kuliner:'kuliner_cafe' };
-const PANEL_MAP = { wisata:'panel-wisata', penginapan:'panel-penginapan', kuliner:'panel-kuliner', import:'panel-import', export:'panel-export' };
+const PANEL_MAP = { wisata:'panel-wisata', penginapan:'panel-penginapan', kuliner:'panel-kuliner', import:'panel-import', export:'panel-export', clean:'panel-clean' };
 
 function toast(msg, type='ok') { const t = document.createElement('div'); t.className = `toast-item toast-${type}`; t.innerHTML = `<span>${type==='ok'?'✓':type==='err'?'✗':'ℹ'}</span> ${esc(msg)}`; document.getElementById('toast').appendChild(t); setTimeout(() => t.remove(), 3500); }
 
@@ -337,38 +361,15 @@ let _allDocsCacheTime = 0;
 async function fetchAllDocs(forceRefresh = false) {
   const now = Date.now();
   if (!forceRefresh && _allDocsCache && (now - _allDocsCacheTime) < 30000) return _allDocsCache;
+  if (!db) { return []; }
   const snap = await db.collection('places').get();
   _allDocsCache = snap.docs.map(doc => ({ _id: doc.id, ...doc.data(), _source: 'firebase' }));
   _allDocsCacheTime = now;
   return _allDocsCache;
 }
-async function loadAllTabs() { if (!db) { ['wisata','penginapan','kuliner'].forEach(t => renderTable(t)); return; } try { const all = await fetchAllDocs(true); const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] }; for (const type of ['wisata','penginapan','kuliner']) { state.data[type] = all.filter(d => typeMap[type].includes((d.type||'').toLowerCase())); state.loaded[type] = true; } updateStats(); renderTable('wisata'); } catch(e) { toast('Gagal load data: ' + e.message, 'err'); console.error(e); } }
+async function loadAllTabs() { if (!db) { ['wisata','penginapan','kuliner'].forEach(t => renderTable(t)); return; } try { const all = await fetchAllDocs(true); const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] }; for (const type of ['wisata','penginapan','kuliner']) { const validTypes = typeMap[type] || [type]; state.data[type] = all.filter(d => validTypes.includes((d.type||'').toLowerCase())); state.loaded[type] = true; } updateStats(); renderTable('wisata'); } catch(e) { toast('Gagal load data: ' + e.message, 'err'); console.error(e); } }
 function updateStats() { const all = [...state.data.wisata, ...state.data.penginapan, ...state.data.kuliner]; const localAll = [...state.local.wisata, ...state.local.penginapan, ...state.local.kuliner]; document.getElementById('stat-total').textContent = all.filter(d=>d.status==='approved'||!d.status).length; document.getElementById('stat-pending').textContent = all.filter(d=>d.status==='pending').length; document.getElementById('stat-local').textContent = localAll.length; document.getElementById('cnt-wisata').textContent = state.data.wisata.length + state.local.wisata.length; document.getElementById('cnt-penginapan').textContent = state.data.penginapan.length + state.local.penginapan.length; document.getElementById('cnt-kuliner').textContent = state.data.kuliner.length + state.local.kuliner.length; }
 
-function renderTable(type) {
-  const q = (state.search[type]||'').toLowerCase();
-  const fbData = state.data[type] || [];
-  const lcData = state.local[type] || [];
-  const all = [...lcData.map(d=>({...d,_source:'local'})), ...fbData];
-  const filtered = q ? all.filter(d => (d.nama||d.Nama||'').toLowerCase().includes(q) || (d.kawasan||d.Kawasan||'').toLowerCase().includes(q) || (d.kategori||d.Kategori||'').toLowerCase().includes(q)) : all;
-  const perPage = PER_PAGE;
-  const total = filtered.length;
-  const page = state.page[type];
-  const start = (page-1)*perPage;
-  const rows = filtered.slice(start, start+perPage);
-  const tbody = document.getElementById('tbody-'+type);
-  if (rows.length === 0) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📭</div>Tidak ada data</div></td></tr>`; }
-  else { tbody.innerHTML = rows.map(d => { const id = d._id || d.Id || '—'; const nama = d.nama || d.Nama || '—'; const kaw = d.kawasan || d.Kawasan || '—'; const kat = d.kategori || d.Kategori || '—'; const status = d._source === 'local' ? 'local' : (d.status || 'approved'); const statLabel = status === 'local' ? '<span class="td-stat stat-local">lokal</span>' : status === 'pending' ? '<span class="td-stat stat-pending">pending</span>' : '<span class="td-stat stat-approved">✓</span>'; const isLocal = d._source === 'local'; return `<tr><td class="td-id">${esc(String(id).slice(0,10))}</td><td class="td-nama">${esc(nama)}${isLocal?'<span class="badge-new">NEW</span>':''}</td><td class="td-kaw">${esc(kaw)}</td><td><span class="td-kat">${esc(kat)}</span></td><td>${statLabel}</td><td class="td-actions"><button class="action-btn" onclick="openEdit('${type}','${id}')">Edit</button>${isLocal ? `<button class="action-btn push" onclick="pushSingle('${type}','${id}')">Push</button>` : `<button class="action-btn" onclick="approveDoc('${type}','${id}','${status}')">${status==='pending'?'Approve':'Pending'}</button>`}<button class="action-btn del" onclick="deleteDoc('${type}','${id}')">Hapus</button></td></tr>`; }).join(''); }
-  const pages = Math.ceil(total/perPage);
-  const pag = document.getElementById('pag-'+type);
-  if (pages <= 1) { pag.innerHTML=''; return; }
-  let html = `<span style="margin-right:8px">${start+1}–${Math.min(start+perPage,total)} dari ${total}</span>`;
-  html += `<button class="page-btn" onclick="setPage('${type}',${page-1})" ${page<=1?'disabled':''}>‹</button>`;
-  const lo = Math.max(1,page-2), hi = Math.min(pages,page+2);
-  for (let i=lo;i<=hi;i++) html += `<button class="page-btn${i===page?' active':''}" onclick="setPage('${type}',${i})">${i}</button>`;
-  html += `<button class="page-btn" onclick="setPage('${type}',${page+1})" ${page>=pages?'disabled':''}>›</button>`;
-  pag.innerHTML = html;
-}
 function renderTable(type) {
   const q = (state.search[type]||'').toLowerCase();
   const filterStatus = state.filter?.[type] || '';
@@ -376,7 +377,6 @@ function renderTable(type) {
   const lcData = state.local[type] || [];
   const all = [...lcData.map(d=>({...d,_source:'local'})), ...fbData];
   let filtered = q ? all.filter(d => (d.nama||d.Nama||'').toLowerCase().includes(q) || (d.kawasan||d.Kawasan||'').toLowerCase().includes(q) || (d.kategori||d.Kategori||'').toLowerCase().includes(q)) : all;
-  // Filter by status
   if (filterStatus === 'approved') filtered = filtered.filter(d => (d.status||'approved') === 'approved' && d._source !== 'local');
   else if (filterStatus === 'pending') filtered = filtered.filter(d => d.status === 'pending');
   else if (filterStatus === 'local') filtered = filtered.filter(d => d._source === 'local');
@@ -404,7 +404,6 @@ function setPage(type, page) { state.page[type]=page; renderTable(type); }
   if (inp) inp.addEventListener('input', () => { state.search[t] = inp.value; state.page[t] = 1; renderTable(t); });
   const btn = document.getElementById('btn-add-'+t);
   if (btn) btn.addEventListener('click', () => openEdit(t, null));
-  // Filter status button
   const filterBtn = document.getElementById('filter-'+t);
   if (filterBtn) {
     if (!state.filter) state.filter = {};
@@ -435,7 +434,6 @@ const btnAutoGeocode = document.getElementById('btn-auto-geocode');
 if (btnAutoGeocode) btnAutoGeocode.addEventListener('click', autoGeocode);
 const fMapsInput = document.getElementById('f-maps');
 if (fMapsInput) fMapsInput.addEventListener('paste', () => {
-  // Beri waktu browser memasukkan teks yang di-paste ke value sebelum dibaca
   setTimeout(() => {
     const url = fMapsInput.value.trim();
     const coords = extractCoordsFromUrl(url);
@@ -474,10 +472,6 @@ document.getElementById('btn-export-wisata').addEventListener('click', () => exp
 document.getElementById('btn-export-penginapan').addEventListener('click', () => exportData(['penginapan']));
 document.getElementById('btn-export-kuliner').addEventListener('click', () => exportData(['kuliner']));
 
-// ======================== CLEANUP BUTTON (safe) ============================
-// Fungsi pembersih data dihapus — logika isAutoGenerated tidak aman
-// karena Firebase auto-generated IDs (panjang acak) adalah ID valid untuk data baru
-
 // ======================== AUTO GEOCODE ======================================
 async function autoGeocode() {
   const btn = document.getElementById('btn-auto-geocode');
@@ -487,7 +481,6 @@ async function autoGeocode() {
   const kawasan = document.getElementById('f-kawasan')?.value?.trim() || '';
   const mapsUrl = document.getElementById('f-maps')?.value?.trim() || '';
 
-  // 1) Coba ekstrak langsung dari URL (kalau link sudah lengkap dengan koordinat)
   const fromUrl = extractCoordsFromUrl(mapsUrl);
   if (fromUrl) {
     latEl.value = fromUrl.lat;
@@ -495,17 +488,10 @@ async function autoGeocode() {
     setGeocodeStatus('✓ Dari URL Maps', '#48bb78');
     return;
   }
-
-  // 2) Kalau ini short link (maps.app.goo.gl), kasih tahu user kenapa gagal —
-  //    short link tidak mengandung koordinat & browser tidak bisa resolve-nya
-  //    karena cross-origin restriction (CORS).
   if (isShortMapsLink(mapsUrl)) {
     setGeocodeStatus('⚠ Short link tidak bisa dibaca — buka link itu di Maps, lalu salin URL lengkap dari address bar (yang ada @lat,lng)', '#e07b39');
-    // Lanjut ke pencarian by nama sebagai fallback otomatis kalau nama sudah diisi
     if (!nama) return;
   }
-
-  // 3) Fallback: cari berdasarkan nama + kawasan via Photon (OpenStreetMap geocoder)
   if (!nama) { setGeocodeStatus('⚠ Isi nama dulu, atau pakai URL Maps lengkap (ada @lat,lng)', '#e07b39'); return; }
   btn.textContent = '⏳'; btn.disabled = true;
   setGeocodeStatus('Mencari nama lokasi...', '#63b3ed');
@@ -542,50 +528,253 @@ function isShortMapsLink(url) {
 }
 function extractCoordsFromUrl(url) {
   if (!url) return null;
-  // Format 1: .../@-8.xxx,114.xxx,17z (paling umum, dari "Share > Copy link" setelah buka lokasi)
   let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
   if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-  // Format 2: ?q=-8.xxx,114.xxx
   m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
   if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-  // Format 3: ll=-8.xxx,114.xxx
   m = url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
   if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-  // Format 4: !3d-8.xxx!4d114.xxx (muncul di beberapa link /place/ dengan data terenkripsi)
   m = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
   if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-  // Format 5: !4d-8.xxx!3d114.xxx (variasi urutan 3d/4d terbalik)
   m = url.match(/!4d(-?\d+\.\d+)!3d(-?\d+\.\d+)/);
   if (m) return { lat: parseFloat(m[2]), lng: parseFloat(m[1]) };
-  // Format 6: koordinat polos dipisah koma di mana saja dalam string (fallback terakhir)
   m = url.match(/(-?\d{1,2}\.\d{4,})\s*,\s*(-?\d{2,3}\.\d{4,})/);
   if (m) {
     const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
-    if (lat >= -11 && lat <= 6 && lng >= 95 && lng <= 141) return { lat, lng }; // sanity check wilayah Indonesia
+    if (lat >= -11 && lat <= 6 && lng >= 95 && lng <= 141) return { lat, lng };
   }
   return null;
 }
 function setGeocodeStatus(msg, color) { const el = document.getElementById('geocode-status'); if (el) { el.textContent = msg; el.style.color = color; } }
 window.autoGeocode = autoGeocode;
 
-// ======================== TABS =============================================
-document.querySelectorAll('.nav-item').forEach(el => { el.addEventListener('click', () => { document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); const tab = el.dataset.tab; state.tab = tab; Object.values(PANEL_MAP).forEach(p => document.getElementById(p).style.display='none'); document.getElementById(PANEL_MAP[tab]).style.display = ''; if (['wisata','penginapan','kuliner'].includes(tab) && !state.loaded[tab]) loadTab(tab); if (tab === 'export') updateStats(); }); });
-async function loadTab(type, forceRefresh = false) { if (!db) { renderTable(type); return; } try { const all = await fetchAllDocs(forceRefresh); const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] }; const validTypes = typeMap[type] || [type]; state.data[type] = all.filter(d => validTypes.includes((d.type||'').toLowerCase())); state.loaded[type] = true; updateStats(); renderTable(type); } catch(e) { toast('Gagal load ' + type + ': ' + e.message, 'err'); renderTable(type); } }
+// ======================== CLEAN DUPLICATES ==================================
 function capitalize(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function getCombinedData(type) {
+  const fb = state.data[type] || [];
+  const local = state.local[type] || [];
+  return [...local.map(d=>({...d, _source:'local'})), ...fb.map(d=>({...d, _source:'firebase'}))];
+}
+
+function findDuplicates(type) {
+  const all = getCombinedData(type);
+  const map = new Map();
+  const groups = [];
+  all.forEach(d => {
+    const name = (d.nama || '').trim().toLowerCase();
+    if (!name) return;
+    if (!map.has(name)) map.set(name, []);
+    map.get(name).push(d);
+  });
+  for (const [name, items] of map.entries()) {
+    if (items.length > 1) {
+      groups.push({ name: items[0].nama, items });
+    }
+  }
+  return groups;
+}
+
+function renderCleanPanel() {
+  const container = document.getElementById('clean-results');
+  const status = document.getElementById('clean-status');
+  const types = ['wisata', 'penginapan', 'kuliner'];
+  let totalGroups = 0;
+  let html = '';
+  for (const type of types) {
+    const groups = findDuplicates(type);
+    totalGroups += groups.length;
+    if (groups.length === 0) {
+      html += `<div style="margin-bottom:16px"><strong style="color:var(--accent)">${capitalize(type)}</strong> — ✅ Tidak ada duplikat</div>`;
+      continue;
+    }
+    html += `<div style="margin-bottom:20px"><strong style="color:var(--orange)">${capitalize(type)}</strong> — <span style="color:var(--muted)">${groups.length} grup duplikat</span>`;
+    html += `<div style="display:flex;gap:8px;margin:8px 0 12px"><button class="btn btn-warning" onclick="rewriteAllDuplicates('${type}')">🔄 Rewrite All (perbarui lama dengan baru)</button><button class="btn btn-danger" onclick="autoDeleteAllDuplicates('${type}')">🗑️ Auto-delete All</button></div>`;
+    for (const group of groups) {
+      html += `<div class="dup-group"><div class="dup-group-header"><span class="dup-group-name">${esc(group.name)} (${group.items.length} duplikat)</span><div class="dup-group-actions"><button class="action-btn rewrite" onclick="rewriteGroup('${type}','${esc(group.name)}')">Rewrite</button><button class="action-btn del" onclick="autoDeleteGroup('${type}','${esc(group.name)}')">Auto-delete</button></div></div>`;
+      group.items.forEach(d => {
+        const src = d._source === 'local' ? 'lokal' : 'firebase';
+        const id = d._id || d.Id || '—';
+        html += `<div class="dup-item"><span>${esc(d.nama)} <span class="dup-item-source">(${src})</span></span><span style="font-size:10px;color:var(--muted)">${id.slice(0,8)}</span></div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  if (totalGroups === 0) {
+    status.innerHTML = '✅ Tidak ada duplikat ditemukan. Data bersih!';
+    container.innerHTML = '';
+  } else {
+    status.innerHTML = `🔍 Ditemukan <strong>${totalGroups}</strong> grup duplikat. Gunakan tombol di bawah untuk membersihkan.`;
+    container.innerHTML = html;
+  }
+}
+
+async function rewriteGroup(type, name) {
+  const groups = findDuplicates(type);
+  const group = groups.find(g => g.name.toLowerCase() === name.toLowerCase());
+  if (!group || group.items.length < 2) return;
+  // Urutkan: local lebih dulu (anggap lebih baru), lalu firebase, atau berdasarkan updateAt
+  const sorted = [...group.items].sort((a,b) => {
+    // Prioritaskan yang punya _source='local' (anggap lebih baru)
+    if (a._source === 'local' && b._source !== 'local') return -1;
+    if (b._source === 'local' && a._source !== 'local') return 1;
+    return 0;
+  });
+  const keeper = sorted[0]; // yang akan dipertahankan (yang paling baru/lengkap)
+  const victims = sorted.slice(1);
+  let success = 0, fail = 0;
+  for (const victim of victims) {
+    if (victim._source === 'local') {
+      // Hapus dari lokal
+      state.local[type] = state.local[type].filter(d => (d._id||d.Id) !== victim._id);
+      success++;
+    } else if (victim._source === 'firebase' && db) {
+      try {
+        await db.collection('places').doc(victim._id).delete();
+        state.data[type] = state.data[type].filter(d => d._id !== victim._id);
+        success++;
+      } catch(e) {
+        fail++;
+        console.warn('Gagal delete firebase doc:', victim._id, e);
+      }
+    } else {
+      fail++;
+    }
+  }
+  // Update keeper jika perlu (misal tambahkan data dari victim yang lebih lengkap)
+  // Sederhana: gabungkan field yang kosong dari keeper dengan victim
+  const merged = { ...keeper };
+  for (const v of victims) {
+    for (const key of ['kawasan','kategori','akses','catatan','maps','lat','lng']) {
+      if (!merged[key] && v[key]) merged[key] = v[key];
+    }
+  }
+  if (keeper._source === 'local') {
+    const idx = state.local[type].findIndex(d => (d._id||d.Id) === keeper._id);
+    if (idx >= 0) {
+      state.local[type][idx] = { ...state.local[type][idx], ...merged };
+      saveLocalToStorage();
+    }
+  } else if (keeper._source === 'firebase' && db) {
+    try {
+      await db.collection('places').doc(keeper._id).update(merged);
+      const idx = state.data[type].findIndex(d => d._id === keeper._id);
+      if (idx >= 0) state.data[type][idx] = { ...state.data[type][idx], ...merged };
+    } catch(e) {
+      fail++;
+      console.warn('Gagal update keeper:', keeper._id, e);
+    }
+  }
+  toast(`Rewrite selesai: ${success} duplikat dihapus, ${fail} gagal`, fail===0?'ok':'info');
+  // Refresh cache
+  _allDocsCache = null;
+  state.loaded[type] = false;
+  await loadTab(type, true);
+  renderCleanPanel();
+  updateStats();
+}
+
+async function autoDeleteGroup(type, name) {
+  const groups = findDuplicates(type);
+  const group = groups.find(g => g.name.toLowerCase() === name.toLowerCase());
+  if (!group || group.items.length < 2) return;
+  // Pilih yang terbaik: prioritaskan yang ada lat/lng, lalu yang memiliki catatan, lalu yang status approved
+  const sorted = [...group.items].sort((a,b) => {
+    const score = (d) => {
+      let s = 0;
+      if (d.lat && d.lng) s += 10;
+      if (d.catatan) s += 5;
+      if (d.status === 'approved') s += 3;
+      if (d._source === 'firebase') s += 2; // lebih percaya data di cloud
+      return s;
+    };
+    return score(b) - score(a);
+  });
+  const keeper = sorted[0];
+  const victims = sorted.slice(1);
+  let success = 0, fail = 0;
+  for (const victim of victims) {
+    if (victim._source === 'local') {
+      state.local[type] = state.local[type].filter(d => (d._id||d.Id) !== victim._id);
+      success++;
+    } else if (victim._source === 'firebase' && db) {
+      try {
+        await db.collection('places').doc(victim._id).delete();
+        state.data[type] = state.data[type].filter(d => d._id !== victim._id);
+        success++;
+      } catch(e) {
+        fail++;
+        console.warn('Gagal delete firebase doc:', victim._id, e);
+      }
+    } else {
+      fail++;
+    }
+  }
+  toast(`Auto-delete selesai: ${success} duplikat dihapus, ${fail} gagal`, fail===0?'ok':'info');
+  _allDocsCache = null;
+  state.loaded[type] = false;
+  await loadTab(type, true);
+  renderCleanPanel();
+  updateStats();
+}
+
+async function rewriteAllDuplicates(type) {
+  const groups = findDuplicates(type);
+  if (groups.length === 0) { toast('Tidak ada duplikat', 'info'); return; }
+  if (!confirm(`Rewrite semua duplikat di ${capitalize(type)}? (${groups.length} grup akan diproses)`)) return;
+  let totalSuccess = 0, totalFail = 0;
+  for (const g of groups) {
+    await rewriteGroup(type, g.name);
+    // rewriteGroup sudah menghapus, kita hanya perlu update counter secara kasar
+    // Tapi karena rewriteGroup async, kita tidak bisa langsung count
+  }
+  // Refresh
+  toast('Semua rewrite selesai, refresh panel...', 'info');
+  renderCleanPanel();
+  updateStats();
+}
+
+async function autoDeleteAllDuplicates(type) {
+  const groups = findDuplicates(type);
+  if (groups.length === 0) { toast('Tidak ada duplikat', 'info'); return; }
+  if (!confirm(`Auto-delete semua duplikat di ${capitalize(type)}? (${groups.length} grup akan diproses, hanya satu yang dipertahankan per grup)`)) return;
+  for (const g of groups) {
+    await autoDeleteGroup(type, g.name);
+  }
+  toast('Semua auto-delete selesai', 'info');
+  renderCleanPanel();
+  updateStats();
+}
+
+// ======================== TABS =============================================
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    const tab = el.dataset.tab;
+    state.tab = tab;
+    Object.values(PANEL_MAP).forEach(p => document.getElementById(p).style.display='none');
+    document.getElementById(PANEL_MAP[tab]).style.display = '';
+    if (['wisata','penginapan','kuliner'].includes(tab) && !state.loaded[tab]) loadTab(tab);
+    if (tab === 'export') updateStats();
+    if (tab === 'clean') renderCleanPanel();
+  });
+});
+async function loadTab(type, forceRefresh = false) { if (!db) { renderTable(type); return; } try { const all = await fetchAllDocs(forceRefresh); const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] }; const validTypes = typeMap[type] || [type]; state.data[type] = all.filter(d => validTypes.includes((d.type||'').toLowerCase())); state.loaded[type] = true; updateStats(); renderTable(type); } catch(e) { toast('Gagal load ' + type + ': ' + e.message, 'err'); renderTable(type); } }
 
 // ======================== INIT =============================================
 loadLocalFromStorage();
+window.rewriteGroup = rewriteGroup;
+window.autoDeleteGroup = autoDeleteGroup;
+window.rewriteAllDuplicates = rewriteAllDuplicates;
+window.autoDeleteAllDuplicates = autoDeleteAllDuplicates;
+window.openEdit = openEdit;
+window.pushSingle = pushSingle;
+window.approveDoc = approveDoc;
+window.deleteDoc = deleteDoc;
+window.setPage = setPage;
+window.autoGeocode = autoGeocode;
 </script>
-<!-- FIREBASE SECURITY RULES (copy ke Firebase Console):
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /places/{document} {
-      allow read: if resource.data.status == 'approved' || request.auth != null;
-      allow write: if request.auth != null;
-    }
-  }
-}
--->
 </body>
 </html>
