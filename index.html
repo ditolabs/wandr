@@ -2146,11 +2146,16 @@ function buildPrintPage(it) {
 
   const DAY_COLORS = ['#c0392b','#7c3aed','#2d8a4a','#c8760a','#16527a'];
 
-  const SESS_LABEL = { pagi:'Pagi', siang:'Siang', sore:'Sore', malam:'Malam' };
-  const SESS_ICON  = { pagi:'☀️', siang:'🌤️', sore:'🌅', malam:'🌙' };
-  const SESS_ORDER = ['pagi','siang','sore','malam'];
+  const SESS_LABEL = { malam_awal:'Malam Sebelumnya', pagi:'Pagi', siang:'Siang', sore:'Sore', malam:'Malam' };
+  const SESS_ICON  = { malam_awal:'🌙', pagi:'☀️', siang:'🌤️', sore:'🌅', malam:'🌙' };
+  const SESS_ORDER = ['malam_awal','pagi','siang','sore','malam'];
 
-  function sessionOf(time) {
+  function sessionOf(act) {
+    // dayOffset:-1 = aktivitas malam SEBELUM tengah malam (persiapan/berangkat
+    // ke Paltuding) yang harus tampil di atas kartu hari itu, sebelum sesi
+    // dini-hari/pagi — bukan di bawah sebagai sesi "Malam" biasa.
+    if (act && act.dayOffset === -1) return 'malam_awal';
+    const time = act && act.time;
     if (!time) return 'siang';
     const h = parseInt(time.split(':')[0]);
     if (h < 10) return 'pagi';
@@ -2166,7 +2171,7 @@ function buildPrintPage(it) {
     // Group activities by session
     const grps = {};
     (day.activities||[]).forEach(a => {
-      const s = sessionOf(a.time);
+      const s = sessionOf(a);
       (grps[s] = grps[s]||[]).push(a);
     });
 
@@ -3560,7 +3565,13 @@ function timeToMin(t) {
   return (h||0)*60+(m||0);
 }
 function sortActivities(acts) {
-  return [...acts].sort((a,b) => timeToMin(a.time)-timeToMin(b.time));
+  // dayOffset:-1 menandai aktivitas malam SEBELUM tengah malam (mis. persiapan/
+  // berangkat ke Paltuding jam 20:00–23:30) yang secara narasi terjadi SEBELUM
+  // aktivitas dini hari (00:00–13:00) di array yang sama. Tanpa offset ini,
+  // timeToMin('20:00')=1200 > timeToMin('01:00')=60, jadi entri malam itu
+  // nyasar ke akhir daftar alih-alih ke awal.
+  const sortKey = a => (a.dayOffset||0)*1440 + timeToMin(a.time);
+  return [...acts].sort((a,b) => sortKey(a)-sortKey(b));
 }
 
 // ─── TRANSPORT HELPERS ────────────────────────────────────────────────────────
@@ -4038,7 +4049,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         duration: '4 jam',
         description: 'Tidur lebih awal — jarak ke pintu loket Ijen hanya beberapa menit jalan kaki dari penginapan ini.',
         tips: 'Siapkan semua perlengkapan dari sekarang. Set alarm 00:30. Minta wake-up call ke staff penginapan sebagai cadangan.',
-        estimatedCost: 0, type: 'istirahat'
+        estimatedCost: 0, type: 'istirahat', dayOffset: -1
       });
       acts.push({
         time: '00:45',
@@ -4137,7 +4148,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
           duration: '3 jam',
           description: 'Tidur lebih awal. Malam ini kamu akan berangkat ke Paltuding sekitar pukul 23:30.',
           tips: 'Set alarm 23:00. Siapkan semua perlengkapan: jaket tebal, masker N95, headlamp, snack, air 1L.',
-          estimatedCost: 0, type: 'istirahat'
+          estimatedCost: 0, type: 'istirahat', dayOffset: -1
         });
       } else {
         acts.push({
@@ -4147,7 +4158,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
           duration: '2 jam',
           description: 'Istirahat sebentar sebelum berangkat ke Paltuding tengah malam.',
           tips: 'Set alarm 23:00. Siapkan perlengkapan dari sekarang. Isi bensin penuh sebelum tidur.',
-          estimatedCost: 0, type: 'istirahat'
+          estimatedCost: 0, type: 'istirahat', dayOffset: -1
         });
       }
       acts.push({
@@ -4157,7 +4168,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
         duration: '±1.5 jam',
         description: 'Perjalanan malam ke Paltuding. Jalan berliku dan sempit di area pegunungan — hati-hati dan pelan-pelan.',
         tips: `Isi bensin PENUH sebelum berangkat — SPBU terakhir ada di area Licin. ${hasMotor()||S.sewaLokal.has('motor')?'Cek ban dan rantai motor':'Cek ban, oli, dan radiator'} sebelum berangkat malam.`,
-        estimatedCost: hasMotor() ? 20000 : 50000, type: 'transport'
+        estimatedCost: hasMotor() ? 20000 : 50000, type: 'transport', dayOffset: -1
       });
       acts.push({
         time: '01:00',
