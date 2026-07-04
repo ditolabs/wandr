@@ -3730,6 +3730,15 @@ function getHotelCoords() {
   if (h && h.lat && h.lng) return {lat:h.lat, lng:h.lng};
   return BWI_COORDS.pusat;
 }
+function findHotelCoords(hotelName) {
+  // Cari koordinat penginapan TERTENTU (bukan selalu index [0]) — dipakai saat
+  // trip punya lebih dari satu penginapan, supaya sarapan/makan malam/kuliner
+  // dicari dari lokasi penginapan yang benar-benar relevan untuk hari itu.
+  if (!hotelName || S.penginapanCustom.trim()) return getHotelCoords();
+  const h = (S.penginapanDataList||[]).find(p => p.nama === hotelName);
+  if (h && h.lat && h.lng) return {lat:h.lat, lng:h.lng};
+  return getHotelCoords();
+}
 
 // ─── ARRIVAL DAY ─────────────────────────────────────────────────────────────
 function buildArrivalDay(kota, transport, penginapan) {
@@ -4292,7 +4301,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
 
   // ── Normal activity day ──────────────────────────────────────────────────────
   const acts = [];
-  const hotelC=getHotelCoords();
+  const hotelC=opts.hotelNameOverride ? findHotelCoords(opts.hotelNameOverride) : getHotelCoords();
   const distKm=ZONE_DIST[zone]||30;
   const travelMins=(hasMotor()||hasMobil())?Math.round(distKm/40*60):Math.round(distKm/35*60)+15;
   const travelLabel=hasMotor()||hasMobil()?`~${Math.round(distKm/40*60)}–${Math.round(distKm/40*60)+15} menit`:`~${Math.round(distKm/30*60)} menit dengan ${getTransportLabel()}`;
@@ -4674,7 +4683,11 @@ function generateFromPlan() {
     S.planDays.forEach((allIds,i)=>{
       const dayNum=i+2;
       if(dayNum>=totalDays||allIds.length===0) return;
-      const hotelCheckIns=allIds.filter(id=>id.startsWith('hotel_checkin_')).map(id=>{const idx=parseInt(id.split('_')[2]);return{id,name:`Check-in: ${hotelNames[idx]||'Penginapan'}`,hotelName:hotelNames[idx]||'Penginapan',type:'penginapan'};}).filter(h=>h.hotelName!==currentHotelName);
+      const hotelCheckIns=allIds.filter(id=>id.startsWith('hotel_checkin_')).map(id=>{
+        const idx=parseInt(id.split('_')[2]);
+        const hotelObj=(S.penginapanDataList||[])[idx];
+        return {id,name:`Check-in: ${hotelNames[idx]||'Penginapan'}`,hotelName:hotelNames[idx]||'Penginapan',lat:hotelObj?.lat,lng:hotelObj?.lng,type:'penginapan'};
+      }).filter(h=>h.hotelName!==currentHotelName);
       const spots=allIds.filter(id=>!id.startsWith('hotel_checkin_')).map(id=>DESTINATIONS.find(d=>d.id===id)).filter(Boolean).map(d=>({...d,...(DEST_EXT[d.id]||{})}));
       if(spots.length===0&&hotelCheckIns.length>0){const act=hotelCheckIns.map(h=>({time:'14:00',name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}));days.push({day:dayNum,date_label:`Hari ${dayNum}`,title:'Check-in Penginapan',activities:sortActivities(act)});return;}
       if(spots.length===0) return;
@@ -4720,17 +4733,47 @@ function generateFromPlan() {
           builtDay.activities.push(checkoutAct);
           builtDay.activities = sortActivities(builtDay.activities);
         } else {
-          // Skenario umum: hotel baru di-checkin setelah rangkaian aktivitas hari itu selesai
+          // Skenario umum: pindah ke penginapan baru di hari ini.
           currentHotelName = hotelCheckIns[hotelCheckIns.length-1].hotelName || currentHotelName;
           const isMenjanganTabuhanDay=spots.some(s=>s.id==='menjangan'||s.id==='tabuhan'||(s.name||'').toLowerCase().includes('menjangan')||(s.name||'').toLowerCase().includes('tabuhan'));
           const lastAct=builtDay.activities.filter(a=>a.type==='aktivitas'||a.type==='transport').slice(-1)[0];
+          const lastSpot=spots[spots.length-1];
+          const newHotel=hotelCheckIns[hotelCheckIns.length-1];
+
+          // Jam check-in TIDAK dipatok ke jam standar hotel (14:00), tapi
+          // menyesuaikan jarak & estimasi waktu tempuh dari destinasi terakhir
+          // hari ini ke penginapan baru — kalau jaraknya jauh, check-in wajar
+          // lebih malam; kalau dekat, bisa lebih cepat dari 14:00.
           let checkInHour='14:00';
-          if(isMenjanganTabuhanDay){checkInHour='16:00';}
-          else if(lastAct?.time){const afterLast=addMin(lastAct.time,(lastAct.duration?.includes('jam')?parseInt(lastAct.duration)*60:60)+30);checkInHour=timeToMin(afterLast)>timeToMin('14:00')?afterLast:'14:00';}
-          // Checkout eksplisit dari penginapan lama, ditaruh tepat sebelum check-in penginapan baru
-          // supaya user tidak bingung kapan harus bawa barang turun / selesaikan pembayaran.
-          const checkoutAct={time:addMin(checkInHour,-20),name:`Checkout: ${oldHotelName}`,location:oldHotelName,duration:'15 menit',description:`Checkout dari ${oldHotelName} sebelum lanjut ke penginapan berikutnya.`,tips:'Pastikan tidak ada barang tertinggal dan selesaikan pembayaran/deposit sebelum berangkat.',estimatedCost:0,type:'penginapan'};
-          const checkinActs=[checkoutAct,...hotelCheckIns.map(h=>({time:checkInHour,name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}))];
+          if(isMenjanganTabuhanDay){
+            checkInHour='16:00';
+          } else if(lastAct?.time){
+            const lastDurMin = lastAct.duration?.includes('jam') ? parseInt(lastAct.duration)*60 : 60;
+            const lastCoord  = lastSpot ? getDestCoords(lastSpot) : null;
+            const travelToHotelMin = (lastCoord && newHotel?.lat && newHotel?.lng)
+              ? travelMinutes(lastCoord, {lat:newHotel.lat, lng:newHotel.lng})
+              : 45; // buffer default kalau koordinat penginapan baru belum ada
+            checkInHour = addMin(lastAct.time, lastDurMin + travelToHotelMin);
+          }
+
+          // Checkout dari penginapan lama dilakukan PAGI HARI, sebelum berangkat
+          // menuju destinasi pertama — bukan menjelang check-in baru — karena
+          // user tidak akan kembali lagi ke penginapan lama hari ini.
+          const firstTravelAct = builtDay.activities.find(a=>a.type==='transport');
+          const checkoutTime = firstTravelAct?.time ? addMin(firstTravelAct.time,-10) : '08:00';
+          const checkoutAct={time:checkoutTime,name:`Checkout: ${oldHotelName}`,location:oldHotelName,duration:'15 menit',description:`Checkout dari ${oldHotelName} pagi ini sebelum berangkat — tidak kembali lagi ke penginapan ini hari ini.`,tips:'Bawa turun semua barang sekarang dan selesaikan pembayaran/deposit sebelum berangkat.',estimatedCost:0,type:'penginapan'};
+
+          // Kalau check-in di penginapan baru sudah terjadi sebelum jam makan
+          // malam, ganti pencarian kuliner "malam" supaya dicari di sekitar
+          // penginapan BARU (bukan penginapan lama yang sudah ditinggalkan).
+          if (newHotel?.lat && newHotel?.lng && timeToMin(checkInHour) <= timeToMin('19:00')) {
+            const malamIdx = builtDay.activities.findIndex(a=>a.type==='makan'&&a.name.toLowerCase().includes('malam'));
+            if (malamIdx>=0) {
+              builtDay.activities[malamIdx] = buildMakan('malam', zone, '19:00', newHotel.lat, newHotel.lng);
+            }
+          }
+
+          const checkinActs=[checkoutAct,...hotelCheckIns.map(h=>({time:checkInHour,name:h.name,location:h.hotelName,duration:'1 jam',description:`Check-in ${h.hotelName}. Waktu menyesuaikan estimasi perjalanan dari ${lastAct?.name||'destinasi terakhir'} hari ini.`,tips:'Siapkan dokumen booking.',estimatedCost:0,type:'penginapan'}))];
           builtDay.activities=sortActivities([...builtDay.activities,...checkinActs]);
         }
       }
