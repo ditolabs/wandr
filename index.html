@@ -1790,7 +1790,7 @@ function renderStep0() {
     <p class="s0-hint">Ketuk untuk pilih — bisa lebih dari satu tempat 👆</p>
     <div id="dest-quick-list">${quickRows}</div>
 
-    <div class="s0-eyebrow">Cari destinasi lain. isi dengan wisata tujuanmu, pisahkan dengan koma.</div>
+    <div class="s0-eyebrow">Cari destinasi lain</div>
     <div class="s0-search-wrap">
       <input type="text" id="dest-input" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
         value="${esc(S.destInput)}" placeholder="Pulau Merah, Teluk Hijau…" class="s0-search">
@@ -4707,8 +4707,8 @@ function generateFromPlan() {
           // - Setelah Kawah Wurung, LANGSUNG check-in ke hotel BARU (bukan balik ke hotel lama).
           // Kartu "Istirahat Awal di Penginapan Paltuding" (jam 20:00) jadi redundan —
           // isinya soal persiapan trek Ijen tengah malam, padahal trek Ijen di hari ini
-          // sudah selesai pagi tadi, dan check-in ke hotel baru sudah dipindah ke jam 14:00.
-          // Hapus supaya tidak ada kartu "Paltuding" nyasar lagi di malam hari.
+          // sudah selesai pagi tadi. Hapus supaya tidak ada kartu "Paltuding" nyasar lagi
+          // di malam hari.
           builtDay.activities = builtDay.activities.filter(a => a !== istirahatAwalAct);
 
           const checkoutTime = sarapanBilasAct?.time ? addMin(sarapanBilasAct.time, 90) : '10:00';
@@ -4722,15 +4722,39 @@ function generateFromPlan() {
             estimatedCost: 0, type: 'penginapan'
           };
 
+          // Waktu check-in ke hotel BARU menyesuaikan jarak & estimasi waktu tempuh
+          // dari Kawah Wurung — bukan dipatok ke jam 14:00 bawaan — karena kalau
+          // penginapan barunya jauh dari Ijen/Kawah Wurung, wajar tiba lebih malam.
+          const kawahWurungAct = builtDay.activities.find(a=>a.name==='Kawah Wurung');
+          const newHotel = hotelCheckIns[0];
+          let newCheckInTime = kembaliSoreAct.time; // fallback: waktu bawaan (14:00)
+          if (kawahWurungAct?.time && newHotel?.lat && newHotel?.lng) {
+            const kwCoord = getDestCoords('kawah_wurung');
+            const kwDurMin = kawahWurungAct.duration?.includes('jam') ? parseInt(kawahWurungAct.duration)*60 : 120;
+            const travelToHotelMin = kwCoord ? travelMinutes(kwCoord, {lat:newHotel.lat, lng:newHotel.lng}) : 45;
+            newCheckInTime = addMin(kawahWurungAct.time, kwDurMin + travelToHotelMin);
+          }
+
           // Ganti "Kembali ke Penginapan — Istirahat Sore" jadi check-in ke hotel BARU
+          kembaliSoreAct.time = newCheckInTime;
           kembaliSoreAct.name = hotelCheckIns[0].name;
           kembaliSoreAct.location = paltudingHotelName;
+          kembaliSoreAct.duration = '1 jam';
           kembaliSoreAct.description = `Check-in ${paltudingHotelName}. Istirahat sore setelah dua aktivitas berat hari ini.`;
           kembaliSoreAct.tips = 'Siapkan dokumen booking. 🌋 Ijen + Kawah Wurung dalam satu hari — pencapaian luar biasa!';
           kembaliSoreAct.type = 'penginapan';
 
           currentHotelName = hotelCheckIns[hotelCheckIns.length-1].hotelName || currentHotelName;
           builtDay.activities.push(checkoutAct);
+
+          // Sebelumnya hari ini berakhir begitu saja setelah check-in (tanpa makan
+          // malam sama sekali). Tambahkan Makan Malam di sekitar penginapan BARU,
+          // asal check-in-nya tidak kemalaman.
+          if (timeToMin(newCheckInTime) < timeToMin('21:00')) {
+            const malamTime = addMin(newCheckInTime, 90);
+            builtDay.activities.push(buildMakan('malam', zone, malamTime, newHotel?.lat, newHotel?.lng));
+          }
+
           builtDay.activities = sortActivities(builtDay.activities);
         } else {
           // Skenario umum: pindah ke penginapan baru di hari ini.

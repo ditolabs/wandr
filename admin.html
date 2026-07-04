@@ -210,6 +210,7 @@
       <div class="nav-label">Tools</div>
       <div class="nav-item" data-tab="import">📥 Import JSON</div>
       <div class="nav-item" data-tab="export">📤 Export</div>
+      <div class="nav-item" data-tab="geocode">📍 Geocode Massal</div>
       <div class="nav-item" data-tab="clean">🧹 Bersihkan Duplikat</div>
     </div>
   </div>
@@ -235,6 +236,30 @@
 
     <div id="panel-export" style="display:none">
       <div class="import-panel"><div class="import-title">📤 Export Database</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px"><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Semua</div><div style="font-size:11px;color:var(--muted)">Wisata + Penginapan + Kuliner dari Firebase</div><button class="btn btn-export" style="margin-top:auto" id="btn-export-all">📤 Export JSON</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Wisata</div><div style="font-size:11px;color:var(--muted)">Hanya data wisata (type: wisata)</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-wisata">Export</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Penginapan</div><div style="font-size:11px;color:var(--muted)">Hanya data penginapan</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-penginapan">Export</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Kuliner</div><div style="font-size:11px;color:var(--muted)">Hanya data kuliner & cafe</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-kuliner">Export</button></div></div><div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">💡 Export mengambil langsung dari Firebase Firestore. File JSON yang dihasilkan kompatibel untuk re-import.</div></div>
+    </div>
+
+    <!-- PANEL GEOCODE MASSAL -->
+    <div id="panel-geocode" style="display:none">
+      <div class="import-panel">
+        <div class="import-title">📍 Geocode Massal</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Cari koordinat (lat/lng) otomatis untuk semua data yang belum punya, memakai link Maps kalau ada, atau cari lewat nama tempat via Photon (OpenStreetMap) kalau tidak. Ada jeda antar-request supaya tidak kena rate-limit.</p>
+        <div id="geo-stats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px">
+          <div class="stat-card"><div class="stat-val" id="geo-cnt-wisata" style="color:var(--orange)">—</div><div class="stat-lbl">Wisata belum ada koordinat</div></div>
+          <div class="stat-card"><div class="stat-val" id="geo-cnt-penginapan" style="color:var(--orange)">—</div><div class="stat-lbl">Penginapan belum ada koordinat</div></div>
+          <div class="stat-card"><div class="stat-val" id="geo-cnt-kuliner" style="color:var(--orange)">—</div><div class="stat-lbl">Kuliner belum ada koordinat</div></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn btn-push" id="btn-geo-start">🚀 Mulai Geocode Massal</button>
+          <button class="btn btn-danger" id="btn-geo-stop" style="display:none">⏹ Berhenti</button>
+          <button class="btn btn-ghost" id="btn-geo-refresh">↺ Refresh Hitungan</button>
+        </div>
+        <div class="push-progress" id="geo-progress" style="display:none">
+          <div style="font-size:11px;color:var(--muted)" id="geo-label">Memproses...</div>
+          <div class="push-bar-wrap"><div class="push-bar" id="geo-bar" style="width:0%"></div></div>
+          <div class="push-log" id="geo-log"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-top:12px">💡 Data dengan link Maps yang sudah berisi koordinat (ada <code>@lat,lng</code>) akan langsung terisi tanpa perlu cari nama. Data dengan link short (maps.app.goo.gl) atau tanpa link sama sekali akan dicari lewat nama + kawasan — hasil di luar area Banyuwangi otomatis dilewati, cek manual nanti di tabel.</div>
+      </div>
     </div>
 
     <!-- PANEL CLEAN DUPLICATES -->
@@ -326,7 +351,7 @@ function saveLocalToStorage() {
 }
 
 const TYPE_MAP = { wisata:'wisata', penginapan:'penginapan', kuliner:'kuliner_cafe' };
-const PANEL_MAP = { wisata:'panel-wisata', penginapan:'panel-penginapan', kuliner:'panel-kuliner', import:'panel-import', export:'panel-export', clean:'panel-clean' };
+const PANEL_MAP = { wisata:'panel-wisata', penginapan:'panel-penginapan', kuliner:'panel-kuliner', import:'panel-import', export:'panel-export', geocode:'panel-geocode', clean:'panel-clean' };
 
 function toast(msg, type='ok') { const t = document.createElement('div'); t.className = `toast-item toast-${type}`; t.innerHTML = `<span>${type==='ok'?'✓':type==='err'?'✗':'ℹ'}</span> ${esc(msg)}`; document.getElementById('toast').appendChild(t); setTimeout(() => t.remove(), 3500); }
 
@@ -548,6 +573,109 @@ function extractCoordsFromUrl(url) {
 function setGeocodeStatus(msg, color) { const el = document.getElementById('geocode-status'); if (el) { el.textContent = msg; el.style.color = color; } }
 window.autoGeocode = autoGeocode;
 
+// ======================== GEOCODE MASSAL ====================================
+const BWI_BBOX = { latMin:-8.8, latMax:-7.9, lngMin:113.9, lngMax:114.5 };
+let geoStopFlag = false;
+
+function docsMissingCoords(docs) {
+  return docs.filter(d => !(d.lat && d.lng));
+}
+
+async function refreshGeoStats() {
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  try {
+    const all = await fetchAllDocs();
+    const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
+    for (const type of ['wisata','penginapan','kuliner']) {
+      const validTypes = typeMap[type] || [type];
+      const docs = all.filter(d => validTypes.includes((d.type||'').toLowerCase()));
+      document.getElementById('geo-cnt-'+type).textContent = docsMissingCoords(docs).length;
+    }
+  } catch(e) { toast('Gagal hitung: ' + e.message, 'err'); }
+}
+document.getElementById('btn-geo-refresh').addEventListener('click', refreshGeoStats);
+
+// Geocode satu nama tempat lewat Photon, dengan validasi bounding box Banyuwangi.
+// Mengembalikan {lat,lng,label} atau null kalau tidak ketemu / di luar area.
+async function geocodeByName(nama, kawasan) {
+  const query = encodeURIComponent(`${nama} ${kawasan||''} Banyuwangi`.trim());
+  const url = `https://photon.komoot.io/api/?q=${query}&limit=5`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const data = await res.json();
+  const features = data.features || [];
+  const inBox = f => { const [lng,lat] = f.geometry.coordinates; return lat>=BWI_BBOX.latMin && lat<=BWI_BBOX.latMax && lng>=BWI_BBOX.lngMin && lng<=BWI_BBOX.lngMax; };
+  const best = features.find(inBox);
+  if (!best) return null;
+  const [lng, lat] = best.geometry.coordinates;
+  return { lat, lng, label: best.properties?.name || nama };
+}
+
+document.getElementById('btn-geo-stop').addEventListener('click', () => { geoStopFlag = true; });
+
+document.getElementById('btn-geo-start').addEventListener('click', async () => {
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  const all = await fetchAllDocs(true);
+  const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
+  let targets = [];
+  for (const type of ['wisata','penginapan','kuliner']) {
+    const validTypes = typeMap[type] || [type];
+    const docs = all.filter(d => validTypes.includes((d.type||'').toLowerCase()));
+    targets = targets.concat(docsMissingCoords(docs).map(d => ({...d, _tabType:type})));
+  }
+  if (targets.length === 0) { toast('Semua data sudah punya koordinat ✓', 'ok'); return; }
+  if (!confirm(`${targets.length} data belum punya koordinat. Mulai geocode massal sekarang? Ini akan memakan waktu (±1 detik per data) dan langsung menyimpan ke Firebase.`)) return;
+
+  geoStopFlag = false;
+  const prog = document.getElementById('geo-progress');
+  const bar  = document.getElementById('geo-bar');
+  const log  = document.getElementById('geo-log');
+  const label= document.getElementById('geo-label');
+  prog.style.display = ''; log.innerHTML = '';
+  document.getElementById('btn-geo-start').disabled = true;
+  document.getElementById('btn-geo-stop').style.display = '';
+
+  let done = 0, found = 0, skipped = 0, errors = 0;
+  for (const d of targets) {
+    if (geoStopFlag) { log.innerHTML += `<span style="color:var(--orange)">⏹ Dihentikan oleh user</span>\n`; break; }
+    try {
+      // 1) Coba baca koordinat langsung dari link Maps (kalau ada @lat,lng dst)
+      let coords = extractCoordsFromUrl(d.maps || '');
+      let source = 'URL Maps';
+      // 2) Kalau tidak ada / short link, cari lewat nama + kawasan via Photon
+      if (!coords) {
+        source = 'Nama (Photon)';
+        coords = await geocodeByName(d.nama, d.kawasan);
+      }
+      if (coords) {
+        await db.collection('places').doc(d._id).update({ lat: coords.lat, lng: coords.lng });
+        log.innerHTML += `<span style="color:var(--accent)">✓ ${esc(d.nama)}</span> <span style="color:var(--muted)">— ${source}</span>\n`;
+        found++;
+      } else {
+        log.innerHTML += `<span style="color:var(--red)">✗ ${esc(d.nama)} — tidak ditemukan, isi manual</span>\n`;
+        skipped++;
+      }
+    } catch(e) {
+      log.innerHTML += `<span style="color:var(--red)">✗ ${esc(d.nama)} — error: ${esc(e.message)}</span>\n`;
+      errors++;
+    }
+    done++;
+    log.scrollTop = log.scrollHeight;
+    const pct = Math.round((done/targets.length)*100);
+    bar.style.width = pct+'%';
+    label.textContent = `Memproses... ${done}/${targets.length} (${pct}%) — ✓${found} ✗${skipped+errors}`;
+    // Jeda supaya sopan ke Photon (layanan publik, gratis) dan tidak kena rate-limit
+    await new Promise(r => setTimeout(r, 700));
+  }
+  label.textContent = `Selesai: ${found} berhasil, ${skipped} tidak ketemu, ${errors} error`;
+  toast(`Geocode massal selesai: ${found}/${targets.length} berhasil ✓`, found>0?'ok':'err');
+  document.getElementById('btn-geo-start').disabled = false;
+  document.getElementById('btn-geo-stop').style.display = 'none';
+  _allDocsCache = null;
+  state.loaded = { wisata:false, penginapan:false, kuliner:false };
+  refreshGeoStats();
+  loadAllTabs();
+});
+
 // ======================== CLEAN DUPLICATES ==================================
 function capitalize(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
 
@@ -758,6 +886,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
     document.getElementById(PANEL_MAP[tab]).style.display = '';
     if (['wisata','penginapan','kuliner'].includes(tab) && !state.loaded[tab]) loadTab(tab);
     if (tab === 'export') updateStats();
+    if (tab === 'geocode') refreshGeoStats();
     if (tab === 'clean') renderCleanPanel();
   });
 });
