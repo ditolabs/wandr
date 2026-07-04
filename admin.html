@@ -266,7 +266,24 @@
             <button class="btn btn-export" id="btn-geo-export-xlsx-failed">⬇️ Download Excel (yang gagal saja)</button>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-top:12px">💡 Data dengan link Maps yang sudah berisi koordinat (ada <code>@lat,lng</code>) akan langsung terisi tanpa perlu cari nama. Data dengan link short (maps.app.goo.gl) atau tanpa link sama sekali akan dicari lewat nama + kawasan — hasil di luar area Banyuwangi otomatis dilewati, cek manual nanti di tabel.</div>
+        <div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-top:12px">💡 Data dengan link Maps yang sudah berisi koordinat (ada <code>@lat,lng</code>) akan langsung terisi tanpa perlu cari nama. Data dengan link short (maps.app.goo.gl) atau tanpa link sama sekali akan dicari lewat nama + kawasan, dicoba beberapa variasi query di Photon lalu fallback ke Nominatim (OpenStreetMap) kalau masih nihil — hasil di luar area Banyuwangi otomatis dilewati. Karena ada beberapa percobaan per data, prosesnya lebih lama dari sebelumnya tapi tingkat keberhasilannya lebih tinggi. Yang masih gagal setelah ini kemungkinan besar memang belum terdaftar di OpenStreetMap dan perlu input koordinat manual.</div>
+
+        <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border)">
+          <div class="import-title" style="font-size:14px">📤 Import Koordinat Manual</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Sudah isi manual kolom <code>Lat</code>/<code>Lng</code> di file hasil export tadi (Excel atau JSON)? Upload lagi di sini — sistem cocokkan lewat kolom <code>ID</code>, cuma baris yang lat/lng-nya terisi yang akan diproses.</p>
+          <input type="file" id="geo-import-file" accept=".xlsx,.xls,.csv,.json" style="display:none">
+          <button class="btn btn-ghost" id="btn-geo-import-pick">📁 Pilih File</button>
+          <span id="geo-import-filename" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+          <div id="geo-import-preview" style="display:none;margin-top:12px">
+            <div style="font-size:12px;margin-bottom:8px" id="geo-import-summary"></div>
+            <button class="btn btn-push" id="btn-geo-import-confirm">✅ Update ke Firestore</button>
+          </div>
+          <div class="push-progress" id="geo-import-progress" style="display:none">
+            <div style="font-size:11px;color:var(--muted)" id="geo-import-label">Memproses...</div>
+            <div class="push-bar-wrap"><div class="push-bar" id="geo-import-bar" style="width:0%"></div></div>
+            <div class="push-log" id="geo-import-log"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -605,19 +622,53 @@ async function refreshGeoStats() {
 }
 document.getElementById('btn-geo-refresh').addEventListener('click', refreshGeoStats);
 
-// Geocode satu nama tempat lewat Photon, dengan validasi bounding box Banyuwangi.
-// Mengembalikan {lat,lng,label} atau null kalau tidak ketemu / di luar area.
-async function geocodeByName(nama, kawasan) {
-  const query = encodeURIComponent(`${nama} ${kawasan||''} Banyuwangi`.trim());
-  const url = `https://photon.komoot.io/api/?q=${query}&limit=5`;
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+// Geocode satu nama tempat, dengan validasi bounding box Banyuwangi.
+// Strategi bertingkat karena banyak POI kecil (warung, homestay, air terjun desa)
+// tidak selalu ketemu di percobaan pertama:
+//   1. Photon, dibias ke sekitar Banyuwangi, dicoba dengan beberapa variasi query.
+//   2. Kalau Photon nihil, fallback ke Nominatim (geocoder resmi OpenStreetMap).
+// Mengembalikan {lat,lng,label,engine} atau null kalau benar-benar tidak ketemu.
+const BWI_CENTER = { lat:-8.35, lng:114.15 };
+
+async function tryPhoton(query, limit=10) {
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=${limit}&lat=${BWI_CENTER.lat}&lon=${BWI_CENTER.lng}&location_bias_scale=0.9`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
   const data = await res.json();
-  const features = data.features || [];
-  const inBox = f => { const [lng,lat] = f.geometry.coordinates; return lat>=BWI_BBOX.latMin && lat<=BWI_BBOX.latMax && lng>=BWI_BBOX.lngMin && lng<=BWI_BBOX.lngMax; };
-  const best = features.find(inBox);
-  if (!best) return null;
-  const [lng, lat] = best.geometry.coordinates;
-  return { lat, lng, label: best.properties?.name || nama };
+  return data.features || [];
+}
+async function tryNominatim(query, limit=10) {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=${limit}&countrycodes=id`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data||[]).map(d => ({ geometry:{coordinates:[parseFloat(d.lon), parseFloat(d.lat)]}, properties:{name:d.display_name} }));
+}
+function pickInBox(features) {
+  const inBox = f => { const [lng,lat]=f.geometry.coordinates; return lat>=BWI_BBOX.latMin && lat<=BWI_BBOX.latMax && lng>=BWI_BBOX.lngMin && lng<=BWI_BBOX.lngMax; };
+  return features.find(inBox) || null;
+}
+async function geocodeByName(nama, kawasan) {
+  const attempts = [
+    `${nama}, ${kawasan||''}, Banyuwangi`,
+    `${nama} Banyuwangi`,
+    `${nama}`,
+  ];
+  for (const q of attempts) {
+    try {
+      const best = pickInBox(await tryPhoton(q));
+      if (best) { const [lng,lat]=best.geometry.coordinates; return {lat,lng,label:best.properties?.name||nama,engine:'Photon'}; }
+    } catch(e) { /* lanjut ke variasi query berikutnya */ }
+    await new Promise(r=>setTimeout(r,300));
+  }
+  for (const q of attempts) {
+    try {
+      const best = pickInBox(await tryNominatim(q));
+      if (best) { const [lng,lat]=best.geometry.coordinates; return {lat,lng,label:best.properties?.name||nama,engine:'Nominatim'}; }
+    } catch(e) { /* lanjut ke variasi query berikutnya */ }
+    await new Promise(r=>setTimeout(r,1000)); // kebijakan Nominatim: maks 1 request/detik
+  }
+  return null;
 }
 
 document.getElementById('btn-geo-stop').addEventListener('click', () => { geoStopFlag = true; });
@@ -654,10 +705,10 @@ document.getElementById('btn-geo-start').addEventListener('click', async () => {
       // 1) Coba baca koordinat langsung dari link Maps (kalau ada @lat,lng dst)
       let coords = extractCoordsFromUrl(d.maps || '');
       let source = 'URL Maps';
-      // 2) Kalau tidak ada / short link, cari lewat nama + kawasan via Photon
+      // 2) Kalau tidak ada / short link, cari lewat nama + kawasan (Photon → Nominatim)
       if (!coords) {
-        source = 'Nama (Photon)';
         coords = await geocodeByName(d.nama, d.kawasan);
+        source = coords ? `Nama (${coords.engine})` : 'Nama (tidak ketemu)';
       }
       if (coords) {
         await db.collection('places').doc(d._id).update({ lat: coords.lat, lng: coords.lng });
@@ -732,6 +783,93 @@ document.getElementById('btn-geo-export-xlsx-failed').addEventListener('click', 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Perlu Input Manual');
   XLSX.writeFile(wb, `geocode-perlu-manual-${ts}.xlsx`);
+});
+
+// ======================== IMPORT KOORDINAT MANUAL ============================
+let geoImportRows = []; // baris valid (ada ID + lat + lng) hasil parsing file
+
+function normalizeImportRow(r) {
+  const id  = r.ID ?? r.id ?? r.Id;
+  const lat = parseFloat(r.Lat ?? r.lat ?? r.LAT);
+  const lng = parseFloat(r.Lng ?? r.lng ?? r.LNG ?? r.Lon ?? r.lon);
+  const nama = r.Nama ?? r.nama ?? '';
+  if (!id) return null;
+  if (isNaN(lat) || isNaN(lng)) return null;
+  return { id: String(id), lat, lng, nama };
+}
+
+document.getElementById('btn-geo-import-pick').addEventListener('click', () => {
+  document.getElementById('geo-import-file').click();
+});
+
+document.getElementById('geo-import-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('geo-import-filename').textContent = file.name;
+  let raw = [];
+  try {
+    if (file.name.toLowerCase().endsWith('.json')) {
+      const text = await file.text();
+      raw = JSON.parse(text);
+      if (!Array.isArray(raw)) raw = raw.data || raw.rows || [];
+    } else {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      raw = XLSX.utils.sheet_to_json(ws);
+    }
+  } catch(err) {
+    toast('Gagal baca file: ' + err.message, 'err');
+    return;
+  }
+  const normalized = raw.map(normalizeImportRow);
+  geoImportRows = normalized.filter(Boolean);
+  const skipped = raw.length - geoImportRows.length;
+  const summary = document.getElementById('geo-import-summary');
+  summary.innerHTML = `Ditemukan <b>${raw.length}</b> baris — <span style="color:var(--accent)">${geoImportRows.length} siap di-update</span> (ada ID + lat/lng valid), <span style="color:var(--muted)">${skipped} dilewati</span> (lat/lng masih kosong atau ID tidak ada).`;
+  document.getElementById('geo-import-preview').style.display = geoImportRows.length > 0 ? '' : 'none';
+  if (geoImportRows.length === 0) toast('Tidak ada baris dengan lat/lng valid untuk di-import', 'err');
+});
+
+document.getElementById('btn-geo-import-confirm').addEventListener('click', async () => {
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  if (geoImportRows.length === 0) return;
+  if (!confirm(`Update koordinat untuk ${geoImportRows.length} data ke Firestore sekarang?`)) return;
+
+  const prog = document.getElementById('geo-import-progress');
+  const bar = document.getElementById('geo-import-bar');
+  const log = document.getElementById('geo-import-log');
+  const label = document.getElementById('geo-import-label');
+  prog.style.display = ''; log.innerHTML = '';
+  document.getElementById('btn-geo-import-confirm').disabled = true;
+
+  let done = 0, ok = 0, fail = 0;
+  for (const row of geoImportRows) {
+    try {
+      await db.collection('places').doc(row.id).update({ lat: row.lat, lng: row.lng });
+      log.innerHTML += `<span style="color:var(--accent)">✓ ${esc(row.nama||row.id)}</span> — ${row.lat}, ${row.lng}\n`;
+      ok++;
+    } catch(err) {
+      log.innerHTML += `<span style="color:var(--red)">✗ ${esc(row.nama||row.id)} — ${esc(err.message)}</span>\n`;
+      fail++;
+    }
+    done++;
+    log.scrollTop = log.scrollHeight;
+    const pct = Math.round((done/geoImportRows.length)*100);
+    bar.style.width = pct+'%';
+    label.textContent = `Memproses... ${done}/${geoImportRows.length} — ✓${ok} ✗${fail}`;
+  }
+  label.textContent = `Selesai: ${ok} berhasil di-update, ${fail} gagal`;
+  toast(`Import koordinat selesai: ${ok}/${geoImportRows.length} berhasil ✓`, ok>0?'ok':'err');
+  document.getElementById('btn-geo-import-confirm').disabled = false;
+  geoImportRows = [];
+  document.getElementById('geo-import-preview').style.display = 'none';
+  document.getElementById('geo-import-file').value = '';
+  document.getElementById('geo-import-filename').textContent = '';
+  _allDocsCache = null;
+  state.loaded = { wisata:false, penginapan:false, kuliner:false };
+  refreshGeoStats();
+  loadAllTabs();
 });
 
 // ======================== CLEAN DUPLICATES ==================================
