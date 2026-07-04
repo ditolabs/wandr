@@ -258,6 +258,14 @@
           <div class="push-bar-wrap"><div class="push-bar" id="geo-bar" style="width:0%"></div></div>
           <div class="push-log" id="geo-log"></div>
         </div>
+        <div id="geo-export-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px">📄 Hasil run terakhir (<span id="geo-result-count">0</span> data)</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" id="btn-geo-export-json-all">⬇️ Download JSON (semua)</button>
+            <button class="btn btn-ghost" id="btn-geo-export-xlsx-all">⬇️ Download Excel (semua)</button>
+            <button class="btn btn-export" id="btn-geo-export-xlsx-failed">⬇️ Download Excel (yang gagal saja)</button>
+          </div>
+        </div>
         <div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-top:12px">💡 Data dengan link Maps yang sudah berisi koordinat (ada <code>@lat,lng</code>) akan langsung terisi tanpa perlu cari nama. Data dengan link short (maps.app.goo.gl) atau tanpa link sama sekali akan dicari lewat nama + kawasan — hasil di luar area Banyuwangi otomatis dilewati, cek manual nanti di tabel.</div>
       </div>
     </div>
@@ -293,6 +301,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
 // ======================== ESCAPE FUNCTION ==================================
@@ -576,6 +585,7 @@ window.autoGeocode = autoGeocode;
 // ======================== GEOCODE MASSAL ====================================
 const BWI_BBOX = { latMin:-8.8, latMax:-7.9, lngMin:113.9, lngMax:114.5 };
 let geoStopFlag = false;
+let geoResults = []; // hasil run terakhir, untuk di-export
 
 function docsMissingCoords(docs) {
   return docs.filter(d => !(d.lat && d.lng));
@@ -626,17 +636,20 @@ document.getElementById('btn-geo-start').addEventListener('click', async () => {
   if (!confirm(`${targets.length} data belum punya koordinat. Mulai geocode massal sekarang? Ini akan memakan waktu (±1 detik per data) dan langsung menyimpan ke Firebase.`)) return;
 
   geoStopFlag = false;
+  geoResults = [];
   const prog = document.getElementById('geo-progress');
   const bar  = document.getElementById('geo-bar');
   const log  = document.getElementById('geo-log');
   const label= document.getElementById('geo-label');
   prog.style.display = ''; log.innerHTML = '';
+  document.getElementById('geo-export-wrap').style.display = 'none';
   document.getElementById('btn-geo-start').disabled = true;
   document.getElementById('btn-geo-stop').style.display = '';
 
   let done = 0, found = 0, skipped = 0, errors = 0;
   for (const d of targets) {
     if (geoStopFlag) { log.innerHTML += `<span style="color:var(--orange)">⏹ Dihentikan oleh user</span>\n`; break; }
+    const row = { id: d._id, type: d._tabType, nama: d.nama||'', kawasan: d.kawasan||'', maps: d.maps||'' };
     try {
       // 1) Coba baca koordinat langsung dari link Maps (kalau ada @lat,lng dst)
       let coords = extractCoordsFromUrl(d.maps || '');
@@ -650,14 +663,18 @@ document.getElementById('btn-geo-start').addEventListener('click', async () => {
         await db.collection('places').doc(d._id).update({ lat: coords.lat, lng: coords.lng });
         log.innerHTML += `<span style="color:var(--accent)">✓ ${esc(d.nama)}</span> <span style="color:var(--muted)">— ${source}</span>\n`;
         found++;
+        row.status = 'ditemukan'; row.lat = coords.lat; row.lng = coords.lng; row.sumber = source;
       } else {
         log.innerHTML += `<span style="color:var(--red)">✗ ${esc(d.nama)} — tidak ditemukan, isi manual</span>\n`;
         skipped++;
+        row.status = 'gagal'; row.lat = ''; row.lng = ''; row.sumber = '';
       }
     } catch(e) {
       log.innerHTML += `<span style="color:var(--red)">✗ ${esc(d.nama)} — error: ${esc(e.message)}</span>\n`;
       errors++;
+      row.status = 'error'; row.lat = ''; row.lng = ''; row.sumber = e.message;
     }
+    geoResults.push(row);
     done++;
     log.scrollTop = log.scrollHeight;
     const pct = Math.round((done/targets.length)*100);
@@ -670,10 +687,51 @@ document.getElementById('btn-geo-start').addEventListener('click', async () => {
   toast(`Geocode massal selesai: ${found}/${targets.length} berhasil ✓`, found>0?'ok':'err');
   document.getElementById('btn-geo-start').disabled = false;
   document.getElementById('btn-geo-stop').style.display = 'none';
+  if (geoResults.length > 0) {
+    document.getElementById('geo-export-wrap').style.display = '';
+    document.getElementById('geo-result-count').textContent = geoResults.length;
+  }
   _allDocsCache = null;
   state.loaded = { wisata:false, penginapan:false, kuliner:false };
   refreshGeoStats();
   loadAllTabs();
+});
+
+function downloadBlob(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function geoResultsToRows(onlyFailed) {
+  const rows = onlyFailed ? geoResults.filter(r => r.status !== 'ditemukan') : geoResults;
+  return rows.map(r => ({
+    ID: r.id, Tipe: r.type, Nama: r.nama, Kawasan: r.kawasan, 'Link Maps': r.maps,
+    Status: r.status, Lat: r.lat, Lng: r.lng, Sumber: r.sumber || ''
+  }));
+}
+document.getElementById('btn-geo-export-json-all').addEventListener('click', () => {
+  if (geoResults.length === 0) return;
+  const ts = new Date().toISOString().slice(0,10);
+  downloadBlob(JSON.stringify(geoResultsToRows(false), null, 2), `geocode-hasil-${ts}.json`, 'application/json');
+});
+document.getElementById('btn-geo-export-xlsx-all').addEventListener('click', () => {
+  if (geoResults.length === 0) return;
+  const ts = new Date().toISOString().slice(0,10);
+  const ws = XLSX.utils.json_to_sheet(geoResultsToRows(false));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Geocode');
+  XLSX.writeFile(wb, `geocode-hasil-${ts}.xlsx`);
+});
+document.getElementById('btn-geo-export-xlsx-failed').addEventListener('click', () => {
+  const rows = geoResultsToRows(true);
+  if (rows.length === 0) { toast('Tidak ada yang gagal — semua berhasil ditemukan ✓', 'ok'); return; }
+  const ts = new Date().toISOString().slice(0,10);
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Perlu Input Manual');
+  XLSX.writeFile(wb, `geocode-perlu-manual-${ts}.xlsx`);
 });
 
 // ======================== CLEAN DUPLICATES ==================================
