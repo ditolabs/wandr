@@ -82,6 +82,9 @@
     .btn-warning { background: rgba(249,115,22,.1); color: var(--orange); border: 1px solid rgba(249,115,22,.2); }
     .btn-warning:hover { background: rgba(249,115,22,.2); }
     .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-excel { background: rgba(74,222,128,.08); color: var(--accent); border: 1px solid rgba(74,222,128,.2); }
+    .btn-excel:hover { background: rgba(74,222,128,.15); }
+    .btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
     .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
     th { background: var(--surface2); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -140,6 +143,10 @@
     .login-err  { font-size: 11px; color: var(--red); margin-top: 10px; text-align: center; display: none; }
     .badge-new { font-size: 9px; background: rgba(249,115,22,.15); color: var(--orange); border: 1px solid rgba(249,115,22,.3); padding: 1px 6px; border-radius: 10px; font-weight: 700; margin-left: 4px; }
     .badge-duplicate { font-size: 9px; background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); padding: 1px 6px; border-radius: 10px; font-weight: 700; margin-left: 4px; }
+    .import-options { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .import-options label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .import-options select { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: inherit; outline: none; }
+    .import-options select:focus { border-color: var(--accent2); }
     @media (max-width: 600px) {
       #sidebar { display: none; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -208,7 +215,7 @@
     </div>
     <div class="nav-section">
       <div class="nav-label">Tools</div>
-      <div class="nav-item" data-tab="import">📥 Import JSON</div>
+      <div class="nav-item" data-tab="import">📥 Import</div>
       <div class="nav-item" data-tab="export">📤 Export</div>
       <div class="nav-item" data-tab="geocode">📍 Geocode Massal</div>
       <div class="nav-item" data-tab="clean">🧹 Bersihkan Duplikat</div>
@@ -230,12 +237,81 @@
     <div id="panel-penginapan" style="display:none"><div class="toolbar"><div class="search-wrap"><span class="search-icon">⌕</span><input type="text" id="search-penginapan" placeholder="Cari penginapan..." dir="ltr"></div><button class="btn btn-primary" id="btn-add-penginapan">+ Tambah</button></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Nama</th><th>Kawasan</th><th>Kategori</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tbody-penginapan"></tbody></table></div><div class="pagination" id="pag-penginapan"></div></div>
     <div id="panel-kuliner" style="display:none"><div class="toolbar"><div class="search-wrap"><span class="search-icon">⌕</span><input type="text" id="search-kuliner" placeholder="Cari kuliner/cafe..." dir="ltr"></div><button class="btn btn-primary" id="btn-add-kuliner">+ Tambah</button></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Nama</th><th>Kawasan</th><th>Kategori</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tbody-kuliner"></tbody></table></div><div class="pagination" id="pag-kuliner"></div></div>
 
+    <!-- PANEL IMPORT -->
     <div id="panel-import" style="display:none">
-      <div class="import-panel"><div class="import-title">📥 Import dari JSON</div><div class="drop-zone" id="dropZone"><div class="drop-zone-icon">📂</div><div class="drop-zone-text">Drop file JSON di sini atau klik untuk pilih</div><div class="drop-zone-sub">Format: {"wisata_banyuwangi":[...], "penginapan":[...], "kuliner_cafe":[...]}</div><input type="file" id="fileInput" accept=".json" style="display:none"></div><div id="import-preview" style="margin-top:16px;display:none"><div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--accent)">📋 Preview Import</div><div id="import-stats" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" id="btn-import-local">💾 Simpan Lokal (draft)</button><button class="btn btn-push" id="btn-import-push">🚀 Push ke Firebase</button><button class="btn btn-danger" id="btn-import-cancel">Batal</button></div><div class="push-progress" id="push-progress" style="display:none"><div style="font-size:11px;color:var(--muted)" id="push-label">Pushing...</div><div class="push-bar-wrap"><div class="push-bar" id="push-bar" style="width:0%"></div></div><div class="push-log" id="push-log"></div></div></div></div>
+      <div class="import-panel">
+        <div class="import-title">📥 Import Data</div>
+        <div class="import-options">
+          <label>Format: <select id="import-format"><option value="json">JSON</option><option value="excel">Excel (.xlsx/.xls)</option></select></label>
+          <label>Target: <select id="import-target"><option value="all">Semua Koleksi</option><option value="wisata">Wisata</option><option value="penginapan">Penginapan</option><option value="kuliner">Kuliner</option></select></label>
+          <label style="margin-left:auto;font-size:11px;color:var(--muted2)">⬇️ File akan diproses sesuai format & target</label>
+        </div>
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone-icon">📂</div>
+          <div class="drop-zone-text">Drop file di sini atau klik untuk pilih</div>
+          <div class="drop-zone-sub" id="drop-zone-sub">Format JSON: {"wisata_banyuwangi":[...], "penginapan":[...], "kuliner_cafe":[...]} · Excel: sheet per koleksi atau satu sheet dengan kolom Type</div>
+          <input type="file" id="fileInput" accept=".json,.xlsx,.xls" style="display:none">
+        </div>
+        <div id="import-preview" style="display:none;margin-top:16px">
+          <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--accent)">📋 Preview Import</div>
+          <div id="import-stats" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" id="btn-import-local">💾 Simpan Lokal (draft)</button>
+            <button class="btn btn-push" id="btn-import-push">🚀 Push ke Firebase</button>
+            <button class="btn btn-danger" id="btn-import-cancel">Batal</button>
+          </div>
+          <div class="push-progress" id="push-progress" style="display:none">
+            <div style="font-size:11px;color:var(--muted)" id="push-label">Pushing...</div>
+            <div class="push-bar-wrap"><div class="push-bar" id="push-bar" style="width:0%"></div></div>
+            <div class="push-log" id="push-log"></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-top:12px">
+          💡 <strong>Excel:</strong> gunakan sheet bernama <code>wisata_banyuwangi</code>, <code>penginapan</code>, <code>kuliner_cafe</code> — atau satu sheet dengan kolom <code>Type</code> (wisata/penginapan/kuliner). Kolom wajib: <code>Nama</code>, <code>Kawasan</code>. Kolom opsional: <code>Kategori</code>, <code>Akses</code>, <code>Catatan</code>, <code>Maps</code>, <code>lat</code>, <code>lng</code>, <code>Status</code>.
+        </div>
+      </div>
     </div>
 
+    <!-- PANEL EXPORT -->
     <div id="panel-export" style="display:none">
-      <div class="import-panel"><div class="import-title">📤 Export Database</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px"><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Semua</div><div style="font-size:11px;color:var(--muted)">Wisata + Penginapan + Kuliner dari Firebase</div><button class="btn btn-export" style="margin-top:auto" id="btn-export-all">📤 Export JSON</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Wisata</div><div style="font-size:11px;color:var(--muted)">Hanya data wisata (type: wisata)</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-wisata">Export</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Penginapan</div><div style="font-size:11px;color:var(--muted)">Hanya data penginapan</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-penginapan">Export</button></div><div class="stat-card" style="display:flex;flex-direction:column;gap:8px"><div style="font-size:12px;font-weight:600">Export Kuliner</div><div style="font-size:11px;color:var(--muted)">Hanya data kuliner & cafe</div><button class="btn btn-ghost" style="margin-top:auto" id="btn-export-kuliner">Export</button></div></div><div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">💡 Export mengambil langsung dari Firebase Firestore. File JSON yang dihasilkan kompatibel untuk re-import.</div></div>
+      <div class="import-panel">
+        <div class="import-title">📤 Export Database</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px">
+          <div class="stat-card" style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:12px;font-weight:600">Export Semua</div>
+            <div style="font-size:11px;color:var(--muted)">Wisata + Penginapan + Kuliner</div>
+            <div class="btn-group" style="margin-top:auto">
+              <button class="btn btn-export" id="btn-export-all">📤 JSON</button>
+              <button class="btn btn-excel" id="btn-export-all-excel">📊 Excel</button>
+            </div>
+          </div>
+          <div class="stat-card" style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:12px;font-weight:600">Export Wisata</div>
+            <div style="font-size:11px;color:var(--muted)">Hanya data wisata</div>
+            <div class="btn-group" style="margin-top:auto">
+              <button class="btn btn-ghost" id="btn-export-wisata">JSON</button>
+              <button class="btn btn-excel" id="btn-export-wisata-excel">Excel</button>
+            </div>
+          </div>
+          <div class="stat-card" style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:12px;font-weight:600">Export Penginapan</div>
+            <div style="font-size:11px;color:var(--muted)">Hanya data penginapan</div>
+            <div class="btn-group" style="margin-top:auto">
+              <button class="btn btn-ghost" id="btn-export-penginapan">JSON</button>
+              <button class="btn btn-excel" id="btn-export-penginapan-excel">Excel</button>
+            </div>
+          </div>
+          <div class="stat-card" style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:12px;font-weight:600">Export Kuliner</div>
+            <div style="font-size:11px;color:var(--muted)">Hanya data kuliner & cafe</div>
+            <div class="btn-group" style="margin-top:auto">
+              <button class="btn btn-ghost" id="btn-export-kuliner">JSON</button>
+              <button class="btn btn-excel" id="btn-export-kuliner-excel">Excel</button>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">💡 Export mengambil langsung dari Firebase Firestore. File JSON/Excel yang dihasilkan kompatibel untuk re-import.</div>
+      </div>
     </div>
 
     <!-- PANEL GEOCODE MASSAL -->
@@ -503,7 +579,7 @@ async function approveDoc(type, id, currentStatus) { if (!db) { toast('Firebase 
 async function deleteDoc(type, id) { if (!confirm('Hapus data ini?')) return; const localIdx = state.local[type].findIndex(d=>(d._id||d.Id)===id); if (localIdx >= 0) { state.local[type].splice(localIdx, 1); toast('Data lokal dihapus'); saveLocalToStorage(); updateStats(); renderTable(type); return; } if (!db) { toast('Firebase tidak tersambung', 'err'); return; } try { await db.collection('places').doc(id).delete(); state.data[type] = state.data[type].filter(d=>d._id!==id); toast('Data dihapus ✓'); updateStats(); renderTable(type); } catch(e) { toast('Gagal hapus: '+e.message, 'err'); } }
 async function pushSingle(type, id) { if (!db) { toast('Firebase tidak tersambung', 'err'); return; } const doc = state.local[type].find(d=>(d._id||d.Id)===id); if (!doc) return; try { const { _id, _source, ...data } = doc; const ref = await db.collection('places').add(data); state.local[type] = state.local[type].filter(d=>(d._id||d.Id)!==id); state.data[type].unshift({ _id:ref.id, ...data, _source:'firebase' }); toast('Berhasil push ke Firebase ✓'); saveLocalToStorage(); updateStats(); renderTable(type); } catch(e) { toast('Gagal push: '+e.message, 'err'); } }
 
-// ======================== IMPORT JSON ======================================
+// ======================== IMPORT ===========================================
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 dropZone.addEventListener('click', () => fileInput.click());
@@ -511,17 +587,242 @@ dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classL
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); const file = e.dataTransfer.files[0]; if (file) parseImportFile(file); });
 fileInput.addEventListener('change', e => { if(e.target.files[0]) parseImportFile(e.target.files[0]); });
-function parseImportFile(file) { const reader = new FileReader(); reader.onload = e => { try { const json = JSON.parse(e.target.result); state.importData = json; const wisata = json.wisata_banyuwangi || json.wisata || []; const hotel = json.penginapan || []; const kuliner = json.kuliner_cafe || json.kuliner || []; const total = wisata.length + hotel.length + kuliner.length; document.getElementById('import-stats').innerHTML = `<b>${total} records</b> ditemukan: 🗺️ ${wisata.length} wisata · 🏨 ${hotel.length} penginapan · 🍜 ${kuliner.length} kuliner`; document.getElementById('import-preview').style.display = ''; document.getElementById('push-progress').style.display = 'none'; toast(`File "${file.name}" berhasil dibaca`, 'info'); } catch(err) { toast('File JSON tidak valid: '+err.message, 'err'); } }; reader.readAsText(file); }
+
+function parseImportFile(file) {
+  const format = document.getElementById('import-format').value;
+  const target = document.getElementById('import-target').value;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      let data;
+      if (format === 'json') {
+        data = JSON.parse(e.target.result);
+        processImportData(data, target);
+      } else if (format === 'excel') {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        data = excelToJson(wb);
+        processImportData(data, target);
+      }
+    } catch(err) {
+      toast('Gagal baca file: '+err.message, 'err');
+    }
+  };
+  if (format === 'json') {
+    reader.readAsText(file);
+  } else {
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function excelToJson(wb) {
+  const result = { wisata_banyuwangi: [], penginapan: [], kuliner_cafe: [] };
+  // Coba baca sheet berdasarkan nama
+  const sheetNames = wb.SheetNames;
+  for (const name of sheetNames) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[name]);
+    const lower = name.toLowerCase();
+    if (lower.includes('wisata')) result.wisata_banyuwangi = result.wisata_banyuwangi.concat(rows);
+    else if (lower.includes('penginapan') || lower.includes('hotel') || lower.includes('homestay')) result.penginapan = result.penginapan.concat(rows);
+    else if (lower.includes('kuliner') || lower.includes('cafe') || lower.includes('restoran')) result.kuliner_cafe = result.kuliner_cafe.concat(rows);
+    else {
+      // Jika sheet tidak spesifik, coba deteksi dari kolom Type
+      if (rows.length > 0 && rows[0].Type) {
+        for (const row of rows) {
+          const type = (row.Type || '').toLowerCase();
+          if (type === 'wisata') result.wisata_banyuwangi.push(row);
+          else if (type === 'penginapan' || type === 'hotel' || type === 'homestay') result.penginapan.push(row);
+          else if (type === 'kuliner' || type === 'cafe' || type === 'restoran') result.kuliner_cafe.push(row);
+        }
+      } else {
+        // Fallback: masukkan semua ke semua? lebih aman ke wisata? Tapi biarkan user pilih target
+        // Kita taruh di semua sheet? lebih baik masukkan ke wisata_banyuwangi sebagai default
+        result.wisata_banyuwangi = result.wisata_banyuwangi.concat(rows);
+      }
+    }
+  }
+  return result;
+}
+
+function processImportData(json, target) {
+  let wisata = json.wisata_banyuwangi || json.wisata || [];
+  let penginapan = json.penginapan || [];
+  let kuliner = json.kuliner_cafe || json.kuliner || [];
+
+  // Filter berdasarkan target
+  if (target === 'wisata') { penginapan = []; kuliner = []; }
+  else if (target === 'penginapan') { wisata = []; kuliner = []; }
+  else if (target === 'kuliner') { wisata = []; penginapan = []; }
+
+  const total = wisata.length + penginapan.length + kuliner.length;
+  document.getElementById('import-stats').innerHTML =
+    `<b>${total} records</b> ditemukan: 🗺️ ${wisata.length} wisata · 🏨 ${penginapan.length} penginapan · 🍜 ${kuliner.length} kuliner ${target!=='all' ? `(filter: ${target})` : ''}`;
+  state.importData = { wisata_banyuwangi: wisata, penginapan, kuliner_cafe: kuliner };
+  document.getElementById('import-preview').style.display = '';
+  document.getElementById('push-progress').style.display = 'none';
+  toast('File berhasil dibaca ✓', 'info');
+}
+
 document.getElementById('btn-import-cancel').addEventListener('click', () => { state.importData = null; document.getElementById('import-preview').style.display = 'none'; fileInput.value = ''; });
-document.getElementById('btn-import-local').addEventListener('click', () => { if (!state.importData) return; const json = state.importData; const convert = (arr, type) => arr.map((d,i) => ({ _id: 'local_import_'+type+'_'+i+'_'+Date.now(), _source: 'local', nama: d.Nama||d.nama, kawasan: d.Kawasan||d.kawasan, kategori: d.Kategori||d.kategori, akses: d.Akses||d.akses, catatan: d.Catatan||d.catatan, maps: d.Maps||d.maps, type, status: 'pending', lat: d.lat||null, lng: d.lng||null, })); state.local.wisata = convert(json.wisata_banyuwangi||json.wisata||[], 'wisata'); state.local.penginapan = convert(json.penginapan||[], 'penginapan'); state.local.kuliner = convert(json.kuliner_cafe||json.kuliner||[], 'kuliner'); saveLocalToStorage(); updateStats(); ['wisata','penginapan','kuliner'].forEach(t => { state.loaded[t]=true; renderTable(t); }); toast('Data disimpan lokal sebagai draft ✓', 'ok'); document.getElementById('import-preview').style.display='none'; });
-document.getElementById('btn-import-push').addEventListener('click', async () => { if (!state.importData) return; if (!db) { toast('Firebase tidak tersambung', 'err'); return; } const json = state.importData; const items = []; (json.wisata_banyuwangi||json.wisata||[]).forEach(d => items.push({...d, _type:'wisata'})); (json.penginapan||[]).forEach(d => items.push({...d, _type:'penginapan'})); (json.kuliner_cafe||json.kuliner||[]).forEach(d => items.push({...d, _type:'kuliner'})); const prog = document.getElementById('push-progress'); const bar = document.getElementById('push-bar'); const log = document.getElementById('push-log'); const label = document.getElementById('push-label'); prog.style.display = ''; log.innerHTML = ''; let done = 0, errors = 0; document.getElementById('btn-import-push').disabled = true; document.getElementById('btn-import-local').disabled = true; for (const d of items) { const { _type, Id, ...rest } = d; const data = { nama: rest.Nama || rest.nama || '', kawasan: rest.Kawasan || rest.kawasan || '', kategori: rest.Kategori || rest.kategori || '', akses: rest.Akses || rest.akses || '', catatan: rest.Catatan || rest.catatan || '', maps: rest.Maps || rest.maps || '', type: _type, status: 'approved', importedAt: new Date().toISOString(), }; if (rest.lat) data.lat = parseFloat(rest.lat); if (rest.lng) data.lng = parseFloat(rest.lng); try { if (Id) { await db.collection('places').doc(String(Id)).set(data, { merge: true }); log.innerHTML += `<span style="color:var(--blue)">✓ Tersimpan (Update): ${esc(data.nama)}</span>\n`; done++; } else { const dup = await db.collection('places').where('nama','==',data.nama).where('type','==',_type).limit(1).get(); if (!dup.empty) { const docId = dup.docs[0].id; await db.collection('places').doc(docId).update(data); log.innerHTML += `<span style="color:var(--blue)">↻ Update: ${esc(data.nama)}</span>\n`; done++; } else { await db.collection('places').add(data); log.innerHTML += `<span style="color:var(--accent)">✓ Tambah Baru: ${esc(data.nama)}</span>\n`; done++; } } } catch(e) { log.innerHTML += `<span style="color:var(--red)">✗ ${esc(data.nama)}: ${esc(e.message)}</span>\n`; errors++; } log.scrollTop = log.scrollHeight; const pct = Math.round(((done+errors)/items.length)*100); bar.style.width = pct+'%'; label.textContent = `Pushing... ${done+errors}/${items.length} (${pct}%)`; if ((done+errors) % 10 === 0) await new Promise(r=>setTimeout(r,0)); } label.textContent = `Selesai: ${done} berhasil, ${errors} error`; toast(`Push selesai: ${done} data berhasil`, done>0?'ok':'err'); document.getElementById('btn-import-push').disabled = false; document.getElementById('btn-import-local').disabled = false; _allDocsCache = null; state.loaded = { wisata:false, penginapan:false, kuliner:false }; loadAllTabs(); });
+
+document.getElementById('btn-import-local').addEventListener('click', () => {
+  if (!state.importData) return;
+  const json = state.importData;
+  const convert = (arr, type) => arr.map((d,i) => ({
+    _id: 'local_import_'+type+'_'+i+'_'+Date.now(),
+    _source: 'local',
+    nama: d.Nama||d.nama,
+    kawasan: d.Kawasan||d.kawasan,
+    kategori: d.Kategori||d.kategori,
+    akses: d.Akses||d.akses,
+    catatan: d.Catatan||d.catatan,
+    maps: d.Maps||d.maps,
+    type,
+    status: d.Status||d.status||'pending',
+    lat: d.lat||null,
+    lng: d.lng||null,
+  }));
+  state.local.wisata = convert(json.wisata_banyuwangi||json.wisata||[], 'wisata');
+  state.local.penginapan = convert(json.penginapan||[], 'penginapan');
+  state.local.kuliner = convert(json.kuliner_cafe||json.kuliner||[], 'kuliner');
+  saveLocalToStorage();
+  updateStats();
+  ['wisata','penginapan','kuliner'].forEach(t => { state.loaded[t]=true; renderTable(t); });
+  toast('Data disimpan lokal sebagai draft ✓', 'ok');
+  document.getElementById('import-preview').style.display = 'none';
+});
+
+document.getElementById('btn-import-push').addEventListener('click', async () => {
+  if (!state.importData) return;
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  const json = state.importData;
+  const items = [];
+  (json.wisata_banyuwangi||json.wisata||[]).forEach(d => items.push({...d, _type:'wisata'}));
+  (json.penginapan||[]).forEach(d => items.push({...d, _type:'penginapan'}));
+  (json.kuliner_cafe||json.kuliner||[]).forEach(d => items.push({...d, _type:'kuliner'}));
+  const prog = document.getElementById('push-progress');
+  const bar = document.getElementById('push-bar');
+  const log = document.getElementById('push-log');
+  const label = document.getElementById('push-label');
+  prog.style.display = ''; log.innerHTML = '';
+  let done = 0, errors = 0;
+  document.getElementById('btn-import-push').disabled = true;
+  document.getElementById('btn-import-local').disabled = true;
+  for (const d of items) {
+    const { _type, Id, ...rest } = d;
+    const data = {
+      nama: rest.Nama || rest.nama || '',
+      kawasan: rest.Kawasan || rest.kawasan || '',
+      kategori: rest.Kategori || rest.kategori || '',
+      akses: rest.Akses || rest.akses || '',
+      catatan: rest.Catatan || rest.catatan || '',
+      maps: rest.Maps || rest.maps || '',
+      type: _type,
+      status: rest.Status || rest.status || 'approved',
+      importedAt: new Date().toISOString(),
+    };
+    if (rest.lat) data.lat = parseFloat(rest.lat);
+    if (rest.lng) data.lng = parseFloat(rest.lng);
+    try {
+      if (Id) {
+        await db.collection('places').doc(String(Id)).set(data, { merge: true });
+        log.innerHTML += `<span style="color:var(--blue)">✓ Tersimpan (Update): ${esc(data.nama)}</span>\n`;
+        done++;
+      } else {
+        const dup = await db.collection('places').where('nama','==',data.nama).where('type','==',_type).limit(1).get();
+        if (!dup.empty) {
+          const docId = dup.docs[0].id;
+          await db.collection('places').doc(docId).update(data);
+          log.innerHTML += `<span style="color:var(--blue)">↻ Update: ${esc(data.nama)}</span>\n`;
+          done++;
+        } else {
+          await db.collection('places').add(data);
+          log.innerHTML += `<span style="color:var(--accent)">✓ Tambah Baru: ${esc(data.nama)}</span>\n`;
+          done++;
+        }
+      }
+    } catch(e) {
+      log.innerHTML += `<span style="color:var(--red)">✗ ${esc(data.nama)}: ${esc(e.message)}</span>\n`;
+      errors++;
+    }
+    log.scrollTop = log.scrollHeight;
+    const pct = Math.round(((done+errors)/items.length)*100);
+    bar.style.width = pct+'%';
+    label.textContent = `Pushing... ${done+errors}/${items.length} (${pct}%)`;
+    if ((done+errors) % 10 === 0) await new Promise(r=>setTimeout(r,0));
+  }
+  label.textContent = `Selesai: ${done} berhasil, ${errors} error`;
+  toast(`Push selesai: ${done} data berhasil`, done>0?'ok':'err');
+  document.getElementById('btn-import-push').disabled = false;
+  document.getElementById('btn-import-local').disabled = false;
+  _allDocsCache = null;
+  state.loaded = { wisata:false, penginapan:false, kuliner:false };
+  loadAllTabs();
+});
 
 // ======================== EXPORT ============================================
-async function exportData(types) { if (!db) { toast('Firebase tidak tersambung', 'err'); return; } toast('Mengambil data dari Firebase...', 'info'); try { const all = await fetchAllDocs(true); const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] }; const result = {}; for (const type of types) { const validTypes = typeMap[type] || [type]; const docs = all.filter(d => validTypes.includes((d.type||'').toLowerCase())); const key = type === 'wisata' ? 'wisata_banyuwangi' : type === 'kuliner' ? 'kuliner_cafe' : type; result[key] = docs.map(d => ({ Id: d._id, Nama: d.nama, Kawasan: d.kawasan, Kategori: d.kategori, Akses: d.akses, Catatan: d.catatan, Maps: d.maps, Status: d.status, ...(d.lat ? {lat: d.lat} : {}), ...(d.lng ? {lng: d.lng} : {}) })); } const ts = new Date().toISOString().slice(0,10); const blob = new Blob([JSON.stringify(result, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `bwi-db-export-${ts}.json`; a.click(); URL.revokeObjectURL(url); const total = Object.values(result).reduce((s,arr) => s+arr.length, 0); toast(`Export ${total} records berhasil ✓`); } catch(e) { toast('Gagal export: ' + e.message, 'err'); } }
-document.getElementById('btn-export-all').addEventListener('click', () => exportData(['wisata','penginapan','kuliner']));
-document.getElementById('btn-export-wisata').addEventListener('click', () => exportData(['wisata']));
-document.getElementById('btn-export-penginapan').addEventListener('click', () => exportData(['penginapan']));
-document.getElementById('btn-export-kuliner').addEventListener('click', () => exportData(['kuliner']));
+async function exportData(types, format = 'json') {
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  toast('Mengambil data dari Firebase...', 'info');
+  try {
+    const all = await fetchAllDocs(true);
+    const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] };
+    const result = {};
+    for (const type of types) {
+      const validTypes = typeMap[type] || [type];
+      const docs = all.filter(d => validTypes.includes((d.type||'').toLowerCase()));
+      const key = type === 'wisata' ? 'wisata_banyuwangi' : type === 'kuliner' ? 'kuliner_cafe' : type;
+      result[key] = docs.map(d => ({
+        Id: d._id,
+        Nama: d.nama,
+        Kawasan: d.kawasan,
+        Kategori: d.kategori,
+        Akses: d.akses,
+        Catatan: d.catatan,
+        Maps: d.maps,
+        Status: d.status || 'approved',
+        ...(d.lat ? { lat: d.lat } : {}),
+        ...(d.lng ? { lng: d.lng } : {})
+      }));
+    }
+    const ts = new Date().toISOString().slice(0,10);
+    const label = types.length === 3 ? 'all' : types.join('-');
+    if (format === 'json') {
+      const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bwi-export-${label}-${ts}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else if (format === 'excel') {
+      const wb = XLSX.utils.book_new();
+      for (const [key, rows] of Object.entries(result)) {
+        if (rows.length === 0) continue;
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, key.slice(0,31));
+      }
+      // Jika hanya satu sheet dan namanya terlalu panjang, tetap pakai
+      if (Object.keys(result).length === 0) { toast('Tidak ada data untuk diexport', 'err'); return; }
+      XLSX.writeFile(wb, `bwi-export-${label}-${ts}.xlsx`);
+    }
+    const total = Object.values(result).reduce((s,arr) => s+arr.length, 0);
+    toast(`Export ${total} records berhasil ✓ (${format})`, 'ok');
+  } catch(e) {
+    toast('Gagal export: ' + e.message, 'err');
+  }
+}
+
+// Tombol export JSON
+document.getElementById('btn-export-all').addEventListener('click', () => exportData(['wisata','penginapan','kuliner'], 'json'));
+document.getElementById('btn-export-wisata').addEventListener('click', () => exportData(['wisata'], 'json'));
+document.getElementById('btn-export-penginapan').addEventListener('click', () => exportData(['penginapan'], 'json'));
+document.getElementById('btn-export-kuliner').addEventListener('click', () => exportData(['kuliner'], 'json'));
+
+// Tombol export Excel
+document.getElementById('btn-export-all-excel').addEventListener('click', () => exportData(['wisata','penginapan','kuliner'], 'excel'));
+document.getElementById('btn-export-wisata-excel').addEventListener('click', () => exportData(['wisata'], 'excel'));
+document.getElementById('btn-export-penginapan-excel').addEventListener('click', () => exportData(['penginapan'], 'excel'));
+document.getElementById('btn-export-kuliner-excel').addEventListener('click', () => exportData(['kuliner'], 'excel'));
 
 // ======================== AUTO GEOCODE ======================================
 async function autoGeocode() {
@@ -602,7 +903,7 @@ window.autoGeocode = autoGeocode;
 // ======================== GEOCODE MASSAL ====================================
 const BWI_BBOX = { latMin:-8.8, latMax:-7.9, lngMin:113.9, lngMax:114.5 };
 let geoStopFlag = false;
-let geoResults = []; // hasil run terakhir, untuk di-export
+let geoResults = [];
 
 function docsMissingCoords(docs) {
   return docs.filter(d => !(d.lat && d.lng));
@@ -622,12 +923,6 @@ async function refreshGeoStats() {
 }
 document.getElementById('btn-geo-refresh').addEventListener('click', refreshGeoStats);
 
-// Geocode satu nama tempat, dengan validasi bounding box Banyuwangi.
-// Strategi bertingkat karena banyak POI kecil (warung, homestay, air terjun desa)
-// tidak selalu ketemu di percobaan pertama:
-//   1. Photon, dibias ke sekitar Banyuwangi, dicoba dengan beberapa variasi query.
-//   2. Kalau Photon nihil, fallback ke Nominatim (geocoder resmi OpenStreetMap).
-// Mengembalikan {lat,lng,label,engine} atau null kalau benar-benar tidak ketemu.
 const BWI_CENTER = { lat:-8.35, lng:114.15 };
 
 async function tryPhoton(query, limit=10) {
@@ -666,7 +961,7 @@ async function geocodeByName(nama, kawasan) {
       const best = pickInBox(await tryNominatim(q));
       if (best) { const [lng,lat]=best.geometry.coordinates; return {lat,lng,label:best.properties?.name||nama,engine:'Nominatim'}; }
     } catch(e) { /* lanjut ke variasi query berikutnya */ }
-    await new Promise(r=>setTimeout(r,1000)); // kebijakan Nominatim: maks 1 request/detik
+    await new Promise(r=>setTimeout(r,1000));
   }
   return null;
 }
@@ -702,10 +997,8 @@ document.getElementById('btn-geo-start').addEventListener('click', async () => {
     if (geoStopFlag) { log.innerHTML += `<span style="color:var(--orange)">⏹ Dihentikan oleh user</span>\n`; break; }
     const row = { id: d._id, type: d._tabType, nama: d.nama||'', kawasan: d.kawasan||'', maps: d.maps||'' };
     try {
-      // 1) Coba baca koordinat langsung dari link Maps (kalau ada @lat,lng dst)
       let coords = extractCoordsFromUrl(d.maps || '');
       let source = 'URL Maps';
-      // 2) Kalau tidak ada / short link, cari lewat nama + kawasan (Photon → Nominatim)
       if (!coords) {
         coords = await geocodeByName(d.nama, d.kawasan);
         source = coords ? `Nama (${coords.engine})` : 'Nama (tidak ketemu)';
@@ -731,7 +1024,6 @@ document.getElementById('btn-geo-start').addEventListener('click', async () => {
     const pct = Math.round((done/targets.length)*100);
     bar.style.width = pct+'%';
     label.textContent = `Memproses... ${done}/${targets.length} (${pct}%) — ✓${found} ✗${skipped+errors}`;
-    // Jeda supaya sopan ke Photon (layanan publik, gratis) dan tidak kena rate-limit
     await new Promise(r => setTimeout(r, 700));
   }
   label.textContent = `Selesai: ${found} berhasil, ${skipped} tidak ketemu, ${errors} error`;
@@ -786,7 +1078,7 @@ document.getElementById('btn-geo-export-xlsx-failed').addEventListener('click', 
 });
 
 // ======================== IMPORT KOORDINAT MANUAL ============================
-let geoImportRows = []; // baris valid (ada ID + lat + lng) hasil parsing file
+let geoImportRows = [];
 
 function normalizeImportRow(r) {
   const id  = r.ID ?? r.id ?? r.Id;
@@ -938,19 +1230,16 @@ async function rewriteGroup(type, name) {
   const groups = findDuplicates(type);
   const group = groups.find(g => g.name.toLowerCase() === name.toLowerCase());
   if (!group || group.items.length < 2) return;
-  // Urutkan: local lebih dulu (anggap lebih baru), lalu firebase, atau berdasarkan updateAt
   const sorted = [...group.items].sort((a,b) => {
-    // Prioritaskan yang punya _source='local' (anggap lebih baru)
     if (a._source === 'local' && b._source !== 'local') return -1;
     if (b._source === 'local' && a._source !== 'local') return 1;
     return 0;
   });
-  const keeper = sorted[0]; // yang akan dipertahankan (yang paling baru/lengkap)
+  const keeper = sorted[0];
   const victims = sorted.slice(1);
   let success = 0, fail = 0;
   for (const victim of victims) {
     if (victim._source === 'local') {
-      // Hapus dari lokal
       state.local[type] = state.local[type].filter(d => (d._id||d.Id) !== victim._id);
       success++;
     } else if (victim._source === 'firebase' && db) {
@@ -966,8 +1255,6 @@ async function rewriteGroup(type, name) {
       fail++;
     }
   }
-  // Update keeper jika perlu (misal tambahkan data dari victim yang lebih lengkap)
-  // Sederhana: gabungkan field yang kosong dari keeper dengan victim
   const merged = { ...keeper };
   for (const v of victims) {
     for (const key of ['kawasan','kategori','akses','catatan','maps','lat','lng']) {
@@ -991,7 +1278,6 @@ async function rewriteGroup(type, name) {
     }
   }
   toast(`Rewrite selesai: ${success} duplikat dihapus, ${fail} gagal`, fail===0?'ok':'info');
-  // Refresh cache
   _allDocsCache = null;
   state.loaded[type] = false;
   await loadTab(type, true);
@@ -1003,14 +1289,13 @@ async function autoDeleteGroup(type, name) {
   const groups = findDuplicates(type);
   const group = groups.find(g => g.name.toLowerCase() === name.toLowerCase());
   if (!group || group.items.length < 2) return;
-  // Pilih yang terbaik: prioritaskan yang ada lat/lng, lalu yang memiliki catatan, lalu yang status approved
   const sorted = [...group.items].sort((a,b) => {
     const score = (d) => {
       let s = 0;
       if (d.lat && d.lng) s += 10;
       if (d.catatan) s += 5;
       if (d.status === 'approved') s += 3;
-      if (d._source === 'firebase') s += 2; // lebih percaya data di cloud
+      if (d._source === 'firebase') s += 2;
       return s;
     };
     return score(b) - score(a);
@@ -1047,13 +1332,9 @@ async function rewriteAllDuplicates(type) {
   const groups = findDuplicates(type);
   if (groups.length === 0) { toast('Tidak ada duplikat', 'info'); return; }
   if (!confirm(`Rewrite semua duplikat di ${capitalize(type)}? (${groups.length} grup akan diproses)`)) return;
-  let totalSuccess = 0, totalFail = 0;
   for (const g of groups) {
     await rewriteGroup(type, g.name);
-    // rewriteGroup sudah menghapus, kita hanya perlu update counter secara kasar
-    // Tapi karena rewriteGroup async, kita tidak bisa langsung count
   }
-  // Refresh
   toast('Semua rewrite selesai, refresh panel...', 'info');
   renderCleanPanel();
   updateStats();
