@@ -405,7 +405,7 @@
     .tl-time { font-family: 'DM Sans', sans-serif; font-size: 10.5px; color: var(--ink-4); font-weight: 700; letter-spacing: .04em; margin-bottom: 2px; }
     .tl-name { font-family: 'Noto Serif', serif; font-size: 16px; color: var(--ink); margin-bottom: 3px; }
     .tl-type { font-family: 'DM Sans', sans-serif; font-size: 10.5px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-    .tl-desc { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink-3); line-height: 1.6; }
+    .tl-desc { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink-3); line-height: 1.6; white-space: pre-line; }
     .tl-tip { margin-top: 8px; font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: var(--ink-2); font-style: italic; padding-left: 12px; border-left: 2px solid var(--line); line-height: 1.55; }
     .tl-cost { margin-top: 6px; font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: var(--primary); font-weight: 700; }
     .pack-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); cursor: pointer; user-select: none; }
@@ -703,7 +703,7 @@
     .act-cost     { font-size: 10px; color: var(--ink-2); background: var(--paper); padding: 2px 8px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 20px; }
     .act-name     { font-size: 14px; font-weight: 700; color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.3; }
     .act-location { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
-    .act-desc     { font-size: 12px; color: var(--ink-2); line-height: 1.6; margin-top: 4px; }
+    .act-desc     { font-size: 12px; color: var(--ink-2); line-height: 1.6; margin-top: 4px; white-space: pre-line; }
     .act-tip      { margin-top: 7px; padding: 8px 12px; font-size: 11px; line-height: 1.5; border-left: 2px solid; background: var(--paper); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
 
     /* ── PACKING & NOTES ───────────────────────────────────────────────────── */
@@ -2483,7 +2483,7 @@ function buildPrintPage(it) {
     font-size:9pt;margin-bottom:1mm;
   }
   .act-desc {
-    font-size:8pt;color:#666;line-height:1.5;margin-bottom:1mm;
+    font-size:8pt;color:#666;line-height:1.5;margin-bottom:1mm;white-space:pre-line;
   }
   .act-tip {
     font-size:7.5pt;color:#555;
@@ -3650,17 +3650,27 @@ function getKulinerNear(lat, lng, radiusKm=1, maxResult=5) {
     .slice(0, maxResult);
 }
 
-function kulinerActivity(k, waktu, labelWaktu, fallbackZone) {
+function kulinerActivityMulti(list, waktu, labelWaktu) {
   const timeMap = { pagi:'07:00', siang:'12:30', malam:'19:00' };
-  const distTxt = k.dist<1 ? `${Math.round(k.dist*1000)}m dari lokasi` : `${k.dist.toFixed(1)}km dari lokasi`;
+  const parsePrice = h => h ? (parseInt(String(h).replace(/\D/g,''))||0) : 0;
+  const prices = list.map(k=>parsePrice(k.harga)).filter(p=>p>0);
+  const avgPrice = prices.length>0
+    ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length/1000)*1000
+    : (waktu==='pagi'?20000:waktu==='siang'?25000:30000);
+  const lines = list.map((k,i) => {
+    const distTxt = k.dist<1 ? `${Math.round(k.dist*1000)}m` : `${k.dist.toFixed(1)}km`;
+    const hargaTxt = k.harga ? ` · ~Rp${parsePrice(k.harga).toLocaleString('id-ID')}` : '';
+    const ket = k.menu_andalan||k.catatan||k.kategori||'';
+    return `${i+1}. ${k.nama}${k.kawasan?` (${k.kawasan})`:''} — ${distTxt}${hargaTxt}${ket?` · ${ket}`:''}`;
+  });
   return {
     time: timeMap[waktu]||timeMap.siang,
-    name: `${labelWaktu} — ${k.nama}`,
-    location: k.nama+(k.kawasan?`, ${k.kawasan}`:''),
+    name: `${labelWaktu} — Pilihan Kuliner Terdekat`,
+    location: `${list.length} pilihan dalam radius 5km dari lokasi`,
     duration: '1 jam',
-    description: `${labelWaktu} di ${k.nama}. ${k.catatan||k.menu_andalan||k.kategori||''}`.trim(),
-    tips: `~${distTxt}${k.harga?' · Rp'+k.harga:''}`,
-    estimatedCost: k.harga ? parseInt(String(k.harga).replace(/\D/g,''))||25000 : 25000,
+    description: `Rekomendasi kuliner terdekat, urut dari yang paling dekat — tinggal pilih sesuai selera:\n${lines.join('\n')}`,
+    tips: 'Cek jam operasional masing-masing sebelum berangkat — data jarak dihitung garis lurus, aktualnya bisa sedikit lebih jauh.',
+    estimatedCost: avgPrice,
     type: 'makan',
   };
 }
@@ -3693,24 +3703,19 @@ function buildMakan(waktu, zone, overrideTime, refLat, refLng) {
 
   const hotelC = getHotelCoords();
   const coords = (refLat && refLng) ? {lat:refLat, lng:refLng} : hotelC;
-  if (!window._usedKuliner) window._usedKuliner = new Set();
 
-  // Cari kuliner terdekat secara bertahap: 1km → 3km → maks 5km dari lokasi
-  // acuan (penginapan yang dipilih, kalau tidak ada refLat/refLng khusus).
-  for (const radius of [1, 3, 5]) {
-    const nearby = getKulinerNear(coords.lat, coords.lng, radius, 5);
-    if (nearby.length > 0) {
-      const fresh = nearby.filter(k => !window._usedKuliner.has(k.id||k.nama));
-      const k = fresh.length > 0 ? fresh[0] : nearby[0];
-      window._usedKuliner.add(k.id||k.nama);
-      return kulinerActivity(k, waktu, label, zone);
-    }
+  // Tampilkan beberapa pilihan kuliner sekaligus (bukan cuma satu) dalam radius
+  // maks 5km, diurutkan dari yang paling dekat — user yang pilih sendiri sesuai
+  // selera, aplikasi cuma kasih rekomendasi.
+  const options = getKulinerNear(coords.lat, coords.lng, 5, 5);
+  if (options.length > 0) {
+    return kulinerActivityMulti(options, waktu, label);
   }
 
   const genDesc = {
     pagi:  'Cari warung sarapan lokal — Sego Tempong, nasi pecel, atau lontong sayur khas Banyuwangi.',
     siang: 'Cari warung makan terdekat. Menu andalan: Rujak Soto, Rawon, atau Pecel Pitik.',
-    malam: 'Cari warung makan malam di sekitar penginapan. Banyak pilihan seafood dan warung kaki lima.',
+    malam: 'Belum ada data kuliner terdaftar dalam radius 5km dari lokasi ini — kemungkinan daerahnya cukup terpencil. Tanyakan pilihan makan malam terdekat ke penginapan.',
   };
   return {
     time:finalTime, name:`${label} — Warung Lokal Sekitar Lokasi`,
@@ -3845,7 +3850,8 @@ function buildDepartureDay(dayNum, kota, transport) {
   const subTrans = S.subTransport;
   const jamPulang= S.waktuPulang||'13:00';
   const depPoint = subTrans==='pesawat'?BWI_COORDS.bandara:subTrans==='kereta'?BWI_COORDS.stasiun:isUmum?BWI_COORDS.pelabuhan:BWI_COORDS.pusat;
-  const hotelC   = getHotelCoords();
+  const lastHotelName = getHotelNames().slice(-1)[0];
+  const hotelC   = findHotelCoords(lastHotelName);
   const checkoutTime=addMin(jamPulang,-90);
   const olehTime=addMin(jamPulang,-210);
   const sarapanRaw=addMin(jamPulang,-300);
@@ -3872,10 +3878,11 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
   const hasTabuhan   = spots.some(s=>s.id==='tabuhan'  ||(s.name||'').toLowerCase().includes('tabuhan'));
 
   if (hasMenjangan || hasTabuhan) {
+    const dayHotelC = opts.hotelNameOverride ? findHotelCoords(opts.hotelNameOverride) : getHotelCoords();
     const title = (hasMenjangan&&hasTabuhan)?'Snorkeling Menjangan & Tabuhan':hasMenjangan?'Snorkeling Pulau Menjangan':'Pulau Tabuhan';
     const biaya = (hasMenjangan&&hasTabuhan)?275000:hasMenjangan?250000:100000;
     const sisaSpots=spots.filter(s=>s.id!=='menjangan'&&s.id!=='tabuhan');
-    const malamAct=buildMakan('malam','utara',null,getHotelCoords()?.lat,getHotelCoords()?.lng); malamAct.time='19:00';
+    const malamAct=buildMakan('malam','utara',null,dayHotelC?.lat,dayHotelC?.lng); malamAct.time='19:00';
     const acts=[
       {time:'06:30',name:'Berangkat Menuju Grand Watu Dodol',location:`${getFinalHotelName()} → Pantai Grand Watu Dodol`,duration:'±45 menit',description:'Perjalanan menuju meeting point open trip di Pantai Grand Watu Dodol.',tips:'Tiket masuk Grand Watu Dodol 8K/orang + parkir 10K.',estimatedCost:18000,type:'transport'},
       {time:'07:30',name:`Meeting Point & Briefing — ${title}`,location:'Pantai Grand Watu Dodol (Sunrise Boat)',duration:'30 menit',description:'Registrasi, fitting alat snorkeling, dan briefing singkat dari guide.',tips:`Open trip via Yukbanyuwangi. Booking H-1. Biaya ~${biaya.toLocaleString('id-ID')}/orang all-in termasuk makan siang.`,estimatedCost:biaya,type:'aktivitas'},
@@ -3907,7 +3914,7 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
 
   if (hasIjen) {
     const hotelName     = opts.hotelNameOverride || getFinalHotelName();
-    const hotelC       = getHotelCoords();
+    const hotelC       = findHotelCoords(hotelName);
     // Sewa lokal motor/mobil override skenario DAMRI
     const isPribadiOrSewa = hasMotor() || hasMobil()
       || S.sewaLokal.has('motor') || S.sewaLokal.has('mobil');
