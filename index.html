@@ -3632,10 +3632,21 @@ function travelMinutes(coord1, coord2) {
 </script>
 <script>
 // ─── KULINER HELPERS ──────────────────────────────────────────────────────────
+// Nama kota/kabupaten lain yang kadang kebawa di nama bisnis (mis. "Fujiyama
+// Sushi Jember" beneran ada di Jember, bukan Banyuwangi). Kalau kawasan/nama
+// menyebut salah satu ini, jangan pernah direkomendasikan sebagai kuliner
+// terdekat — meski entah kenapa datanya kepasang koordinat di Banyuwangi.
+const NON_BWI_REGIONS = ['jember','situbondo','bondowoso','probolinggo','lumajang',
+  'denpasar','surabaya','malang','jakarta','jogja','yogyakarta','semarang','bandung'];
+function mentionsOtherRegion(d) {
+  const text = `${d.nama||''} ${d.kawasan||''}`.toLowerCase();
+  return NON_BWI_REGIONS.some(r => text.includes(r));
+}
+
 function getKulinerNear(lat, lng, radiusKm=1, maxResult=5) {
   if (!lat || !lng) return [];
   const cache = window._placesCache || [];
-  return cache
+  const candidates = cache
     .filter(d => {
       const t = ((d.type||'')+(d.kategori||'')).toLowerCase();
       return t.includes('kuliner')||t.includes('cafe')||t.includes('kafe')||
@@ -3644,10 +3655,22 @@ function getKulinerNear(lat, lng, radiusKm=1, maxResult=5) {
              t.includes('depot')||t.includes('lesehan')||t.includes('kopi');
     })
     .filter(d => d.lat && d.lng && d.nama)
+    .filter(d => !mentionsOtherRegion(d))
     .map(d => ({...d, dist: haversineKm(lat, lng, d.lat, d.lng)}))
-    .filter(d => d.dist <= radiusKm)
-    .sort((a,b)=>a.dist-b.dist)
-    .slice(0, maxResult);
+    .filter(d => d.dist <= radiusKm);
+
+  // Urutan: kalau ADA data rating di antara kandidat, urutkan dari yang paling
+  // populer (rating tertinggi) dulu, jarak jadi tiebreaker. Kalau belum ada
+  // rating sama sekali (default saat ini), tetap urut dari yang paling dekat.
+  const hasAnyRating = candidates.some(d => d.rating && d.rating > 0);
+  candidates.sort((a, b) => {
+    if (hasAnyRating) {
+      const rb = b.rating || 0, ra = a.rating || 0;
+      if (rb !== ra) return rb - ra;
+    }
+    return a.dist - b.dist;
+  });
+  return candidates.slice(0, maxResult);
 }
 
 function kulinerActivityMulti(list, waktu, labelWaktu) {
@@ -3657,18 +3680,23 @@ function kulinerActivityMulti(list, waktu, labelWaktu) {
   const avgPrice = prices.length>0
     ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length/1000)*1000
     : (waktu==='pagi'?20000:waktu==='siang'?25000:30000);
+  const sortedByRating = list.some(k=>k.rating && k.rating>0);
   const lines = list.map((k,i) => {
     const distTxt = k.dist<1 ? `${Math.round(k.dist*1000)}m` : `${k.dist.toFixed(1)}km`;
     const hargaTxt = k.harga ? ` · ~Rp${parsePrice(k.harga).toLocaleString('id-ID')}` : '';
+    const ratingTxt = k.rating ? ` · ★${Number(k.rating).toFixed(1)}` : '';
     const ket = k.menu_andalan||k.catatan||k.kategori||'';
-    return `${i+1}. ${k.nama}${k.kawasan?` (${k.kawasan})`:''} — ${distTxt}${hargaTxt}${ket?` · ${ket}`:''}`;
+    return `${i+1}. ${k.nama}${k.kawasan?` (${k.kawasan})`:''} — ${distTxt}${ratingTxt}${hargaTxt}${ket?` · ${ket}`:''}`;
   });
+  const intro = sortedByRating
+    ? 'Rekomendasi kuliner, urut dari yang paling populer (rating tertinggi) — tinggal pilih sesuai selera:'
+    : 'Rekomendasi kuliner terdekat, urut dari yang paling dekat — tinggal pilih sesuai selera:';
   return {
     time: timeMap[waktu]||timeMap.siang,
     name: `${labelWaktu} — Pilihan Kuliner Terdekat`,
     location: `${list.length} pilihan dalam radius 5km dari lokasi`,
     duration: '1 jam',
-    description: `Rekomendasi kuliner terdekat, urut dari yang paling dekat — tinggal pilih sesuai selera:\n${lines.join('\n')}`,
+    description: `${intro}\n${lines.join('\n')}`,
     tips: 'Cek jam operasional masing-masing sebelum berangkat — data jarak dihitung garis lurus, aktualnya bisa sedikit lebih jauh.',
     estimatedCost: avgPrice,
     type: 'makan',
