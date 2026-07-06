@@ -644,24 +644,42 @@ document.getElementById('btn-geo-audit').addEventListener('click', async () => {
       wrap.innerHTML = `<div style="font-size:12px;color:var(--accent)">✓ Tidak ada nama/kawasan yang menyebut kota lain. Aman.</div>`;
     } else {
       const rows = suspects.map(d => `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)" data-row-id="${d._id}">
           <div style="font-size:12px">
             <b>${esc(d.nama)}</b> <span style="color:var(--muted)">(${esc(d.kawasan||'-')}, ${esc(d.type||'-')})</span><br>
             <span style="color:${d.lat&&d.lng?'var(--red)':'var(--muted)'}">${d.lat&&d.lng ? `⚠ punya koordinat: ${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}` : 'belum ada koordinat'}</span>
           </div>
-          ${d.lat&&d.lng ? `<button class="btn btn-danger" style="font-size:11px;padding:4px 10px;white-space:nowrap" data-clear-id="${d._id}">Hapus Koordinat</button>` : ''}
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            ${d.lat&&d.lng ? `<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;white-space:nowrap" data-clear-id="${d._id}">Hapus Koordinat Saja</button>` : ''}
+            <button class="btn btn-danger" style="font-size:11px;padding:4px 10px;white-space:nowrap" data-delete-id="${d._id}">🗑 Hapus Data</button>
+          </div>
         </div>`).join('');
-      wrap.innerHTML = `<div style="font-size:12px;margin-bottom:8px">Ditemukan <b>${suspects.length}</b> data yang menyebut daerah lain — cek satu-satu, kalau memang bukan data Banyuwangi sebaiknya dihapus koordinatnya (atau dihapus dari database):</div>${rows}`;
+      wrap.innerHTML = `<div style="font-size:12px;margin-bottom:8px">Ditemukan <b>${suspects.length}</b> data yang menyebut daerah lain — cek satu-satu. Kalau memang cabang beneran ada di Banyuwangi (edit dulu nama/kawasan/koordinatnya lewat form Edit biasa), lewati saja. Kalau memang bukan data Banyuwangi, hapus datanya sekalian.</div>${rows}`;
       wrap.querySelectorAll('[data-clear-id]').forEach(b => {
         b.addEventListener('click', async () => {
           b.disabled = true; b.textContent = '...';
           try {
             await db.collection('places').doc(b.dataset.clearId).update({ lat: firebase.firestore.FieldValue.delete(), lng: firebase.firestore.FieldValue.delete() });
-            b.closest('div').parentElement.style.opacity = '0.4';
-            b.textContent = '✓ Dihapus';
+            b.textContent = '✓ Koordinat dihapus';
             _allDocsCache = null;
             state.loaded = { wisata:false, penginapan:false, kuliner:false };
-          } catch(e) { toast('Gagal hapus: ' + e.message, 'err'); b.disabled = false; b.textContent = 'Hapus Koordinat'; }
+          } catch(e) { toast('Gagal hapus: ' + e.message, 'err'); b.disabled = false; b.textContent = 'Hapus Koordinat Saja'; }
+        });
+      });
+      wrap.querySelectorAll('[data-delete-id]').forEach(b => {
+        b.addEventListener('click', async () => {
+          const rowEl = b.closest('[data-row-id]');
+          const nameEl = rowEl.querySelector('b')?.textContent || 'data ini';
+          if (!confirm(`Hapus "${nameEl}" sepenuhnya dari database? Ini tidak bisa dibatalkan.`)) return;
+          b.disabled = true; b.textContent = '...';
+          try {
+            await db.collection('places').doc(b.dataset.deleteId).delete();
+            rowEl.style.opacity = '0.4';
+            rowEl.innerHTML = `<div style="font-size:12px;color:var(--muted)">✓ Data "${esc(nameEl)}" sudah dihapus dari database</div>`;
+            _allDocsCache = null;
+            state.loaded = { wisata:false, penginapan:false, kuliner:false };
+            updateStats();
+          } catch(e) { toast('Gagal hapus: ' + e.message, 'err'); b.disabled = false; b.textContent = '🗑 Hapus Data'; }
         });
       });
     }
