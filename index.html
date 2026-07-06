@@ -358,7 +358,7 @@
 
     /* ── Populer: grid card minimalis (ganti list panjang) ───────────────── */
     .s0-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px;
+      display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; margin-bottom: 4px;
     }
     .s0-card {
       position: relative; display: flex; align-items: center; gap: 8px;
@@ -395,7 +395,7 @@
     }
     .s0-kul-card {
       display: flex; align-items: center; gap: 9px; padding: 10px; border: 1px solid var(--line);
-      cursor: pointer; background: var(--paper);
+      cursor: pointer; background: var(--paper); min-width: 0;
     }
     .s0-kul-emoji { font-size: 15px; flex-shrink: 0; }
     .s0-kul-body { flex: 1; min-width: 0; }
@@ -583,6 +583,11 @@
     .autocomplete-item-name { font-family: 'Noto Serif', serif; font-size: 14.5px; color: var(--ink); }
     .autocomplete-item-sub  { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--ink-3); margin-top: 1px; }
     .autocomplete-empty { padding: 14px; text-align: center; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink-3); font-style: italic; }
+    .autocomplete-use-custom {
+      padding: 12px 14px; text-align: center; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--primary);
+      border-top: 1px solid var(--line);
+    }
 
     /* ── CARD OPTIONS (flat hairline rows, Kertas) ───────────────────────────── */
     .card-list { display: flex; flex-direction: column; border: none; }
@@ -1666,7 +1671,7 @@ async function loadPenginapanOptions() {
     const allDocs = window._placesCache || [];
     if (!allDocs || allDocs.length === 0) { S.penginapanOptions = []; S.allPenginapan = []; return; }
     const all = allDocs.filter(d => {
-      const t = (d.type||d.kategori||'').toLowerCase().replace(/\s+/g,'');
+      const t = ((d.type||'')+' '+(d.kategori||'')).toLowerCase().replace(/\s+/g,'');
       return t.includes('penginapan')||t.includes('hotel')||t.includes('homestay')||
              t.includes('villa')||t.includes('guesthouse')||t.includes('guest')||
              t.includes('losmen')||t.includes('resort')||t.includes('inn')||
@@ -2086,7 +2091,6 @@ function renderStep2() {
         dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
         placeholder="Cari nama penginapan…"
         value="${esc(hotelQuery)}"
-        oninput="S.penginapanSearchQuery=this.value;partialUpdateHotelList();"
         style="padding-right:22px">
       ${hotelQuery ? `<span id="btn-clear-hotel" class="s0-search-clear" style="right:2px">✕</span>` : ''}
       <div class="autocomplete-dropdown" id="hotel-autocomplete" style="${hotelQuery.length>=1?'display:block':'display:none'}">
@@ -2102,7 +2106,8 @@ function renderStep2() {
                 +'</div>'
                 +'</div>';
             }).join('')
-          : '<div class="autocomplete-empty">Tidak ditemukan — coba kata kunci lain</div>'
+          : `<div class="autocomplete-empty">Tidak ditemukan — coba kata kunci lain</div>
+             <div class="autocomplete-use-custom" data-use-custom-hotel="${esc(hotelQuery)}">Pakai "${esc(hotelQuery)}" langsung →</div>`
         }
       </div>
     </div>
@@ -3081,7 +3086,9 @@ function updateHotelSuggestions() {
             </div>
           </div>`;
         }).join('')
-      : '<div class="autocomplete-empty">Tidak ditemukan — coba kata kunci lain</div>';
+      : `<div class="autocomplete-empty">Tidak ditemukan — coba kata kunci lain</div>
+         <div class="autocomplete-use-custom" data-use-custom-hotel="${esc(S.penginapanSearchQuery)}">Pakai "${esc(S.penginapanSearchQuery)}" langsung →</div>`;
+    acEl.querySelectorAll('[data-use-custom-hotel]').forEach(el => el.addEventListener('click', () => useHotelCustomName(el.dataset.useCustomHotel)));
     acEl.querySelectorAll('[data-penginapan-ac]').forEach(el => {
       el.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -3258,53 +3265,19 @@ function partialUpdateDestList() {
   updateNav();
 }
 
-function partialUpdateHotelList() {
-  const q = (S.penginapanSearchQuery || '').toLowerCase().trim();
-  const listEl = document.getElementById('hotel-autocomplete');
-  if (!listEl) return;
-
-  const allHotels = S.penginapanDataList || [];
-
-  const filtered = q.length >= 1
-    ? allHotels.filter(p => {
-        const n = (p.name||'').toLowerCase();
-        const t = (p.tipe||'').toLowerCase();
-        return n.includes(q) || t.includes(q);
-      })
-    : allHotels;
-
-  if (filtered.length === 0) {
-    listEl.innerHTML = `<div class="autocomplete-empty">Tidak ditemukan — coba kata kunci lain</div>`;
-    return;
-  }
-
-  listEl.innerHTML = filtered.slice(0, 10).map(p => {
-    const sel = S.penginapanIds.has(p.id);
-    return `<div data-hotel-id="${p.id}" class="autocomplete-item${sel?' active':''}">
-      <span style="font-size:16px;flex-shrink:0">${p.emoji||'🏨'}</span>
-      <div style="flex:1;min-width:0">
-        <div class="autocomplete-item-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
-        <div class="autocomplete-item-sub">${esc(p.harga||'')}</div>
-      </div>
-      ${sel ? '<span style="color:var(--primary);font-weight:700;flex-shrink:0">✓</span>' : ''}
-    </div>`;
-  }).join('');
-
-  // Attach click
-  listEl.querySelectorAll('[data-hotel-id]').forEach(el => el.addEventListener('click', () => {
-    const id = el.dataset.hotelId;
-    const p = (S.penginapanDataList||[]).find(x => x.id === id);
-    if (!p) return;
-    if (S.penginapanIds.has(id)) {
-      S.penginapanIds.delete(id);
-      if (S.penginapan === p.name) S.penginapan = '';
-    } else {
-      S.penginapanIds.add(id);
-      S.penginapan = p.name;
-    }
-    partialUpdateHotelList();
-    updateNav();
-  }));
+function useHotelCustomName(name) {
+  S.penginapanCustom = name;
+  S.penginapanIds.clear();
+  S.penginapanDataList = [];
+  S.penginapan = 'custom';
+  S.penginapanSearchQuery = '';
+  const inpCustom = document.getElementById('input-penginapan-custom');
+  if (inpCustom) inpCustom.value = name;
+  const inpSearch = document.getElementById('input-penginapan-search');
+  if (inpSearch) inpSearch.value = '';
+  const acEl = document.getElementById('hotel-autocomplete');
+  if (acEl) { acEl.innerHTML = ''; acEl.style.display = 'none'; }
+  updateNav();
 }
 
 
@@ -3434,6 +3407,7 @@ function attachListeners() {
     S.penginapanIds.clear(); S.penginapanDataList = []; S.penginapan = '';
     render();
   });
+  c.querySelectorAll('[data-use-custom-hotel]').forEach(el => el.addEventListener('click', () => useHotelCustomName(el.dataset.useCustomHotel)));
   const hotelList = document.getElementById('hotel-suggestions');
   if (hotelList) hotelList.addEventListener('click', e => {
     const card = e.target.closest('[data-penginapan-fb]');
@@ -4122,7 +4096,7 @@ function buildDepartureDay(dayNum, kota, transport) {
   sarapan.name='Sarapan & Persiapan Check-out';
   const makanAkhir=buildMakan('siang','kota',addMin(jamPulang,-60),depPoint.lat,depPoint.lng);
   makanAkhir.name='Makan Terakhir di Banyuwangi';
-  const olehOleh=getKulinerNear(depPoint.lat,depPoint.lng,5,3).filter(k=>{const t=(k.type||k.kategori||k.nama||'').toLowerCase();return t.includes('oleh')||t.includes('toko')||t.includes('kopi')||t.includes('souvenir')||t.includes('batik');});
+  const olehOleh=getKulinerNear(depPoint.lat,depPoint.lng,5,3).filter(k=>{const t=((k.type||'')+' '+(k.kategori||'')+' '+(k.nama||'')).toLowerCase();return t.includes('oleh')||t.includes('toko')||t.includes('kopi')||t.includes('souvenir')||t.includes('batik');});
   const olehDesc=olehOleh.length>0?`Belanja oleh-oleh di sekitar ${depPoint.label}: ${olehOleh.map(k=>k.nama).join(', ')}.`:'Kopi Osing, Batik Gajah Oling, Dodol Banyuwangi.';
   const activities=[
     {...sarapan, time:sarapanTime},
