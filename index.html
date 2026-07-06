@@ -264,11 +264,15 @@
     }
     .s0-eyebrow {
       display: flex; align-items: center; gap: 10px;
-      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 700;
-      letter-spacing: .12em; text-transform: uppercase; color: var(--ink-4);
+      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 800;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--ink);
       margin: 24px 0 8px;
     }
     .s0-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+    .s0-eyebrow--wrap {
+      display: block; white-space: normal; line-height: 1.5; letter-spacing: .03em;
+    }
+    .s0-eyebrow--wrap::after { display: none; }
     .s0-row {
       display: flex; align-items: center; gap: 12px;
       padding: 13px 0; border-bottom: 1px solid var(--line); cursor: pointer;
@@ -300,7 +304,7 @@
       padding: 9px 22px 9px 2px; font-family: 'DM Sans', sans-serif; font-size: 14px;
       color: var(--ink); border-radius: 0;
     }
-    .s0-search::placeholder { color: var(--ink-4); font-style: italic; }
+    .s0-search::placeholder { color: var(--ink); opacity: .8; font-style: italic; font-weight: 600; }
     .s0-search-clear {
       position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
       cursor: pointer; color: var(--ink-4); font-size: 13px; padding: 4px;
@@ -326,12 +330,12 @@
     }
     .s0-chip-x { cursor: pointer; color: var(--primary); opacity: .6; font-size: 11px; padding: 0 3px; }
     .s0-kuliner { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
-    .s0-kuliner-label { font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: var(--ink-3); margin-bottom: 8px; }
+    .s0-kuliner-label { font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
     .s0-kuliner input {
-      width: 100%; border: none; border-bottom: 1.5px solid var(--border); background: transparent;
-      padding: 7px 2px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink);
+      width: 100%; border: none; border-bottom: 1.5px solid var(--ink); background: transparent;
+      padding: 7px 2px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--ink);
     }
-    .s0-kuliner input::placeholder { color: var(--ink-4); font-style: italic; }
+    .s0-kuliner input::placeholder { color: var(--ink); opacity: .8; font-style: italic; font-weight: 600; }
     #kuliner-suggest-list:not(:empty) { margin-top: 4px; }
     .s0-empty {
       text-align: center; padding: 20px 0; font-family: 'DM Sans', sans-serif;
@@ -1878,7 +1882,7 @@ function renderStep0() {
     <p class="s0-kuliner-pop-hint">${kulinerPopIsNear ? 'Dekat destinasi yang kamu pilih' : 'Favorit di Banyuwangi'} — ketuk untuk jadikan incaran 👆</p>
     <div class="s0-grid" id="kuliner-pop-list">${kulinerPopCards}</div>` : ''}
 
-    <div class="s0-eyebrow">Cari destinasi lain</div>
+    <div class="s0-eyebrow s0-eyebrow--wrap">Cari destinasi lain, isi tujuan wisatamu, pisahkan dengan koma.</div>
     <div class="s0-search-wrap">
       <input type="text" id="dest-input" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
         value="${esc(S.destInput)}" placeholder="Pulau Merah, Teluk Hijau…" class="s0-search">
