@@ -1460,6 +1460,7 @@ async function loadDestinations() {
   showLoadingDest();
   if (!db) {
     DESTINATIONS = DESTINATIONS_FALLBACK;
+    window._usingFallbackData = true;
     return;
   }
 
@@ -1482,6 +1483,7 @@ async function loadDestinations() {
       return true;
     });
     DESTINATIONS = deduped.length > 0 ? deduped : DESTINATIONS_FALLBACK;
+    window._usingFallbackData = deduped.length === 0;
     // Migrate S.destinations: kalau ada id lama ('ijen') yang sudah tidak ada,
     // tapi ada entry isIjen baru → ganti id-nya
     if (deduped.length > 0 && S.destinations.has('ijen')) {
@@ -1493,6 +1495,7 @@ async function loadDestinations() {
     }
   } catch(e) {
     DESTINATIONS = DESTINATIONS_FALLBACK;
+    window._usingFallbackData = true;
     console.warn('Firebase gagal (' + e.message + '), pakai fallback');
   }
 }
@@ -1845,10 +1848,18 @@ function renderStep0() {
 
   // Kuliner populer: default umum se-Banyuwangi, otomatis ganti ke sekitar
   // destinasi yang dipilih begitu ada minimal 1 destinasi (dengan koordinat).
-  const destsWithCoord = matched.filter(d => d.lat && d.lng);
-  let kulinerPop = destsWithCoord.length > 0 ? getKulinerPopulerForDest(destsWithCoord, 6) : [];
-  const kulinerPopIsNear = kulinerPop.length > 0;
-  if (kulinerPop.length === 0) kulinerPop = getKulinerPopulerGeneral(6);
+  let kulinerPop = [];
+  let kulinerPopIsNear = false;
+  try {
+    const destsWithCoord = matched.filter(d => d.lat && d.lng);
+    kulinerPop = destsWithCoord.length > 0 ? getKulinerPopulerForDest(destsWithCoord, 6) : [];
+    kulinerPopIsNear = kulinerPop.length > 0;
+    if (kulinerPop.length === 0) kulinerPop = getKulinerPopulerGeneral(6);
+  } catch(e) {
+    console.warn('Gagal memuat Kuliner Populer, pakai fallback umum:', e.message);
+    try { kulinerPop = getKulinerPopulerGeneral(6); } catch(e2) { kulinerPop = []; }
+    kulinerPopIsNear = false;
+  }
   const kulinerPopCards = kulinerPop.map(k => {
     const metaParts = [];
     if (k.rating) metaParts.push(`★${Number(k.rating).toFixed(1)}`);
@@ -1885,7 +1896,8 @@ function renderStep0() {
 
     ${kulinerPopCards ? `<div class="s0-eyebrow">Kuliner Populer</div>
     <p class="s0-kuliner-pop-hint">${kulinerPopIsNear ? 'Dekat destinasi yang kamu pilih' : 'Favorit di Banyuwangi'} — ketuk untuk jadikan incaran 👆</p>
-    <div class="s0-grid" id="kuliner-pop-list">${kulinerPopCards}</div>` : ''}
+    <div class="s0-grid" id="kuliner-pop-list">${kulinerPopCards}</div>` : (window._usingFallbackData ? `<div class="s0-eyebrow">Kuliner Populer</div>
+    <p class="s0-kuliner-pop-hint">⚠️ Koneksi ke database lagi bermasalah, jadi rekomendasi kuliner belum bisa dimuat. Coba refresh halaman kalau koneksi sudah stabil.</p>` : '')}
 
     <div class="s0-eyebrow s0-eyebrow--wrap">Cari destinasi lain, isi tujuan wisatamu, pisahkan dengan koma.</div>
     <div class="s0-search-wrap">
@@ -3796,13 +3808,14 @@ function getKulinerPopulerForDest(dests, maxResult=6) {
     if (!d.lat || !d.lng) continue;
     const near = getKulinerNear(d.lat, d.lng, 5, 10);
     for (const k of near) {
+      if (!k.nama) continue;
       const key = k.nama.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
       merged.push(k);
     }
   }
-  merged.sort((a,b) => (b.rating||0) - (a.rating||0) || a.dist - b.dist);
+  merged.sort((a,b) => (b.rating||0) - (a.rating||0) || (a.dist||0) - (b.dist||0));
   return merged.slice(0, maxResult);
 }
 
