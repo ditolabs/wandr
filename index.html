@@ -356,6 +356,24 @@
       font-style: italic; margin: -2px 0 10px;
     }
 
+    /* ── Compact search bar (dest search & kuliner custom, dipindah ke atas) ── */
+    .s0-search-compact-wrap {
+      display: flex; align-items: center; gap: 8px; background: var(--surface);
+      border: 1.5px solid var(--border); border-radius: 22px; padding: 10px 16px;
+      margin-bottom: 4px; position: relative;
+    }
+    .s0-search-compact-wrap .s0-sc-icon { font-size: 14px; opacity: .55; flex-shrink: 0; }
+    .s0-search-compact-wrap input {
+      border: none; background: transparent; flex: 1; min-width: 0;
+      font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: var(--ink);
+    }
+    .s0-search-compact-wrap input::placeholder { color: var(--ink-3); font-style: italic; }
+    .s0-sc-clear { cursor: pointer; color: var(--ink-4); font-size: 13px; padding: 2px 4px; flex-shrink: 0; }
+    .s0-search-caption {
+      font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--ink-4);
+      font-style: italic; margin: 6px 0 4px;
+    }
+
     /* ── Populer: grid card minimalis (ganti list panjang) ───────────────── */
     .s0-grid {
       display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; margin-bottom: 4px;
@@ -2061,6 +2079,22 @@ function renderStep0() {
 
     ${matched.length>0?`<div class="s0-chips" id="dest-chips">${chips}</div>`:''}
 
+    <div class="s0-search-compact-wrap">
+      <span class="s0-sc-icon">🔍</span>
+      <input type="text" id="dest-input" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
+        value="${esc(S.destInput)}" placeholder="Cari destinasi lain, mis. Pulau Merah, Teluk Hijau…">
+      ${S.destInput?`<span id="btn-clear-input" class="s0-sc-clear">✕</span>`:''}
+    </div>
+    ${query?'':'<p class="s0-search-caption">atau pilih langsung dari populer di bawah 👇</p>'}
+
+    <div class="s0-cats" id="cat-btns">${query?catBtns:''}</div>
+
+    <div id="dest-warn-area" class="s0-warn" style="display:${queryTerms.length>0&&displayDests.length===0?'block':'none'};">
+      Tidak ditemukan untuk "${esc(S.destInput)}"
+    </div>
+
+    <div id="dest-cards-list">${query?rows:''}</div>
+
     <div class="s0-eyebrow">Populer</div>
     <p class="s0-hint">Ketuk untuk pilih — bisa lebih dari satu tempat 👆</p>
     <div class="s0-grid" id="dest-quick-list">${quickCards}</div>
@@ -2071,25 +2105,13 @@ function renderStep0() {
     <div class="s0-grid" id="kuliner-pop-list">${kulinerPopCards}</div>` : (window._usingFallbackData ? `<div class="s0-eyebrow">Kuliner Populer</div>
     <p class="s0-kuliner-pop-hint">⚠️ Koneksi ke database lagi bermasalah, jadi rekomendasi kuliner belum bisa dimuat. Coba refresh halaman kalau koneksi sudah stabil.</p>` : '')}
 
-    <div class="s0-eyebrow s0-eyebrow--wrap">Cari destinasi lain, isi tujuan wisatamu, pisahkan dengan koma.</div>
-    <div class="s0-search-wrap">
-      <input type="text" id="dest-input" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
-        value="${esc(S.destInput)}" placeholder="Pulau Merah, Teluk Hijau…" class="s0-search">
-      ${S.destInput?`<span id="btn-clear-input" class="s0-search-clear">✕</span>`:''}
-    </div>
-
-    <div class="s0-cats" id="cat-btns">${query?catBtns:''}</div>
-
-    <div id="dest-warn-area" class="s0-warn" style="display:${queryTerms.length>0&&displayDests.length===0?'block':'none'};">
-      Tidak ditemukan untuk "${esc(S.destInput)}"
-    </div>
-
-    <div id="dest-cards-list">${query?rows:''}</div>
-
     ${(matched.length>0||kulinerPopCards)?`<div class="s0-kuliner">
       <div class="s0-kuliner-label">Kuliner yang diincar? <span style="opacity:.7">(opsional)</span></div>
-      <input type="text" id="input-kuliner-custom" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
-        placeholder="Sego Tempong Mbok Wah…" value="${esc(S.kulinerCustom)}">
+      <div class="s0-search-compact-wrap">
+        <span class="s0-sc-icon">🍴</span>
+        <input type="text" id="input-kuliner-custom" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
+          placeholder="Sego Tempong Mbok Wah…" value="${esc(S.kulinerCustom)}">
+      </div>
       <div id="kuliner-suggest-list">${kulinerSuggestRowsHtml(computeKulinerSuggestions(S.kulinerCustom), S.kulinerCustom)}</div>
     </div>`:''}
     <div style="height:12px;"></div>`;
