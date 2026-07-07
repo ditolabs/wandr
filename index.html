@@ -1153,6 +1153,34 @@
   </div>
 
 </div>
+
+<!-- ── FEEDBACK BUTTON & MODAL ─────────────────────────────────────────────── -->
+<button id="btnFeedback" title="Kasih masukan"
+  style="position:fixed;right:16px;bottom:84px;z-index:60;width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,#E94560,#d63250);color:#fff;border:none;font-size:20px;cursor:pointer;
+  box-shadow:0 6px 18px rgba(233,69,96,.4);display:flex;align-items:center;justify-content:center">💬</button>
+
+<div id="modalFeedback" style="display:none;position:fixed;inset:0;background:rgba(17,17,17,.6);
+  z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;width:100%;max-width:320px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(15,52,96,.25)">
+    <div style="background:linear-gradient(135deg,#0F3460,#16527a);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;font-style:italic">Kasih Masukan</span>
+      <button id="closeFeedback" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div style="padding:20px">
+      <label style="display:block;font-size:10px;font-weight:600;color:#888;margin-bottom:8px;letter-spacing:.14em;text-transform:uppercase">Gimana pengalamannya?</label>
+      <div id="feedbackStars" style="display:flex;gap:6px;margin-bottom:16px;font-size:26px;cursor:pointer;color:#E94560">
+        <span data-star="1">☆</span><span data-star="2">☆</span><span data-star="3">☆</span><span data-star="4">☆</span><span data-star="5">☆</span>
+      </div>
+      <label style="display:block;font-size:10px;font-weight:600;color:#888;margin-bottom:6px;letter-spacing:.14em;text-transform:uppercase">Masukan (opsional)</label>
+      <textarea id="feedbackMsg" rows="3" placeholder="Ada bug? Bingung di bagian mana? Cerita aja..."
+        style="width:100%;padding:10px 12px;background:#f4f2ee;border:1.5px solid #e0dbd4;border-radius:8px;font-size:13px;outline:none;font-family:'Inter',sans-serif;color:#2d2d2d;resize:vertical;margin-bottom:16px;box-sizing:border-box"></textarea>
+      <button id="btnSendFeedback" style="width:100%;padding:12px;background:linear-gradient(135deg,#E94560,#d63250);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:0.04em;border-radius:24px;box-shadow:0 4px 12px rgba(233,69,96,.3)">Kirim</button>
+      <p id="feedbackNote" style="display:none;font-size:11px;color:#2e7d32;margin-top:10px;text-align:center">Terima kasih! 🙏</p>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -1180,6 +1208,150 @@ try {
   console.warn('Firebase init gagal:', e.message);
   db = null; auth = null;
 }
+
+// ─── VISITOR ANALYTICS & FEEDBACK ───────────────────────────────────────────
+const BWI_TRACK = { sessionId: null, ref: null, lastStep: -1, itineraryLogged: false, lastErrorMsg: null, errorCount: 0, maxErrors: 5 };
+
+function bwiGetSessionId() {
+  let id = sessionStorage.getItem('bwi_session_id');
+  if (!id) { id = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10); sessionStorage.setItem('bwi_session_id', id); }
+  return id;
+}
+
+function bwiGetRef() {
+  const url = new URL(window.location.href);
+  const refParam = url.searchParams.get('ref');
+  if (refParam) { localStorage.setItem('bwi_ref', refParam); return refParam; }
+  return localStorage.getItem('bwi_ref') || null;
+}
+
+async function bwiDetectDevice() {
+  const ua = navigator.userAgent || '';
+  const info = {
+    type: /Tablet|iPad/i.test(ua) ? 'tablet' : (/Mobi|Android|iPhone/i.test(ua) ? 'mobile' : 'desktop'),
+    os: 'Unknown', osVersion: '', model: '', browser: 'Unknown', browserVersion: '',
+    screenWidth: window.screen?.width || null, screenHeight: window.screen?.height || null,
+    rawUA: ua,
+  };
+  if (/Chrome\/([\d.]+)/.test(ua) && !/Edg|OPR/.test(ua)) { info.browser='Chrome'; info.browserVersion=ua.match(/Chrome\/([\d.]+)/)[1]; }
+  else if (/Firefox\/([\d.]+)/.test(ua)) { info.browser='Firefox'; info.browserVersion=ua.match(/Firefox\/([\d.]+)/)[1]; }
+  else if (/Edg\/([\d.]+)/.test(ua)) { info.browser='Edge'; info.browserVersion=ua.match(/Edg\/([\d.]+)/)[1]; }
+  else if (/Version\/([\d.]+).*Safari/.test(ua)) { info.browser='Safari'; info.browserVersion=ua.match(/Version\/([\d.]+)/)[1]; }
+
+  const androidMatch = ua.match(/Android\s([\d.]+);\s*([^)]+)\)/);
+  if (androidMatch) {
+    info.os = 'Android'; info.osVersion = androidMatch[1];
+    info.model = androidMatch[2].split(';').pop().trim().replace(/Build\/.*$/, '').trim();
+  } else if (/iPhone|iPad|iPod/.test(ua)) {
+    info.os = 'iOS';
+    const m = ua.match(/OS\s([\d_]+)/); if (m) info.osVersion = m[1].replace(/_/g,'.');
+    info.model = /iPad/.test(ua) ? 'iPad' : 'iPhone';
+  } else if (/Windows NT/.test(ua)) { info.os = 'Windows'; }
+  else if (/Mac OS X/.test(ua)) { info.os = 'macOS'; }
+  else if (/Linux/.test(ua)) { info.os = 'Linux'; }
+
+  try {
+    if (navigator.userAgentData?.getHighEntropyValues) {
+      const hi = await navigator.userAgentData.getHighEntropyValues(['model','platformVersion']);
+      if (hi.model) info.model = hi.model;
+      if (hi.platformVersion) info.osVersion = hi.platformVersion;
+    }
+  } catch(_) {}
+  return info;
+}
+
+async function bwiGetLocation() {
+  try {
+    const res = await fetch('https://ipwho.is/');
+    const j = await res.json();
+    if (j && j.success !== false) return { ip: j.ip || null, city: j.city || null, region: j.region || null, country: j.country_code || null };
+  } catch(_) {}
+  return { ip: null, city: null, region: null, country: null };
+}
+
+async function bwiInitTracking() {
+  if (!db) return;
+  BWI_TRACK.sessionId = bwiGetSessionId();
+  BWI_TRACK.ref = bwiGetRef();
+  try {
+    const [device, location] = await Promise.all([bwiDetectDevice(), bwiGetLocation()]);
+    await db.collection('visitor_logs').doc(BWI_TRACK.sessionId).set({
+      sessionId: BWI_TRACK.sessionId, ref: BWI_TRACK.ref, device, location,
+      firstSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      pageUrl: window.location.href,
+    }, { merge: true });
+  } catch(e) { console.warn('bwiInitTracking gagal:', e.message); }
+}
+
+function bwiLogFunnel(eventType, step) {
+  if (!db || !BWI_TRACK.sessionId) return;
+  db.collection('session_events').add({
+    sessionId: BWI_TRACK.sessionId, ref: BWI_TRACK.ref, eventType, step: step ?? null,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+  }).catch(()=>{});
+}
+
+function bwiLogError(context, message, stack) {
+  if (!db || !BWI_TRACK.sessionId) return;
+  if (BWI_TRACK.errorCount >= BWI_TRACK.maxErrors) return;
+  BWI_TRACK.errorCount++;
+  db.collection('error_logs').add({
+    sessionId: BWI_TRACK.sessionId, ref: BWI_TRACK.ref,
+    context, message: String(message||'').slice(0,500), stack: String(stack||'').slice(0,1000),
+    device: { rawUA: navigator.userAgent }, pageUrl: window.location.href,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+  }).catch(()=>{});
+}
+
+function bwiSubmitFeedback(rating, message) {
+  if (!db || !BWI_TRACK.sessionId) return Promise.reject('no-db');
+  return db.collection('feedback').add({
+    sessionId: BWI_TRACK.sessionId, ref: BWI_TRACK.ref,
+    rating: rating || null, message: (message||'').slice(0,1000),
+    step: (typeof S !== 'undefined' ? S.step : null),
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+window.addEventListener('error', (e) => bwiLogError('window.onerror', e.message, e.error?.stack));
+window.addEventListener('unhandledrejection', (e) => bwiLogError('unhandledrejection', e.reason?.message || String(e.reason), e.reason?.stack));
+
+bwiInitTracking();
+
+(function bwiWireFeedbackUI() {
+  const btn = document.getElementById('btnFeedback');
+  const modal = document.getElementById('modalFeedback');
+  if (!btn || !modal) return;
+  const closeBtn = document.getElementById('closeFeedback');
+  const stars = document.querySelectorAll('#feedbackStars span');
+  const sendBtn = document.getElementById('btnSendFeedback');
+  const msgEl = document.getElementById('feedbackMsg');
+  const noteEl = document.getElementById('feedbackNote');
+  let rating = 0;
+  btn.addEventListener('click', () => { modal.style.display = 'flex'; });
+  closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+  stars.forEach(s => s.addEventListener('click', () => {
+    rating = parseInt(s.dataset.star, 10);
+    stars.forEach(x => x.textContent = parseInt(x.dataset.star,10) <= rating ? '★' : '☆');
+  }));
+  sendBtn.addEventListener('click', async () => {
+    sendBtn.disabled = true; sendBtn.textContent = 'Mengirim...';
+    try {
+      await bwiSubmitFeedback(rating, msgEl.value.trim());
+      noteEl.style.display = 'block';
+      setTimeout(() => {
+        modal.style.display = 'none'; noteEl.style.display = 'none'; msgEl.value = '';
+        rating = 0; stars.forEach(x => x.textContent = '☆');
+        sendBtn.textContent = 'Kirim'; sendBtn.disabled = false;
+      }, 1200);
+    } catch(e) {
+      sendBtn.textContent = 'Kirim'; sendBtn.disabled = false;
+      alert('Gagal mengirim, coba lagi.');
+    }
+  });
+})();
 
 // ─── AUTH ────────────────────────────────────────────────────────────────────
 let isAdmin = false;
@@ -2741,6 +2913,7 @@ function buildPrintPage(it) {
 
 
 async function exportItinerary(format) {
+  if (typeof bwiLogFunnel === 'function') bwiLogFunnel('export_' + format, 3);
   const it = S.itinerary;
   if (!it) return;
 
@@ -3163,6 +3336,15 @@ function render() {
   updateProgress();
   updateNav();
   attachListeners();
+
+  // ── Analytics hooks (funnel + auto error capture) ──
+  try {
+    if (typeof BWI_TRACK !== 'undefined') {
+      if (S.step !== BWI_TRACK.lastStep) { bwiLogFunnel('step_view', S.step); BWI_TRACK.lastStep = S.step; }
+      if (S.step === 3 && S.itinerary && !BWI_TRACK.itineraryLogged) { bwiLogFunnel('itinerary_generated', 3); BWI_TRACK.itineraryLogged = true; }
+      if (S.step === 3 && S.error && BWI_TRACK.lastErrorMsg !== S.error) { bwiLogError('generate', S.error); BWI_TRACK.lastErrorMsg = S.error; }
+    }
+  } catch(_) {}
 }
 
 // ─── LISTENERS ───────────────────────────────────────────────────────────────

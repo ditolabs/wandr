@@ -213,6 +213,10 @@
       <div class="nav-item" data-tab="geocode">📍 Geocode Massal</div>
       <div class="nav-item" data-tab="clean">🧹 Bersihkan Duplikat</div>
     </div>
+    <div class="nav-section">
+      <div class="nav-label">Insight</div>
+      <div class="nav-item" data-tab="logs">📊 Log &amp; Feedback</div>
+    </div>
   </div>
 
   <div id="content">
@@ -303,6 +307,53 @@
         <div id="clean-results"></div>
       </div>
     </div>
+
+    <!-- PANEL LOGS & FEEDBACK -->
+    <div id="panel-logs" style="display:none">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="log-stat-sessions" style="color:var(--accent)">—</div><div class="stat-lbl">Total Sesi/Device</div></div>
+        <div class="stat-card"><div class="stat-val" id="log-stat-completed" style="color:var(--blue)">—</div><div class="stat-lbl">Sampai Generate Itinerary</div></div>
+        <div class="stat-card"><div class="stat-val" id="log-stat-errors" style="color:var(--red)">—</div><div class="stat-lbl">Error Tercatat</div></div>
+        <div class="stat-card"><div class="stat-val" id="log-stat-feedback" style="color:var(--orange)">—</div><div class="stat-lbl">Feedback Masuk</div></div>
+      </div>
+
+      <div class="toolbar" style="gap:8px">
+        <button class="btn btn-ghost log-subtab active" data-logtab="sessions">📱 Sesi &amp; Device</button>
+        <button class="btn btn-ghost log-subtab" data-logtab="funnel">🧭 Funnel</button>
+        <button class="btn btn-ghost log-subtab" data-logtab="errors">⚠️ Error</button>
+        <button class="btn btn-ghost log-subtab" data-logtab="feedback">💬 Feedback</button>
+        <button class="btn btn-ghost" id="btn-refresh-logs" style="margin-left:auto">🔄 Refresh</button>
+      </div>
+
+      <div id="logpanel-sessions">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Waktu</th><th>Device</th><th>OS</th><th>Browser</th><th>Lokasi</th><th>IP</th><th>Ref</th></tr></thead>
+          <tbody id="tbody-log-sessions"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Klik Refresh untuk memuat data</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <div id="logpanel-funnel" style="display:none">
+        <div class="import-panel">
+          <div class="import-title">🧭 Funnel — di mana user berhenti?</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Jumlah sesi unik yang mencapai tiap tahap. Dihitung dari event <code>step_view</code> per sesi.</p>
+          <div id="funnel-bars" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+
+      <div id="logpanel-errors" style="display:none">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Waktu</th><th>Konteks</th><th>Pesan</th><th>Device</th><th>Sesi</th></tr></thead>
+          <tbody id="tbody-log-errors"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Klik Refresh untuk memuat data</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <div id="logpanel-feedback" style="display:none">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Waktu</th><th>Rating</th><th>Pesan</th><th>Step</th><th>Ref</th></tr></thead>
+          <tbody id="tbody-log-feedback"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Klik Refresh untuk memuat data</td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -385,7 +436,7 @@ function saveLocalToStorage() {
 }
 
 const TYPE_MAP = { wisata:'wisata', penginapan:'penginapan', kuliner:'kuliner_cafe' };
-const PANEL_MAP = { wisata:'panel-wisata', penginapan:'panel-penginapan', kuliner:'panel-kuliner', import:'panel-import', export:'panel-export', geocode:'panel-geocode', clean:'panel-clean' };
+const PANEL_MAP = { wisata:'panel-wisata', penginapan:'panel-penginapan', kuliner:'panel-kuliner', import:'panel-import', export:'panel-export', geocode:'panel-geocode', clean:'panel-clean', logs:'panel-logs' };
 
 function toast(msg, type='ok') { const t = document.createElement('div'); t.className = `toast-item toast-${type}`; t.innerHTML = `<span>${type==='ok'?'✓':type==='err'?'✗':'ℹ'}</span> ${esc(msg)}`; document.getElementById('toast').appendChild(t); setTimeout(() => t.remove(), 3500); }
 
@@ -1192,8 +1243,138 @@ document.querySelectorAll('.nav-item').forEach(el => {
     if (tab === 'export') updateStats();
     if (tab === 'geocode') refreshGeoStats();
     if (tab === 'clean') renderCleanPanel();
+    if (tab === 'logs' && !state.logsLoaded) loadLogs();
   });
 });
+
+// ======================== LOGS & FEEDBACK ===================================
+const LOG_STEP_LABELS = ['0. Destinasi', '1. Transport', '2. Preferensi', '3. Susun/Hasil'];
+const logsCache = { sessions: [], events: [], errors: [], feedback: [] };
+
+function fmtLogTime(ts) {
+  try {
+    const d = ts?.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+    if (!d) return '—';
+    return d.toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  } catch(_) { return '—'; }
+}
+
+async function loadLogs() {
+  if (!db) { toast('Firebase tidak tersambung', 'err'); return; }
+  toast('Memuat log...', 'info');
+  try {
+    const [sessSnap, evtSnap, errSnap, fbSnap] = await Promise.all([
+      db.collection('visitor_logs').orderBy('lastSeen', 'desc').limit(200).get(),
+      db.collection('session_events').orderBy('timestamp', 'desc').limit(1000).get(),
+      db.collection('error_logs').orderBy('timestamp', 'desc').limit(200).get(),
+      db.collection('feedback').orderBy('timestamp', 'desc').limit(200).get(),
+    ]);
+    logsCache.sessions = sessSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    logsCache.events   = evtSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    logsCache.errors   = errSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    logsCache.feedback = fbSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    state.logsLoaded = true;
+    renderLogStats();
+    renderLogSessions();
+    renderLogFunnel();
+    renderLogErrors();
+    renderLogFeedback();
+    toast('Log dimuat ✓');
+  } catch(e) {
+    toast('Gagal memuat log: ' + e.message, 'err');
+  }
+}
+
+function renderLogStats() {
+  document.getElementById('log-stat-sessions').textContent = logsCache.sessions.length;
+  const completedSessions = new Set(logsCache.events.filter(e => e.eventType === 'itinerary_generated').map(e => e.sessionId));
+  document.getElementById('log-stat-completed').textContent = completedSessions.size;
+  document.getElementById('log-stat-errors').textContent = logsCache.errors.length;
+  document.getElementById('log-stat-feedback').textContent = logsCache.feedback.length;
+}
+
+function renderLogSessions() {
+  const tbody = document.getElementById('tbody-log-sessions');
+  if (!logsCache.sessions.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Belum ada data</td></tr>'; return; }
+  tbody.innerHTML = logsCache.sessions.map(s => {
+    const dev = s.device || {}; const loc = s.location || {};
+    const deviceLabel = [dev.type, dev.model].filter(Boolean).join(' · ') || '—';
+    const osLabel = [dev.os, dev.osVersion].filter(Boolean).join(' ') || '—';
+    const browserLabel = [dev.browser, dev.browserVersion].filter(Boolean).join(' ') || '—';
+    const locLabel = [loc.city, loc.region, loc.country].filter(Boolean).join(', ') || '—';
+    return `<tr>
+      <td>${fmtLogTime(s.lastSeen)}</td>
+      <td>${esc(deviceLabel)}</td>
+      <td>${esc(osLabel)}</td>
+      <td>${esc(browserLabel)}</td>
+      <td>${esc(locLabel)}</td>
+      <td style="font-family:monospace;font-size:11px">${esc(loc.ip || '—')}</td>
+      <td>${esc(s.ref || '—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLogFunnel() {
+  const el = document.getElementById('funnel-bars');
+  const stepReached = [0, 0, 0, 0];
+  const bySession = {};
+  logsCache.events.filter(e => e.eventType === 'step_view').forEach(e => {
+    if (e.step == null) return;
+    if (!bySession[e.sessionId]) bySession[e.sessionId] = new Set();
+    bySession[e.sessionId].add(e.step);
+  });
+  Object.values(bySession).forEach(stepsSet => {
+    for (let i = 0; i < 4; i++) if ([...stepsSet].some(s => s >= i)) stepReached[i]++;
+  });
+  const max = Math.max(1, stepReached[0]);
+  el.innerHTML = LOG_STEP_LABELS.map((label, i) => {
+    const pct = Math.round((stepReached[i] / max) * 100);
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${label}</span><span style="color:var(--muted)">${stepReached[i]} sesi</span>
+      </div>
+      <div style="background:var(--surface2);border-radius:6px;overflow:hidden;height:18px">
+        <div style="width:${pct}%;background:var(--accent);height:100%"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderLogErrors() {
+  const tbody = document.getElementById('tbody-log-errors');
+  if (!logsCache.errors.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Belum ada error tercatat 🎉</td></tr>'; return; }
+  tbody.innerHTML = logsCache.errors.map(e => `<tr>
+    <td>${fmtLogTime(e.timestamp)}</td>
+    <td>${esc(e.context || '—')}</td>
+    <td style="max-width:320px;white-space:normal;font-size:12px">${esc(e.message || '—')}</td>
+    <td style="font-size:11px">${esc((e.device && e.device.rawUA) ? e.device.rawUA.slice(0,60)+'…' : '—')}</td>
+    <td style="font-family:monospace;font-size:11px">${esc((e.sessionId||'').slice(0,14))}</td>
+  </tr>`).join('');
+}
+
+function renderLogFeedback() {
+  const tbody = document.getElementById('tbody-log-feedback');
+  if (!logsCache.feedback.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Belum ada feedback masuk</td></tr>'; return; }
+  tbody.innerHTML = logsCache.feedback.map(f => `<tr>
+    <td>${fmtLogTime(f.timestamp)}</td>
+    <td>${f.rating ? '★'.repeat(f.rating) + '☆'.repeat(5-f.rating) : '—'}</td>
+    <td style="max-width:320px;white-space:normal;font-size:12px">${esc(f.message || '—')}</td>
+    <td>${f.step ?? '—'}</td>
+    <td>${esc(f.ref || '—')}</td>
+  </tr>`).join('');
+}
+
+document.querySelectorAll('.log-subtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.log-subtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.logtab;
+    ['sessions','funnel','errors','feedback'].forEach(t => {
+      document.getElementById('logpanel-' + t).style.display = t === target ? '' : 'none';
+    });
+  });
+});
+document.getElementById('btn-refresh-logs').addEventListener('click', () => { state.logsLoaded = false; loadLogs(); });
 async function loadTab(type, forceRefresh = false) { if (!db) { renderTable(type); return; } try { const all = await fetchAllDocs(forceRefresh); const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] }; const validTypes = typeMap[type] || [type]; state.data[type] = all.filter(d => validTypes.includes((d.type||'').toLowerCase())); state.loaded[type] = true; updateStats(); renderTable(type); } catch(e) { toast('Gagal load ' + type + ': ' + e.message, 'err'); renderTable(type); } }
 
 // ======================== INIT =============================================
