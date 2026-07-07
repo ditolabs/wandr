@@ -325,6 +325,18 @@
         <button class="btn btn-ghost" id="btn-refresh-logs" style="margin-left:auto">🔄 Refresh</button>
       </div>
 
+      <div class="import-panel" style="margin-bottom:16px">
+        <div class="import-title">📤 Export Log</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:12px">
+          <button class="btn btn-ghost" id="btn-export-log-sessions">📱 Sesi (CSV)</button>
+          <button class="btn btn-ghost" id="btn-export-log-events">🧭 Funnel Events (CSV)</button>
+          <button class="btn btn-ghost" id="btn-export-log-errors">⚠️ Error (CSV)</button>
+          <button class="btn btn-ghost" id="btn-export-log-feedback">💬 Feedback (CSV)</button>
+          <button class="btn btn-export" id="btn-export-log-all">📦 Export Semua (JSON)</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">💡 CSV cocok dibuka di Google Sheets/Excel buat analisis (funnel, pola error per device, dll). JSON cocok buat backup lengkap atau bahan cek regresi sebelum/sesudah perbaikan.</div>
+      </div>
+
       <div id="logpanel-sessions">
         <div class="table-wrap"><table>
           <thead><tr><th>Waktu</th><th>Device</th><th>OS</th><th>Browser</th><th>Lokasi</th><th>IP</th><th>Ref</th></tr></thead>
@@ -1375,6 +1387,118 @@ document.querySelectorAll('.log-subtab').forEach(btn => {
   });
 });
 document.getElementById('btn-refresh-logs').addEventListener('click', () => { state.logsLoaded = false; loadLogs(); });
+
+// ── EXPORT LOG (CSV per kategori + JSON gabungan) ──────────────────────────
+function csvEscape(v) {
+  if (v === null || v === undefined) return '';
+  const s = String(v).replace(/"/g, '""');
+  return /[",\n]/.test(s) ? `"${s}"` : s;
+}
+function toCSV(rows, columns) {
+  const header = columns.map(c => csvEscape(c.label)).join(',');
+  const lines = rows.map(r => columns.map(c => csvEscape(c.get(r))).join(','));
+  return [header, ...lines].join('\n');
+}
+function downloadTextFile(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function todayStamp() { return new Date().toISOString().slice(0, 10); }
+async function ensureLogsLoaded() { if (!state.logsLoaded) await loadLogs(); }
+
+document.getElementById('btn-export-log-sessions').addEventListener('click', async () => {
+  await ensureLogsLoaded();
+  if (!logsCache.sessions.length) { toast('Belum ada data sesi', 'info'); return; }
+  const cols = [
+    { label: 'SessionId', get: r => r.sessionId },
+    { label: 'FirstSeen', get: r => fmtLogTime(r.firstSeen) },
+    { label: 'LastSeen', get: r => fmtLogTime(r.lastSeen) },
+    { label: 'DeviceType', get: r => r.device?.type },
+    { label: 'DeviceModel', get: r => r.device?.model },
+    { label: 'OS', get: r => r.device?.os },
+    { label: 'OSVersion', get: r => r.device?.osVersion },
+    { label: 'Browser', get: r => r.device?.browser },
+    { label: 'BrowserVersion', get: r => r.device?.browserVersion },
+    { label: 'ScreenWidth', get: r => r.device?.screenWidth },
+    { label: 'ScreenHeight', get: r => r.device?.screenHeight },
+    { label: 'City', get: r => r.location?.city },
+    { label: 'Region', get: r => r.location?.region },
+    { label: 'Country', get: r => r.location?.country },
+    { label: 'IP', get: r => r.location?.ip },
+    { label: 'Ref', get: r => r.ref },
+    { label: 'PageUrl', get: r => r.pageUrl },
+  ];
+  downloadTextFile(toCSV(logsCache.sessions, cols), `bwi-log-sessions-${todayStamp()}.csv`, 'text/csv');
+  toast('Export sesi berhasil ✓');
+});
+
+document.getElementById('btn-export-log-events').addEventListener('click', async () => {
+  await ensureLogsLoaded();
+  if (!logsCache.events.length) { toast('Belum ada data funnel event', 'info'); return; }
+  const cols = [
+    { label: 'Timestamp', get: r => fmtLogTime(r.timestamp) },
+    { label: 'SessionId', get: r => r.sessionId },
+    { label: 'EventType', get: r => r.eventType },
+    { label: 'Step', get: r => r.step },
+    { label: 'Ref', get: r => r.ref },
+  ];
+  downloadTextFile(toCSV(logsCache.events, cols), `bwi-log-funnel-events-${todayStamp()}.csv`, 'text/csv');
+  toast('Export funnel events berhasil ✓');
+});
+
+document.getElementById('btn-export-log-errors').addEventListener('click', async () => {
+  await ensureLogsLoaded();
+  if (!logsCache.errors.length) { toast('Belum ada error tercatat 🎉', 'info'); return; }
+  const cols = [
+    { label: 'Timestamp', get: r => fmtLogTime(r.timestamp) },
+    { label: 'SessionId', get: r => r.sessionId },
+    { label: 'Context', get: r => r.context },
+    { label: 'Message', get: r => r.message },
+    { label: 'Stack', get: r => r.stack },
+    { label: 'UserAgent', get: r => r.device?.rawUA },
+    { label: 'PageUrl', get: r => r.pageUrl },
+    { label: 'Ref', get: r => r.ref },
+  ];
+  downloadTextFile(toCSV(logsCache.errors, cols), `bwi-log-errors-${todayStamp()}.csv`, 'text/csv');
+  toast('Export error berhasil ✓');
+});
+
+document.getElementById('btn-export-log-feedback').addEventListener('click', async () => {
+  await ensureLogsLoaded();
+  if (!logsCache.feedback.length) { toast('Belum ada feedback masuk', 'info'); return; }
+  const cols = [
+    { label: 'Timestamp', get: r => fmtLogTime(r.timestamp) },
+    { label: 'SessionId', get: r => r.sessionId },
+    { label: 'Rating', get: r => r.rating },
+    { label: 'Message', get: r => r.message },
+    { label: 'Step', get: r => r.step },
+    { label: 'Ref', get: r => r.ref },
+  ];
+  downloadTextFile(toCSV(logsCache.feedback, cols), `bwi-log-feedback-${todayStamp()}.csv`, 'text/csv');
+  toast('Export feedback berhasil ✓');
+});
+
+document.getElementById('btn-export-log-all').addEventListener('click', async () => {
+  await ensureLogsLoaded();
+  const tsFields = ['timestamp', 'firstSeen', 'lastSeen'];
+  const normalize = arr => arr.map(r => {
+    const copy = { ...r };
+    tsFields.forEach(f => { if (copy[f]?.toDate) copy[f] = copy[f].toDate().toISOString(); });
+    return copy;
+  });
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    visitor_logs: normalize(logsCache.sessions),
+    session_events: normalize(logsCache.events),
+    error_logs: normalize(logsCache.errors),
+    feedback: normalize(logsCache.feedback),
+  };
+  downloadTextFile(JSON.stringify(payload, null, 2), `bwi-log-export-${todayStamp()}.json`, 'application/json');
+  toast(`Export semua log berhasil ✓ (${logsCache.sessions.length + logsCache.events.length + logsCache.errors.length + logsCache.feedback.length} records)`);
+});
 async function loadTab(type, forceRefresh = false) { if (!db) { renderTable(type); return; } try { const all = await fetchAllDocs(forceRefresh); const typeMap = { wisata: ['wisata'], penginapan: ['penginapan','hotel','homestay'], kuliner: ['kuliner','kuliner_cafe','cafe','restoran'] }; const validTypes = typeMap[type] || [type]; state.data[type] = all.filter(d => validTypes.includes((d.type||'').toLowerCase())); state.loaded[type] = true; updateStats(); renderTable(type); } catch(e) { toast('Gagal load ' + type + ': ' + e.message, 'err'); renderTable(type); } }
 
 // ======================== INIT =============================================
