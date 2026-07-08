@@ -2518,7 +2518,7 @@ function buildPrintPage(it) {
         const isLast = ai === grps[sess].length - 1;
         return `
           <tr>
-            <td class="act-time-cell">${act.time ? esc(act.time) : ''}</td>
+            <td class="act-time-cell" style="color:${dc}">${act.time ? esc(act.time) : ''}</td>
             <td class="act-main-cell">
               <div class="act-name">${esc(act.name)}</div>
               ${act.description ? `<div class="act-desc">${esc(act.description)}</div>` : ''}
@@ -2980,7 +2980,7 @@ async function exportItinerary(format) {
       // di tengah-tengah satu blok (penyebab teks/kartu kepotong).
       const printRect = printEl.getBoundingClientRect();
       const blockEls = printEl.querySelectorAll(
-        '.print-act, .print-day-header, .print-cover, .print-meta, .print-budget, .print-packing, .print-notes, .print-footer'
+        '.cover, .info-box, .dest-tags, .day-block, .day-title-row, .sess-row, .act-table tr, .budget-bar, .pack-section, .notes-box, .print-footer'
       );
       const cssBoundaries = [0, printEl.scrollHeight];
       blockEls.forEach(el => {
