@@ -249,6 +249,48 @@
       box-shadow: 0 2px 8px rgba(192,57,43,.2);
     }
 
+    /* ── STEP 0 — HERO / WIZARD INTRO (full-bleed) ───────────────────────── */
+    .hero-wrap {
+      margin: -24px -24px 0; padding: 40px 26px 44px;
+      min-height: calc(100vh - 140px);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      box-sizing: border-box; position: relative; overflow: hidden;
+      background:
+        linear-gradient(to bottom, rgba(15,20,25,.15) 0%, rgba(15,20,25,.25) 45%, rgba(20,15,15,.90) 100%),
+        radial-gradient(120% 70% at 20% 15%, #d98b5f 0%, transparent 55%),
+        radial-gradient(140% 90% at 80% 100%, var(--navy) 0%, transparent 60%),
+        linear-gradient(160deg, #f4d9a8 0%, #e6975f 28%, #a9563e 55%, #3a2c3f 78%, #14181f 100%);
+    }
+    .hero-eyebrow {
+      font-family: 'DM Sans', sans-serif; font-size: 11.5px; font-weight: 800;
+      color: #f4d9a8; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px;
+    }
+    .hero-title {
+      font-family: 'Noto Serif', serif; font-weight: 400; font-size: 32px; line-height: 1.18;
+      color: #fff; margin: 0 0 14px; text-shadow: 0 2px 18px rgba(0,0,0,.35);
+    }
+    .hero-title em { font-style: italic; color: #ffd9b0; }
+    .hero-sub {
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: rgba(255,255,255,.85);
+      line-height: 1.55; margin: 0 0 28px; max-width: 300px;
+    }
+    .hero-cta-wrap { display: flex; justify-content: center; }
+    .hero-cta {
+      font-family: 'DM Sans', sans-serif; background: #f4d9a8; color: #3a2c1f; border: none;
+      border-radius: 32px; padding: 16px 30px; font-weight: 800; font-size: 15px; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35); letter-spacing: .01em;
+    }
+    .hero-cta:active { transform: scale(.98); }
+    .hero-hint {
+      text-align: center; font-family: 'DM Sans', sans-serif; font-size: 11px;
+      color: rgba(255,255,255,.65); margin-top: 14px;
+    }
+    .s0-badge-opt {
+      display: inline-block; font-family: 'DM Sans', sans-serif; font-size: 10.5px; font-weight: 800;
+      color: var(--navy); background: var(--navy-lt); border-radius: 20px; padding: 2px 10px;
+      margin-left: 6px; vertical-align: middle; text-transform: none;
+    }
+
     /* ── STEP 0 — "KERTAS" (minimalist redesign) ─────────────────────────────
        Serif headline + hairline rules instead of boxed cards. Scoped to
        .s0-* so other steps / other tabs are untouched. */
@@ -1147,10 +1189,11 @@
   <!-- STEP NAV -->
   <div id="progress-area" style="padding:0 24px;margin:20px 0 0">
     <div class="step-labels">
-      <span class="step-label active" data-i="0">Destinasi</span>
-      <span class="step-label"        data-i="1">Transport</span>
-      <span class="step-label"        data-i="2">Preferensi</span>
-      <span class="step-label"        data-i="3">Susun</span>
+      <span class="step-label" data-i="1">Destinasi</span>
+      <span class="step-label" data-i="2">Kuliner</span>
+      <span class="step-label" data-i="3">Transport</span>
+      <span class="step-label" data-i="4">Preferensi</span>
+      <span class="step-label" data-i="5">Susun</span>
       <div class="step-indicator" id="step-ind"></div>
     </div>
     <div class="progress-bar">
@@ -1338,11 +1381,9 @@ window.addEventListener('unhandledrejection', (e) => bwiLogError('unhandledrejec
 bwiInitTracking();
 
 (function bwiWireFeedbackUI() {
-  const FEEDBACK_ENABLED = false; // ← set true lagi kalau mau uji coba fitur feedback
   const btn = document.getElementById('btnFeedback');
   const modal = document.getElementById('modalFeedback');
   if (!btn || !modal) return;
-  if (!FEEDBACK_ENABLED) { btn.style.display = 'none'; return; }
   const closeBtn = document.getElementById('closeFeedback');
   const stars = document.querySelectorAll('#feedbackStars span');
   const sendBtn = document.getElementById('btnSendFeedback');
@@ -1756,14 +1797,14 @@ const esc = s => String(s)
 <script>
 // ─── PROGRESS & NAV ──────────────────────────────────────────────────────────
 function updateProgress() {
-  const pct = S.step >= 4 ? 100 : (S.step / 4) * 100;
+  const pct = S.step<=0 ? 0 : (S.step >= 5 ? 100 : (S.step / 5) * 100);
   document.getElementById('progress-fill').style.width = pct + '%';
   document.querySelectorAll('.step-label').forEach(el => {
     const i = +el.dataset.i;
     el.className = 'step-label' + (i===S.step?' active': i<S.step?' done':'');
   });
   document.getElementById('progress-area').style.display =
-    (S.step===3 && (S.loading || S.itinerary)) ? 'none' : '';
+    (S.step===0 || (S.step===5 && (S.loading || S.itinerary))) ? 'none' : '';
   moveStepIndicator();
 }
 
@@ -1778,20 +1819,25 @@ window.addEventListener('resize', moveStepIndicator);
 
 function updateNav() {
   const nav = document.getElementById('nav');
-  if (S.step===3 && (S.loading || S.itinerary)) { nav.style.display='none'; return; }
+  if (S.step===0) { nav.style.display='none'; return; }
+  if (S.step===5 && (S.loading || S.itinerary)) { nav.style.display='none'; return; }
   nav.style.display = 'flex';
   document.getElementById('btn-back').className = 'btn-ghost' + (S.step===0?' hidden':'');
-  document.getElementById('dest-count').textContent = S.destinations.size>0 ? S.destinations.size+' destinasi dipilih' : (S.step===0 ? 'Pilih min. 1 destinasi' : '');
+  document.getElementById('dest-count').textContent = S.destinations.size>0 ? S.destinations.size+' destinasi dipilih' : (S.step===1 ? 'Pilih min. 1 destinasi' : '');
   const ok = canNext();
   document.getElementById('btn-next').disabled = !ok;
-  document.getElementById('btn-next').textContent = S.step===3 ? '✨ Generate Itinerary' : 'Lanjut →';
+  document.getElementById('btn-next').textContent = S.step===5
+    ? '✨ Generate Itinerary'
+    : (S.step===2 && !S.kulinerCustom.trim() ? 'Lewati →' : 'Lanjut →');
 }
 
 function canNext() {
-  if (S.step===0) return S.destinations.size > 0;
-  if (S.step===1) { const ok = S.kotaAsal && (S.kotaAsal!=='Lainnya'||S.kotaAsalCustom.trim()) && S.transport; return S.transport==='umum' ? ok && !!S.subTransport : ok; }
-  if (S.step===2) return S.durasi && S.gayaPerjalanan && (S.penginapan || S.penginapanIds.size > 0 || S.penginapanCustom.trim());
-  if (S.step===3) return true;
+  if (S.step===0) return true;
+  if (S.step===1) return S.destinations.size > 0;
+  if (S.step===2) return true; // kuliner opsional
+  if (S.step===3) { const ok = S.kotaAsal && (S.kotaAsal!=='Lainnya'||S.kotaAsalCustom.trim()) && S.transport; return S.transport==='umum' ? ok && !!S.subTransport : ok; }
+  if (S.step===4) return S.durasi && S.gayaPerjalanan && (S.penginapan || S.penginapanIds.size > 0 || S.penginapanCustom.trim());
+  if (S.step===5) return true;
   return false;
 }
 
@@ -1934,7 +1980,20 @@ const DEST_RATINGS = { ijen:4.9, baluran:4.8, alas_purwo:4.7, red_island:4.8, gr
 const DEST_CAT_LABEL = { alam:'Alam', pantai:'Pantai', diving:'Diving', budaya:'Budaya' };
 const DEST_CAT_COLOR = { alam:'rgba(74,144,74,.8)', pantai:'rgba(57,157,224,.8)', diving:'rgba(57,224,200,.8)', budaya:'rgba(224,178,57,.8)' };
 
-function renderStep0() {
+function renderStepHero() {
+  return `
+    <div class="hero-wrap">
+      <div class="hero-eyebrow">Wandr · Banyuwangi</div>
+      <h1 class="hero-title">Petualangan berikutnya,<br><em>mau kemana aja?</em></h1>
+      <p class="hero-sub">Dari blue fire Ijen sampai pasir hitam Pulau Merah — Wandr bantu susun rutenya, kamu tinggal jalan.</p>
+      <div class="hero-cta-wrap">
+        <button id="btn-hero-start" class="hero-cta">Yuk, Mulai Jalan-jalan →</button>
+      </div>
+      <div class="hero-hint">Gratis · 5 langkah singkat · ~2 menit</div>
+    </div>`;
+}
+
+function renderStepDest() {
   const matched   = DESTINATIONS.filter(d=>S.destinations.has(d.id));
   const query     = (S.destInput||'').toLowerCase().trim();
   const activeCat = S._catFilter || 'semua';
@@ -2038,8 +2097,39 @@ function renderStep0() {
     ? `<div class="s0-more-toggle" data-toggle-populer>${showAllPopuler ? 'Lebih sedikit ↑' : `Lihat semua (${quickDests.length}) →`}</div>`
     : '';
 
-  // Kuliner populer: default umum se-Banyuwangi, otomatis ganti ke sekitar
-  // destinasi yang dipilih begitu ada minimal 1 destinasi (dengan koordinat).
+  return `
+    <h2 class="s0-h1">Pilih Destinasi</h2>
+    <p class="s0-sub">Ketuk satu atau lebih tempat yang mau kamu kunjungi.</p>
+
+    ${matched.length>0?`<div class="s0-chips" id="dest-chips">${chips}</div>`:''}
+
+    <div class="s0-search-compact-wrap">
+      <span class="s0-sc-icon">🔍</span>
+      <input type="text" id="dest-input" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
+        value="${esc(S.destInput)}" placeholder="Cari destinasi lain, mis. Pulau Merah, Teluk Hijau…">
+      ${S.destInput?`<span id="btn-clear-input" class="s0-sc-clear">✕</span>`:''}
+    </div>
+    ${query?'':'<p class="s0-search-caption">atau pilih langsung dari populer di bawah 👇</p>'}
+
+    <div class="s0-cats" id="cat-btns">${query?catBtns:''}</div>
+
+    <div id="dest-warn-area" class="s0-warn" style="display:${queryTerms.length>0&&displayDests.length===0?'block':'none'};">
+      Tidak ditemukan untuk "${esc(S.destInput)}"
+    </div>
+
+    <div id="dest-cards-list">${query?rows:''}</div>
+
+    <div class="s0-eyebrow">Populer</div>
+    <p class="s0-hint">Ketuk untuk pilih — bisa lebih dari satu tempat 👆</p>
+    <div class="s0-grid" id="dest-quick-list">${quickCards}</div>
+    ${populerMoreBtn}
+    <div style="height:12px;"></div>`;
+}
+
+// ─── RENDER STEP KULINER (opsional) ───────────────────────────────────────────
+function renderStepKuliner() {
+  const matched = DESTINATIONS.filter(d=>S.destinations.has(d.id));
+
   let kulinerPop = [];
   let kulinerPopIsNear = false;
   try {
@@ -2070,52 +2160,23 @@ function renderStep0() {
   }).join('');
 
   return `
-    <h2 class="s0-h1">Ke Banyuwangi,<br><em>mau kemana aja?</em></h2>
-    <p class="s0-sub">Wandr bantu susun rute jalan-jalanmu — lengkap dengan jam kunjungan, kuliner terdekat, dan estimasi biaya. Mulai dengan pilih destinasi di bawah.</p>
-
-    <div class="s0-guide">
-      <div class="s0-guide-step"><span class="s0-guide-num">01</span><span class="s0-guide-txt">Pilih destinasi (boleh beberapa)</span></div>
-      <div class="s0-guide-step"><span class="s0-guide-num">02</span><span class="s0-guide-txt">Atur transport & gaya trip</span></div>
-      <div class="s0-guide-step"><span class="s0-guide-num">03</span><span class="s0-guide-txt">Itinerary siap otomatis</span></div>
-    </div>
-
-    ${matched.length>0?`<div class="s0-chips" id="dest-chips">${chips}</div>`:''}
-
-    <div class="s0-search-compact-wrap">
-      <span class="s0-sc-icon">🔍</span>
-      <input type="text" id="dest-input" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
-        value="${esc(S.destInput)}" placeholder="Cari destinasi lain, mis. Pulau Merah, Teluk Hijau…">
-      ${S.destInput?`<span id="btn-clear-input" class="s0-sc-clear">✕</span>`:''}
-    </div>
-    ${query?'':'<p class="s0-search-caption">atau pilih langsung dari populer di bawah 👇</p>'}
-
-    <div class="s0-cats" id="cat-btns">${query?catBtns:''}</div>
-
-    <div id="dest-warn-area" class="s0-warn" style="display:${queryTerms.length>0&&displayDests.length===0?'block':'none'};">
-      Tidak ditemukan untuk "${esc(S.destInput)}"
-    </div>
-
-    <div id="dest-cards-list">${query?rows:''}</div>
-
-    <div class="s0-eyebrow">Populer</div>
-    <p class="s0-hint">Ketuk untuk pilih — bisa lebih dari satu tempat 👆</p>
-    <div class="s0-grid" id="dest-quick-list">${quickCards}</div>
-    ${populerMoreBtn}
+    <h2 class="s0-h1">Kuliner Incaran <span class="s0-badge-opt">Opsional</span></h2>
+    <p class="s0-sub">Dekat destinasi yang kamu pilih — ketuk buat jadikan incaran, atau lewati langsung.</p>
 
     ${kulinerPopCards ? `<div class="s0-eyebrow">Kuliner Populer</div>
     <p class="s0-kuliner-pop-hint">${kulinerPopIsNear ? 'Dekat destinasi yang kamu pilih' : 'Favorit di Banyuwangi'} — ketuk untuk jadikan incaran 👆</p>
     <div class="s0-grid" id="kuliner-pop-list">${kulinerPopCards}</div>` : (window._usingFallbackData ? `<div class="s0-eyebrow">Kuliner Populer</div>
     <p class="s0-kuliner-pop-hint">⚠️ Koneksi ke database lagi bermasalah, jadi rekomendasi kuliner belum bisa dimuat. Coba refresh halaman kalau koneksi sudah stabil.</p>` : '')}
 
-    ${(matched.length>0||kulinerPopCards)?`<div class="s0-kuliner">
-      <div class="s0-kuliner-label">Kuliner yang diincar? <span style="opacity:.7">(opsional)</span></div>
+    <div class="s0-kuliner">
+      <div class="s0-kuliner-label">Atau ketik nama tempat lain</div>
       <div class="s0-search-compact-wrap">
         <span class="s0-sc-icon">🍴</span>
         <input type="text" id="input-kuliner-custom" dir="ltr" lang="en" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"
           placeholder="Sego Tempong Mbok Wah…" value="${esc(S.kulinerCustom)}">
       </div>
       <div id="kuliner-suggest-list">${kulinerSuggestRowsHtml(computeKulinerSuggestions(S.kulinerCustom), S.kulinerCustom)}</div>
-    </div>`:''}
+    </div>
     <div style="height:12px;"></div>`;
 }
 
@@ -2961,7 +3022,7 @@ function buildPrintPage(it) {
 
   <!-- FOOTER -->
   <div class="print-footer">
-    <div>Generated by Wandr · ditolabs.github.io/wandr · ${today}</div>
+    <div>Generated by Wandr · ditolabs.github.io/bwi-app · ${today}</div>
     <div class="footer-brand">Wandr</div>
   </div>
 
@@ -3378,10 +3439,12 @@ function render() {
   const c = document.getElementById('content');
   try {
     switch (S.step) {
-      case 0: c.innerHTML = renderStep0(); break;
-      case 1: c.innerHTML = renderStep1(); break;
-      case 2: c.innerHTML = renderStep2(); break;
-      case 3:
+      case 0: c.innerHTML = renderStepHero(); break;
+      case 1: c.innerHTML = renderStepDest(); break;
+      case 2: c.innerHTML = renderStepKuliner(); break;
+      case 3: c.innerHTML = renderStep1(); break;
+      case 4: c.innerHTML = renderStep2(); break;
+      case 5:
         if (S.loading || S.error || S.itinerary) {
           c.innerHTML = renderStep3();
         } else {
@@ -3403,8 +3466,8 @@ function render() {
   try {
     if (typeof BWI_TRACK !== 'undefined') {
       if (S.step !== BWI_TRACK.lastStep) { bwiLogFunnel('step_view', S.step); BWI_TRACK.lastStep = S.step; }
-      if (S.step === 3 && S.itinerary && !BWI_TRACK.itineraryLogged) { bwiLogFunnel('itinerary_generated', 3); BWI_TRACK.itineraryLogged = true; }
-      if (S.step === 3 && S.error && BWI_TRACK.lastErrorMsg !== S.error) { bwiLogError('generate', S.error); BWI_TRACK.lastErrorMsg = S.error; }
+      if (S.step === 5 && S.itinerary && !BWI_TRACK.itineraryLogged) { bwiLogFunnel('itinerary_generated', 5); BWI_TRACK.itineraryLogged = true; }
+      if (S.step === 5 && S.error && BWI_TRACK.lastErrorMsg !== S.error) { bwiLogError('generate', S.error); BWI_TRACK.lastErrorMsg = S.error; }
     }
   } catch(_) {}
 }
@@ -3790,25 +3853,29 @@ function attachListeners() {
     render();
   });
   // Re-init Sortable setiap kali DOM di-rebuild (planning board)
-  if (S.step === 3 && !S.loading && !S.itinerary && !S.error) {
+  if (S.step === 5 && !S.loading && !S.itinerary && !S.error) {
     requestAnimationFrame(() => initSortableBoard());
   }
+
+  // Hero CTA (step 0 -> 1)
+  const heroBtn = document.getElementById('btn-hero-start');
+  if (heroBtn) heroBtn.addEventListener('click', () => { S.step = 1; render(); });
 }
 
 // ─── STATIC NAV LISTENERS ────────────────────────────────────────────────────
 document.getElementById('btn-back').addEventListener('click', () => { S.step--; render(); });
 document.getElementById('btn-next').addEventListener('click', async () => {
-  if (S.step===3) {
+  if (S.step===5) {
     readPlanFromDOM();
     S.loading=true; S.itinerary=null; S.error=null;
     render();
     generate();
-  } else if (S.step===2) {
-    S.step=3;
+  } else if (S.step===4) {
+    S.step=5;
     initPlanDays();
     render();
-  } else if (S.step===1) {
-    S.step=2;
+  } else if (S.step===3) {
+    S.step=4;
     render();
     await loadPenginapanOptions();
     render();
@@ -5338,7 +5405,7 @@ function partialUpdateTransportSchedule() {
   // Re-render hanya bagian JAM PERJALANAN tanpa full render
   // Cukup trigger render step1 partial
   const step1content = document.getElementById('content-wrap');
-  if (step1content && S.step === 1) {
+  if (step1content && S.step === 3) {
     render();
     // Scroll ke posisi jadwal
     setTimeout(() => {
