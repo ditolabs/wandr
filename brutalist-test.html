@@ -1115,19 +1115,40 @@
       font-family:'Arial Black',Arial,sans-serif !important; font-weight:900 !important;
       text-transform:uppercase; letter-spacing:-.01em;
     }
-    button, .btn-pri, .btn-ghost, .btn-next, [class*="btn"] {
+
+    /* Tombol & elemen boxed — daftar class EKSPLISIT (bukan wildcard [class*=]),
+       supaya elemen anak (ikon/nama/check di dalam card) tidak ikut kebungkus
+       border sendiri-sendiri. */
+    #btn-next, #btn-back, .btn-pri, .btn-ghost, .btn-close, .btn-print, .cat-btn, .cnt-btn,
+    .card-opt, .dest-chip, .gaya-card, .pack-row, .pill-row, .rowbig,
+    .s0-card, .s0-chip, .s0-kul-card, .s0-row, .schedcard, .stepper-btn, .card-list {
       border:2.5px solid #111 !important; border-radius:0 !important;
-      box-shadow:4px 4px 0 #111 !important; font-weight:800 !important; text-transform:uppercase !important;
+      box-shadow:4px 4px 0 #111 !important; font-weight:800 !important;
     }
-    button:active, [class*="btn"]:active { box-shadow:1px 1px 0 #111 !important; transform:translate(3px,3px) !important; }
+    #btn-next, #btn-back, .btn-pri, .btn-ghost, .cat-btn { text-transform:uppercase !important; }
+    #btn-next:active, .btn-pri:active, .s0-card:active, .s0-kul-card:active, .dest-chip:active {
+      box-shadow:1px 1px 0 #111 !important; transform:translate(3px,3px) !important;
+    }
+    .s0-card.sel, .dest-chip.selected, .card-opt.selected, .gaya-card.selected, .schedcard.sel {
+      background:#F2B90F !important;
+    }
+
+    /* Input biasa (bukan yang di dalam search-compact-wrap) */
     input, textarea, select {
       border:2.5px solid #111 !important; border-radius:0 !important;
       box-shadow:3px 3px 0 #111 !important; font-weight:700 !important;
     }
-    [class*="card"], [class*="chip"], [class*="row"], .s0-grid > div {
+    /* Search bar: wrapper JADI kotaknya, input di dalam TIDAK dobel border */
+    .s0-search-compact-wrap {
       border:2.5px solid #111 !important; border-radius:0 !important;
+      box-shadow:4px 4px 0 #111 !important; background:#fff !important;
     }
-    [class*="card"] { box-shadow:4px 4px 0 #111 !important; }
+    .s0-search-compact-wrap input {
+      border:none !important; box-shadow:none !important; background:transparent !important;
+    }
+
+    /* Feedback FAB: biarkan tetap bulat, jangan ikut diseragamkan jadi kotak */
+    #btnFeedback { border-radius:50% !important; bottom:96px !important; }
 
     /* Hero khusus (class hardcoded, tidak ikut token di atas) */
     .hero-wrap { background: linear-gradient(160deg, #F2B90F 0%, #E8532F 55%, #12233D 100%) !important; }
