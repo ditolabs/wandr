@@ -1120,11 +1120,21 @@
        supaya elemen anak (ikon/nama/check di dalam card) tidak ikut kebungkus
        border sendiri-sendiri. */
     #btn-next, #btn-back, .btn-pri, .btn-ghost, .btn-close, .btn-print, .cat-btn, .cnt-btn,
-    .card-opt, .dest-chip, .gaya-card, .pack-row, .pill-row, .rowbig,
+    .card-opt, .dest-chip, .gaya-card, .pack-row, .rowbig,
     .s0-card, .s0-chip, .s0-kul-card, .s0-row, .schedcard, .stepper-btn, .card-list {
       border:2.5px solid #111 !important; border-radius:0 !important;
       box-shadow:4px 4px 0 #111 !important; font-weight:800 !important;
     }
+    /* Durasi trip (.pill) — aslinya tab underline, di-brutalist-in jadi kotak */
+    .pill {
+      border:2.5px solid #111 !important; border-radius:0 !important;
+      box-shadow:4px 4px 0 #111 !important; padding:10px 14px !important;
+      display:inline-block; margin:0 8px 8px 0; background:#fff !important; font-weight:800 !important;
+    }
+    .pill.sel { background:#F2B90F !important; border-bottom:2.5px solid #111 !important; }
+    /* Cegah tinggi kartu "kedut" saat selected — kunci font-weight nama tetap sama
+       di kedua state, biar nggak ada reflow baris teks bikin box tiba-tiba tambah tinggi. */
+    .s0-card-name { font-weight:700 !important; }
     #btn-next, #btn-back, .btn-pri, .btn-ghost, .cat-btn { text-transform:uppercase !important; }
     #btn-next:active, .btn-pri:active, .s0-card:active, .s0-kul-card:active, .dest-chip:active {
       box-shadow:1px 1px 0 #111 !important; transform:translate(3px,3px) !important;
