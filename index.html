@@ -1600,6 +1600,50 @@ const KOTA_LABEL = {
 };
 
 
+// ─── DURASI KUNJUNGAN BERBASIS KATEGORI ────────────────────────────────────
+// Dikalibrasi dari pola itinerary riil operator tur lokal + tervalidasi
+// terhadap seluruh nilai `Kategori` yang benar-benar ada di Firestore
+// (bukan cuma 4 kategori kasar seperti sebelumnya). Aturan lebih spesifik
+// dicek lebih dulu; kalau tidak ada yang cocok, fallback ke DEFAULT_DUR.
+const DURASI_KATEGORI_MENIT = {
+  trekking_sunrise:      300, // Kawah Ijen dkk — sudah di-override isIjen di bawah
+  snorkeling:             120, // biasanya 2 spot
+  pulau_kecil:             35,
+  air_terjun:              90,
+  gua:                      75,
+  waduk_danau:              75,
+  savana_dataran_tinggi:   150,
+  konservasi:              120,
+  hutan_spot_foto:         105, // De Djawatan-like
+  taman_rekreasi:          120,
+  sejarah_budaya:           55, // pendopo, situs
+  museum_edukasi:          100,
+  pantai_santai:           105,
+};
+const DEFAULT_DUR = 90;
+const RULES_DURASI_WISATA = [
+  { bucket:'trekking_sunrise',      match:['kawah'] },
+  { bucket:'snorkeling',            match:['snorkeling'] },
+  { bucket:'pulau_kecil',           match:['pulau'] },
+  { bucket:'air_terjun',            match:['air terjun'] },
+  { bucket:'gua',                   match:['goa'] },
+  { bucket:'waduk_danau',           match:['waduk','danau'] },
+  { bucket:'savana_dataran_tinggi', match:['savana','dataran tinggi','pegunungan','padang rumput'] },
+  { bucket:'konservasi',            match:['konservasi'] },
+  { bucket:'hutan_spot_foto',       match:['hutan'] },
+  { bucket:'taman_rekreasi',        match:['taman kota','rekreasi','pemandian alam'] },
+  { bucket:'museum_edukasi',        match:['edukasi'] },
+  { bucket:'sejarah_budaya',        match:['sejarah','budaya'] },
+  { bucket:'pantai_santai',         match:['pantai'] },
+];
+function durasiFromKategori(kategoriRaw) {
+  const teks = (kategoriRaw||'').toLowerCase();
+  for (const rule of RULES_DURASI_WISATA) {
+    if (rule.match.some(kw => teks.includes(kw))) return DURASI_KATEGORI_MENIT[rule.bucket];
+  }
+  return DEFAULT_DUR;
+}
+
 function mapToWandr(id, d) {
   if (d.type !== 'wisata' || d.status === 'pending') return null;
   const nama = (d.nama||'').toLowerCase();
@@ -1632,7 +1676,9 @@ function mapToWandr(id, d) {
   for (const [key, z] of Object.entries(NAMA_ZONE_OVERRIDE)) {
     if (nama.includes(key)) { zone = z; break; }
   }
-  const dur  = isIjen?300:cat==='diving'?360:kat.includes('terjun')?120:180;
+  // isIjen tetap di-override manual (300 menit, trekking + tunggu sunrise) —
+  // ini kasus khusus yang nggak bisa cuma ditebak dari teks kategori.
+  const dur  = isIjen ? 300 : durasiFromKategori(d.kategori);
   const namaWords = nama.split(' ').filter(w => w.length > 2);
   const autoAliases = new Set([nama]);
   const skipWords = new Set(['pura','taman','nasional','pantai','air','gua','goa','pulau','kebun','perkebunan','padang']);
