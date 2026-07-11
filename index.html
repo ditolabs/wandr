@@ -1132,6 +1132,21 @@
       display:inline-block; margin:0 8px 8px 0; background:#fff !important; font-weight:800 !important;
     }
     .pill.sel { background:#F2B90F !important; border-bottom:2.5px solid #111 !important; }
+    /* Jalur transport (.tag: Kereta Api/Pesawat/Bus) — sama treatment kayak .pill */
+    .tag {
+      border:2.5px solid #111 !important; border-radius:0 !important;
+      box-shadow:3px 3px 0 #111 !important; padding:10px 14px !important;
+      display:inline-block; margin:0 8px 8px 0; background:#fff !important;
+      font-weight:800 !important; font-size:13px !important;
+    }
+    .tag.active { background:#F2B90F !important; color:#111 !important; }
+    /* Tombol Lanjut disabled — sebelumnya ikut jadi hitam pekat karena token
+       --border & --text-muted sama-sama dioverride ke #111. Dikasih warna
+       abu-beige sendiri biar jelas beda dari status aktif (oranye). */
+    .btn-pri:disabled, #btn-next:disabled {
+      background:#C9C2B4 !important; color:#6b6558 !important; border-color:#111 !important;
+      box-shadow:2px 2px 0 #111 !important;
+    }
     /* Cegah tinggi kartu "kedut" saat selected — kunci font-weight nama tetap sama
        di kedua state, biar nggak ada reflow baris teks bikin box tiba-tiba tambah tinggi. */
     .s0-card-name { font-weight:700 !important; }
@@ -2369,7 +2384,7 @@ function renderStep1() {
       // Jadwal picker — hanya tampil jika transport umum & ada subTransport
       const moda  = S.subTransport; // kereta/pesawat/bus
       const kota  = (S.kotaAsal||'').toLowerCase().trim().replace('/','');
-      const kotaKey = Object.keys(KOTA_LABEL).find(k=>kota.includes(k)||k.includes(kota.split(' ')[0])) || '';
+      const kotaKey = kota ? (Object.keys(KOTA_LABEL).find(k=>kota.includes(k)||(kota.split(' ')[0] && k.includes(kota.split(' ')[0]))) || '') : '';
       const jadwals = moda && kotaKey && JADWAL_TRANSPORT[moda]?.[kotaKey];
       const hasIjenDest = Array.from(S.destinations||[]).some(id=>{
         const d = DESTINATIONS.find(x=>x.id===id); return d?.isIjen||false;
