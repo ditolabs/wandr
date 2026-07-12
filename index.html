@@ -2005,6 +2005,19 @@ function haversineKm(lat1,lng1,lat2,lng2) {
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+// Estimasi waktu tempuh antar 2 titik koordinat (fallback Haversine, bukan rute jalan asli).
+// coordA/coordB: {lat, lng} — kalau salah satu kosong, balik fallback konservatif 20 menit
+// biar itinerary tetap masuk akal walau data koordinat belum lengkap.
+function estimasiTravelMenit(coordA, coordB) {
+  if (!coordA || !coordB || coordA.lat==null || coordA.lng==null || coordB.lat==null || coordB.lng==null) return 20;
+  const kmLurus = haversineKm(coordA.lat, coordA.lng, coordB.lat, coordB.lng);
+  const ROAD_FACTOR = 1.35; // jalan asli biasanya ~35% lebih panjang dari garis lurus
+  const kmJalan = kmLurus * ROAD_FACTOR;
+  const speedKmh = (hasMotor()||hasMobil()) ? 35 : 28; // medan Banyuwangi campuran (kota+pegunungan)
+  const menit = Math.round(kmJalan / speedKmh * 60) + 10; // +10 menit buffer parkir/persiapan
+  return Math.max(10, menit);
+}
+
 function parseDestInput(text) {
   S.destinations.clear();
   // Normalize: hapus spasi berlebih tapi jangan ubah nilai S.destInput
@@ -5012,17 +5025,6 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
   // ── Normal activity day ──────────────────────────────────────────────────────
   const acts = [];
   const hotelC=opts.hotelNameOverride ? findHotelCoords(opts.hotelNameOverride) : getHotelCoords();
-  const distKm=ZONE_DIST[zone]||30;
-  const travelMins=(hasMotor()||hasMobil())?Math.round(distKm/40*60):Math.round(distKm/35*60)+15;
-  const travelLabel=hasMotor()||hasMobil()?`~${Math.round(distKm/40*60)}–${Math.round(distKm/40*60)+15} menit`:`~${Math.round(distKm/30*60)} menit dengan ${getTransportLabel()}`;
-
-  acts.push(buildMakan('pagi',zone,null,hotelC?.lat,hotelC?.lng));
-  acts.push({time:addMin('07:00',60+15),name:`Perjalanan ke Area ${ZONE_LABEL_SHORT[zone]||zone}`,
-    location:`${getFinalHotelName()} → ${ZONE_LABEL_SHORT[zone]||zone}`,
-    duration:travelLabel,
-    description:`Perjalanan menuju destinasi hari ini. Siapkan diri untuk pengalaman luar biasa!`,
-    tips:hasMotor()?'Isi bensin penuh — SPBU terbatas di area wisata.':hasMobil()?'Gunakan Google Maps — signal melemah di beberapa titik.':'Pesan ojek/grab dari H-1.',
-    estimatedCost:hasMotor()?15000:hasMobil()?50000:40000,type:'transport'});
 
   const sorted = opts.honorOrder ? spots : [...spots].sort((a,b)=>{
     const sa=DEST_EXT[a.id]?.isSunset?10:DEST_EXT[a.id]?.isNight?20:0;
@@ -5033,6 +5035,27 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
   const sunsetSpots=sorted.filter(s=>DEST_EXT[s.id]?.isSunset);
   const nightSpots =sorted.filter(s=>DEST_EXT[s.id]?.isNight&&!DEST_EXT[s.id]?.isSunset);
 
+  // Perjalanan pertama (hotel → destinasi pertama): pakai jarak koordinat asli
+  // kalau tersedia, fallback ke rata-rata jarak zona kalau koordinat belum lengkap.
+  const firstSpotC = mainSpots[0] ? getDestCoords(mainSpots[0]) : null;
+  let travelMins, travelLabel;
+  if (hotelC && firstSpotC) {
+    travelMins = estimasiTravelMenit(hotelC, firstSpotC);
+    travelLabel = (hasMotor()||hasMobil()) ? `~${travelMins} menit` : `~${travelMins} menit dengan ${getTransportLabel()}`;
+  } else {
+    const distKm=ZONE_DIST[zone]||30;
+    travelMins=(hasMotor()||hasMobil())?Math.round(distKm/40*60):Math.round(distKm/35*60)+15;
+    travelLabel=hasMotor()||hasMobil()?`~${Math.round(distKm/40*60)}–${Math.round(distKm/40*60)+15} menit`:`~${Math.round(distKm/30*60)} menit dengan ${getTransportLabel()}`;
+  }
+
+  acts.push(buildMakan('pagi',zone,null,hotelC?.lat,hotelC?.lng));
+  acts.push({time:addMin('07:00',60+15),name:`Perjalanan ke Area ${ZONE_LABEL_SHORT[zone]||zone}`,
+    location:`${getFinalHotelName()} → ${ZONE_LABEL_SHORT[zone]||zone}`,
+    duration:travelLabel,
+    description:`Perjalanan menuju destinasi hari ini. Siapkan diri untuk pengalaman luar biasa!`,
+    tips:hasMotor()?'Isi bensin penuh — SPBU terbatas di area wisata.':hasMobil()?'Gunakan Google Maps — signal melemah di beberapa titik.':'Pesan ojek/grab dari H-1.',
+    estimatedCost:hasMotor()?15000:hasMobil()?50000:40000,type:'transport'});
+
   let curTime=addMin('07:00',60+15+travelMins);
   mainSpots.forEach((spot,i)=>{
     const ext=DEST_EXT[spot.id]||{};
@@ -5040,6 +5063,20 @@ function buildActivityDay(dayNum, spots, zone, form, opts={}) {
     acts.push({time:curTime,name:spot.name,location:spot.name+', Banyuwangi',duration:durLabel(dur),description:ext.desc||spot.desc||'',tips:ext.tips||'',estimatedCost:ext.tiket||0,type:'aktivitas'});
     curTime=addMin(curTime,dur);
     if(i<mainSpots.length-1) {
+      // Perjalanan ke destinasi berikutnya — sebelumnya nggak ada sama sekali,
+      // jadi itinerary kelihatan "teleport" dari satu tempat ke tempat lain.
+      const nextSpot = mainSpots[i+1];
+      const coordA = getDestCoords(spot), coordB = getDestCoords(nextSpot);
+      const segMenit = estimasiTravelMenit(coordA, coordB);
+      if (segMenit > 8) {
+        acts.push({time:curTime,name:`Perjalanan ke ${nextSpot.name}`,
+          location:`${spot.name} → ${nextSpot.name}`,
+          duration:`~${segMenit} menit`,
+          description:'Perjalanan menuju destinasi berikutnya.',
+          tips:hasMotor()?'Cek bensin & kondisi jalan sebelum lanjut.':'Gunakan Google Maps untuk rute terkini.',
+          estimatedCost:hasMotor()?8000:hasMobil()?15000:20000,type:'transport'});
+        curTime=addMin(curTime,segMenit);
+      }
       acts.push(buildMakan('siang',zone,curTime,getDestCoords(spot)?.lat,getDestCoords(spot)?.lng));
       curTime=addMin(curTime,60);
     }
