@@ -1187,6 +1187,52 @@
       border:3px solid #111 !important; box-shadow:6px 6px 0 #111 !important; text-transform:uppercase !important; }
     .hero-hint { color:#111 !important; font-weight:700; text-transform:uppercase; }
     .s0-badge-opt { border:2px solid #111 !important; background:#F2B90F !important; color:#111 !important; border-radius:0 !important; }
+
+    /* ── Progress bar segmented (diadopsi dari eksplorasi Google Stitch) ──── */
+    .step-labels {
+      display:flex !important; gap:5px !important; border-bottom:none !important;
+      padding-bottom:0 !important;
+    }
+    .step-label {
+      flex:1 !important; text-align:center !important; padding:9px 2px !important; margin:0 !important;
+      font-family:'Arial Black',Arial,sans-serif !important; font-size:9px !important;
+      letter-spacing:0 !important; text-transform:uppercase !important;
+      border:2px solid #111 !important; background:#fff !important; color:#111 !important;
+      transition:background .2s, border-width .2s;
+    }
+    .step-label.done   { background:#E8532F !important; color:#fff !important; }
+    .step-label.active { background:#F2B90F !important; color:#111 !important; border-width:3px !important; }
+    #step-ind { display:none !important; } /* sliding underline lama, nggak dipakai lagi */
+
+    /* ── Travel-time chip di timeline (diadopsi dari Stitch) ──────────────── */
+    .tl-item[data-type="transport"] { padding:4px 0 10px !important; }
+    .tl-item[data-type="transport"] .tl-dot {
+      width:8px !important; height:8px !important; left:-19.5px !important;
+      background:#fff !important; border:2px solid #111 !important; border-radius:50% !important;
+    }
+    .tl-item[data-type="transport"] .tl-name,
+    .tl-item[data-type="transport"] .tl-type,
+    .tl-item[data-type="transport"] .tl-desc { display:none !important; }
+    .tl-item[data-type="transport"] .tl-time {
+      display:inline-flex !important; align-items:center !important; gap:5px !important;
+      background:#EDE7DA !important; border:2px solid #111 !important; box-shadow:2px 2px 0 #111 !important;
+      padding:5px 10px !important; margin:0 !important; font-size:10px !important; font-weight:800 !important;
+      text-transform:uppercase !important; color:#111 !important;
+    }
+    .tl-item[data-type="transport"] .tl-time::before { content:'🚗'; font-size:11px; }
+    .tl-item[data-type="transport"] .tl-tip,
+    .tl-item[data-type="transport"] .tl-cost { font-size:10.5px !important; margin-top:5px !important; }
+
+    /* ── Toast sticker auto-hide (diadopsi dari Stitch) ────────────────────── */
+    .toast-sticker {
+      position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+      z-index:9998; display:flex; align-items:center; gap:9px;
+      background:#F2B90F; border:3px solid #111; box-shadow:4px 4px 0 #111;
+      padding:12px 20px; max-width:86vw; font-family:'Arial Black',Arial,sans-serif;
+      font-size:11.5px; font-weight:900; text-transform:uppercase; color:#111;
+      transition:opacity .35s ease, transform .35s ease;
+    }
+    .toast-sticker.hide { opacity:0; transform:translateX(-50%) translateY(16px); }
   </style>
 
 </head>
@@ -1939,6 +1985,19 @@ const esc = s => String(s)
 </script>
 <script>
 // ─── PROGRESS & NAV ──────────────────────────────────────────────────────────
+// Toast sticker auto-hide (diadopsi dari eksplorasi Google Stitch).
+// Pemakaian: showToast('Urutan berhasil disimpan')
+function showToast(message, duration = 2600) {
+  const el = document.createElement('div');
+  el.className = 'toast-sticker';
+  el.innerHTML = `<span>✅</span><span>${message}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('hide');
+    setTimeout(() => el.remove(), 350);
+  }, duration);
+}
+
 function updateProgress() {
   const pct = S.step<=0 ? 0 : (S.step >= 5 ? 100 : (S.step / 5) * 100);
   document.getElementById('progress-fill').style.width = pct + '%';
@@ -2641,7 +2700,7 @@ function renderStep3() {
   const acts = (day?.activities||[]).map(act => {
     const typeLabel = ACT_TYPE_LABEL[act.type] || 'Aktivitas';
     return `
-      <div class="tl-item">
+      <div class="tl-item" data-type="${act.type}">
         <span class="tl-dot"></span>
         <div class="tl-time">${esc(act.time||'')}${act.duration?' · '+esc(act.duration):''}</div>
         <div class="tl-name">${esc(act.name)}</div>
