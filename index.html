@@ -5202,6 +5202,9 @@ function buildNotes(spots) {
 </script>
 <script>
 // ─── PLANNING BOARD ──────────────────────────────────────────────────────────
+// ─── Saran Otomatis: route-first (nearest-neighbor chain) + brute-force
+//     intra-day ordering. Kasus khusus (Ijen, Sukamade) tetap jadi hard
+//     constraint yang jalan duluan sebelum sisanya dirantai pakai jarak asli.
 function initPlanDays() {
   const [totalDays]=parseDurasi(S.durasi);
   const selected=DESTINATIONS.filter(d=>S.destinations.has(d.id));
@@ -5211,38 +5214,91 @@ function initPlanDays() {
   S.planDays=Array.from({length:actDays},()=>[]);
   S.planBacklog=[];
   S.planArrivalExtras=[];
-  const byZone={};
-  selected.forEach(d=>{const z=DEST_EXT[d.id]?.zone||d.zone||'kota';if(!byZone[z])byZone[z]=[];byZone[z].push(d.id);});
-  // byZone.barat berisi array of ID (string). Cari ID asli Ijen dari DESTINATIONS via isIjen flag.
-  const ijenRealId = (DESTINATIONS.find(d=>d.isIjen)||{}).id;
-  if(byZone.barat){
-    byZone.barat.sort((a,b)=>{
-      const aIjen=(a===ijenRealId)?-1:0, bIjen=(b===ijenRealId)?-1:0;
-      return aIjen-bIjen;
-    });
-  }
-  if(byZone.selatan){byZone.selatan.sort((a,b)=>(a==='sukamade'?1:0)-(b==='sukamade'?1:0));}
+
+  // 1. Destinasi yang WAJIB hari sendiri, apapun hasil clustering jarak.
+  const ijenSel = selected.find(d=>d.isIjen);
+  const soloIds = [ijenSel?.id, selected.some(d=>d.id==='sukamade')?'sukamade':null].filter(Boolean);
+  const regular = selected.filter(d=>!soloIds.includes(d.id));
+
   let di=0;
-  ['barat','utara','selatan','kota'].forEach(zone=>{
-    if(!byZone[zone]||di>=actDays) return;
-    const spots=byZone[zone];
-    if(zone==='barat'&&ijenRealId&&spots.includes(ijenRealId)){
-      // Ijen SELALU hari tersendiri — tidak pernah digabung destinasi lain di planning board
-      const ig=[ijenRealId];
-      if(di<actDays) S.planDays[di++]=ig;
-      const rem=spots.filter(s=>s!==ijenRealId);
-      if(rem.length>0&&di<actDays) S.planDays[di++]=rem;
-      return;
-    }
-    if(spots.includes('sukamade')){
-      const others=spots.filter(s=>s!=='sukamade');
-      for(let i=0;i<others.length;i+=spotsPerDay) if(di<actDays) S.planDays[di++]=others.slice(i,i+spotsPerDay);
-      if(di<actDays) S.planDays[di++]=['sukamade'];
-      return;
-    }
-    for(let i=0;i<spots.length;i+=spotsPerDay) if(di<actDays) S.planDays[di++]=spots.slice(i,i+spotsPerDay);
+  soloIds.forEach(id=>{ if(di<actDays) S.planDays[di++]=[id]; });
+
+  // 2. Rantai sisanya pakai nearest-neighbor berdasarkan jarak asli (bukan
+  //    label zona) — biar destinasi yang searah geografis nggak kepisah
+  //    cuma gara-gara beda label, dan yang jauh nggak numpuk kepaksa gabung.
+  const chain = nearestNeighborChain(regular);
+
+  // 3. Potong rantai jadi kelompok per hari. Berhenti kalau kapasitas hari
+  //    penuh (spotsPerDay) ATAU kalau lompatan ke destinasi berikutnya udah
+  //    kejauhan (>MAX_GAP_KM) — biar destinasi yang jauh banget (kayak
+  //    Baluran vs klaster selatan, ~75-90km) nggak kepaksa gabung cuma
+  //    gara-gara kapasitas hari itu belum penuh.
+  const MAX_GAP_KM = 45;
+  let curDay=[];
+  const flushDay=()=>{ if(curDay.length && di<actDays){ S.planDays[di++]=optimalOrder(curDay).map(x=>x.id); } curDay=[]; };
+  chain.forEach(d=>{
+    if (curDay.length===0) { curDay.push(d); return; }
+    const prev=getDestCoords(curDay[curDay.length-1]), cur=getDestCoords(d);
+    const gap = (prev&&cur) ? haversineKm(prev.lat,prev.lng,cur.lat,cur.lng) : 0;
+    if (curDay.length>=spotsPerDay || gap>MAX_GAP_KM) { flushDay(); curDay.push(d); }
+    else curDay.push(d);
   });
-  S.planBacklog=selected.map(d=>d.id).filter(id=>!S.planDays.flat().includes(id));
+  flushDay();
+
+  const placedIds = new Set(S.planDays.flat());
+  S.planBacklog = selected.map(d=>d.id).filter(id=>!placedIds.has(id));
+}
+
+// Rantai nearest-neighbor: mulai dari destinasi pertama di daftar, lalu tiap
+// langkah lompat ke destinasi belum-dikunjungi yang jaraknya paling dekat.
+// Destinasi tanpa koordinat lengkap ditaruh di ujung rantai (fallback aman).
+function nearestNeighborChain(dests) {
+  const withCoord = dests.filter(d=>getDestCoords(d));
+  const noCoord   = dests.filter(d=>!getDestCoords(d));
+  if (withCoord.length===0) return [...noCoord];
+  const remaining = [...withCoord];
+  const chain = [remaining.shift()];
+  while (remaining.length) {
+    const last = getDestCoords(chain[chain.length-1]);
+    let bestIdx=0, bestDist=Infinity;
+    remaining.forEach((d,i)=>{
+      const c=getDestCoords(d);
+      const dist=haversineKm(last.lat,last.lng,c.lat,c.lng);
+      if (dist<bestDist) { bestDist=dist; bestIdx=i; }
+    });
+    chain.push(remaining.splice(bestIdx,1)[0]);
+  }
+  return [...chain, ...noCoord];
+}
+
+// Cari urutan kunjungan paling pendek dalam satu hari. Isi per hari cuma
+// 2-3 destinasi jadi brute-force (coba semua kemungkinan urutan) murah
+// secara komputasi dan hasilnya dijamin optimal, bukan cuma heuristik.
+function optimalOrder(group) {
+  if (group.length<=1 || group.length>6) return group; // >6 harusnya nggak pernah kejadian
+  let best=group, bestDist=totalRouteDist(group);
+  permuteDest(group).forEach(order=>{
+    const d=totalRouteDist(order);
+    if (d<bestDist) { bestDist=d; best=order; }
+  });
+  return best;
+}
+function totalRouteDist(order) {
+  let sum=0;
+  for (let i=0;i<order.length-1;i++) {
+    const a=getDestCoords(order[i]), b=getDestCoords(order[i+1]);
+    if (a&&b) sum+=haversineKm(a.lat,a.lng,b.lat,b.lng);
+  }
+  return sum;
+}
+function permuteDest(arr) {
+  if (arr.length<=1) return [arr];
+  const result=[];
+  arr.forEach((item,i)=>{
+    const rest=[...arr.slice(0,i), ...arr.slice(i+1)];
+    permuteDest(rest).forEach(p=>result.push([item, ...p]));
+  });
+  return result;
 }
 
 function readPlanFromDOM() {
