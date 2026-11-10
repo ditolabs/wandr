@@ -2754,7 +2754,26 @@ function renderStep3() {
 function buildPrintPage(it) {
   const totalDays = it.days?.length || 1;
   const dests     = Array.from(S.destinations).map(id=>DESTINATIONS.find(d=>d.id===id)?.name).filter(Boolean);
-  const transport = {motor:'Motor Pribadi',mobil:'Mobil Pribadi',umum:'Kendaraan Umum'}[S.transport]||S.transport||'-';
+  
+  // Format Kota Asal
+  const kotaAsalStr = S.kotaAsal ? (S.kotaAsal === 'Lainnya' ? (S.kotaAsalCustom || 'Kota Lain') : S.kotaAsal) : 'Belum ditentukan';
+
+  // Format Transportasi Lengkap
+  let transportStr = '-';
+  if (S.transport === 'pribadi_mobil' || S.transport === 'mobil') {
+    transportStr = 'Mobil Pribadi';
+  } else if (S.transport === 'pribadi_motor' || S.transport === 'motor') {
+    transportStr = 'Motor Pribadi';
+  } else if (S.transport === 'umum') {
+    const subMap = { kereta: 'Kereta Api 🚂', pesawat: 'Pesawat ✈️', bus: 'Bus Antarkota 🚌' };
+    transportStr = subMap[S.subTransport] ? `Umum (${subMap[S.subTransport]})` : 'Kendaraan Umum';
+    if (S.jadwalTiba) {
+      transportStr += ` · Tiba ${S.jadwalTiba}`;
+    }
+  } else {
+    transportStr = S.transport || '-';
+  }
+
   const budget    = it.estimatedBudget;
   const budStr    = budget ? `Rp${(budget.min/1e6).toFixed(1)}jt – Rp${(budget.max/1e6).toFixed(1)}jt` : '-';
   const today     = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
@@ -3194,21 +3213,25 @@ function buildPrintPage(it) {
   </div>
 
   <!-- INFO BOX -->
-  <div class="info-box">
+  <div class="info-box" style="grid-template-columns: repeat(auto-fit, minmax(20%, 1fr));">
     <div class="info-item">
-      <div class="info-label">Destinasi</div>
-      <div class="info-val">${esc(dests.slice(0,2).join(', '))}${dests.length>2?' +'+( dests.length-2)+' lainnya':''}</div>
+      <div class="info-label">Kota Asal</div>
+      <div class="info-val">${esc(kotaAsalStr)}</div>
+    </div>
+    <div class="info-item">
+      <div class="info-label">Transportasi</div>
+      <div class="info-val">${esc(transportStr)}</div>
     </div>
     <div class="info-item">
       <div class="info-label">Penginapan</div>
       <div class="info-val">${esc(hotelName)}</div>
     </div>
     <div class="info-item">
-      <div class="info-label">Transport</div>
-      <div class="info-val">${esc(transport)}</div>
+      <div class="info-label">Destinasi Pilihan</div>
+      <div class="info-val">${esc(dests.slice(0,2).join(', '))}${dests.length>2?' +'+(dests.length-2)+' lainnya':''}</div>
     </div>
     <div class="info-item">
-      <div class="info-label">Dibuat</div>
+      <div class="info-label">Tanggal Dibuat</div>
       <div class="info-val red">${today}</div>
     </div>
   </div>
