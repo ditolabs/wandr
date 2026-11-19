@@ -3,23 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro RPG Itinerary x Harvest Moon | Banyuwangi Quest</title>
+  <title>Retro RPG Itinerary x Harvest Moon | Wandr Banyuwangi 3H2M</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --gb-wood: #402c1b;
-      --gb-border: #63462d;
-      --gb-screen-bg: #8ba342;
-      --gb-screen-dark: #1e3f20;
-      --gb-screen-light: #9bbc0f;
-      --gb-text: #0f380f;
+      --gb-wood: #3a2617;
+      --gb-border: #5a3c25;
+      --gb-screen-bg: #4f7a2d;
       --font-pixel: 'Press Start 2P', monospace;
+      --gold: #f6c85f;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; image-rendering: pixelated; }
     body {
-      background-color: #171513;
+      background-color: #151311;
       color: #fff;
       font-family: 'Plus Jakarta Sans', sans-serif;
       min-height: 100vh;
@@ -29,20 +27,20 @@
     }
     .rpg-device {
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
       background: var(--gb-wood);
       border: 4px solid var(--gb-border);
       border-radius: 20px;
       padding: 16px 12px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.85);
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    /* ─── 1. HARVEST MOON TOP HUD (JAM, MUSIM, CUACA, STAMINA) ─── */
+    /* ─── 1. TOP HUD (HARVEST MOON CLOCK, DAY, WEATHER, HEARTS) ─── */
     .hm-hud {
-      background: #25190f;
+      background: #20140b;
       border: 2px solid var(--gb-border);
       border-radius: 8px;
       padding: 8px 10px;
@@ -50,9 +48,9 @@
       justify-content: space-between;
       align-items: center;
       font-family: var(--font-pixel);
-      color: #f7d070;
+      color: var(--gold);
       font-size: 8px;
-      box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
     }
     .hud-left {
       display: flex;
@@ -77,7 +75,7 @@
       letter-spacing: 2px;
     }
 
-    /* ─── 2. RETRO PIXEL OVERWORLD MAP SCREEN ─── */
+    /* ─── 2. RETRO OVERWORLD MAP (9 CHECKPOINTS IN ORDER) ─── */
     .screen-bezel {
       background: #111;
       border: 3px solid #222;
@@ -86,11 +84,11 @@
       box-shadow: inset 0 0 12px rgba(0,0,0,0.8);
     }
     .pixel-map-canvas {
-      height: 230px;
-      background-color: #5c8a38;
+      height: 320px;
+      background-color: var(--gb-screen-bg);
       background-image: 
-        radial-gradient(#4d752e 15%, transparent 16%),
-        radial-gradient(#4d752e 15%, transparent 16%);
+        radial-gradient(#3d6122 15%, transparent 16%),
+        radial-gradient(#3d6122 15%, transparent 16%);
       background-size: 20px 20px;
       background-position: 0 0, 10px 10px;
       border: 3px solid #0f380f;
@@ -99,7 +97,7 @@
       overflow: hidden;
     }
 
-    /* Jalan Lintasan Titik */
+    /* Path SVG */
     .overworld-path {
       position: absolute;
       top: 0;
@@ -109,7 +107,7 @@
       pointer-events: none;
     }
 
-    /* Destinasi Map Tiles */
+    /* 9 Map Tiles */
     .map-tile {
       position: absolute;
       display: flex;
@@ -118,53 +116,54 @@
       cursor: pointer;
       user-select: none;
       transition: transform 0.2s;
+      z-index: 5;
     }
     .map-tile:hover {
-      transform: scale(1.15);
+      transform: scale(1.18);
+    }
+    .map-tile.active .tile-tag {
+      background: var(--gold);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 0 8px rgba(246, 200, 95, 0.8);
     }
     .tile-icon {
-      font-size: 24px;
+      font-size: 20px;
       filter: drop-shadow(2px 2px 0 #000);
     }
     .tile-tag {
       font-family: var(--font-pixel);
-      font-size: 7px;
+      font-size: 6.5px;
       background: rgba(0,0,0,0.85);
-      border: 1px solid #f7d070;
-      color: #f7d070;
-      padding: 2px 4px;
-      border-radius: 4px;
-      margin-top: 2px;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 1.5px 3.5px;
+      border-radius: 3px;
+      margin-top: 1px;
       white-space: nowrap;
     }
 
-    /* Koordinat Titik Lokasi */
-    .tile-stasiun  { bottom: 15px; left: 20px; }
-    .tile-djawatan { bottom: 85px; left: 80px; }
-    .tile-tempong  { bottom: 35px; left: 180px; }
-    .tile-ijen     { top: 25px; right: 40px; }
-    .tile-kemiren  { top: 110px; right: 120px; }
-
-    /* Karakter Petualang Wisatawan */
+    /* Hero Avatar Sprite */
     .hero-sprite {
       position: absolute;
       width: 28px;
       height: 28px;
-      background: #f7d070;
+      background: var(--gold);
       border: 2px solid #000;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 16px;
-      z-index: 10;
-      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 12;
+      transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
       box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+      pointer-events: none;
     }
 
     /* ─── 3. HARVEST MOON VILLAGER DIALOGUE & PANDUAN ─── */
     .dialogue-window {
-      background: #f8ecc2;
+      background: #fdf3d0;
       border: 3px solid #2d1a0c;
       border-radius: 8px;
       padding: 10px 12px;
@@ -173,7 +172,7 @@
       gap: 10px;
       align-items: flex-start;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      min-height: 95px;
+      min-height: 98px;
     }
     .speaker-portrait {
       width: 44px;
@@ -193,7 +192,7 @@
     }
     .speaker-name {
       font-family: var(--font-pixel);
-      font-size: 8px;
+      font-size: 7.5px;
       color: #8b371b;
       margin-bottom: 4px;
       text-transform: uppercase;
@@ -206,85 +205,78 @@
 
     /* ─── 4. ALMANAK DESA & FUN FACT ─── */
     .almanac-panel {
-      background: #25190f;
+      background: #20140b;
       border: 2px solid var(--gb-border);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 9px 12px;
       font-size: 11px;
       line-height: 1.5;
       color: #cbd5e1;
     }
     .almanac-title {
       font-family: var(--font-pixel);
-      font-size: 8px;
-      color: #f7d070;
-      margin-bottom: 6px;
+      font-size: 7.5px;
+      color: var(--gold);
+      margin-bottom: 5px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    /* ─── 5. HARVEST MOON TOOLBAR & CONTROLLER ─── */
+    /* ─── 5. ITEM TOOLBAR & STEP CONTROLLER ─── */
     .action-hud {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 6px;
+      padding: 2px 4px;
     }
     .item-backpack {
       display: flex;
       gap: 6px;
     }
     .inv-slot {
-      width: 40px;
-      height: 40px;
-      background: #1e130a;
-      border: 2px solid #55381f;
+      width: 38px;
+      height: 38px;
+      background: #180f07;
+      border: 2px solid #4a301a;
       border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 17px;
       cursor: pointer;
-      position: relative;
       transition: all 0.15s;
     }
     .inv-slot:hover, .inv-slot:active {
-      border-color: #f7d070;
+      border-color: var(--gold);
       transform: translateY(-2px);
     }
-    .inv-slot.active {
-      border-color: #f7d070;
-      box-shadow: 0 0 8px rgba(247, 208, 112, 0.6);
-    }
 
-    .controller-buttons {
+    .step-nav {
       display: flex;
-      gap: 12px;
+      gap: 8px;
     }
-    .retro-btn {
-      width: 44px;
-      height: 44px;
-      background: #991b1b;
+    .nav-btn {
+      padding: 8px 12px;
+      background: #8b1e1e;
       border: 2px solid #222;
-      border-radius: 50%;
+      border-radius: 8px;
       color: #fff;
       font-family: var(--font-pixel);
-      font-size: 11px;
+      font-size: 9px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #4f1111;
       display: flex;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 0 #5f1010;
-      cursor: pointer;
-      user-select: none;
+      gap: 4px;
     }
-    .retro-btn:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #5f1010;
+    .nav-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #4f1111;
     }
-    .retro-btn.btn-b {
+    .nav-btn.next {
       background: #1e3a8a;
-      box-shadow: 0 4px 0 #132457;
+      box-shadow: 0 3px 0 #122252;
     }
   </style>
 </head>
@@ -297,206 +289,315 @@
     <div class="hud-left">
       <div class="hud-date">
         <span id="weather-icon">☀️</span>
-        <span id="date-label">SPRING 14 (HARI 01)</span>
+        <span id="hud-day-label">HARI 01 • PUSAT KOTA</span>
       </div>
-      <div style="color:#94a3b8;font-size:7px;" id="clock-label">15:00 WIB • SORE</div>
+      <div style="color:#94a3b8;font-size:7px;" id="hud-time-label">13:00 WIB • CHECK-IN</div>
     </div>
     <div class="hud-right">
       <div class="stamina-hearts" id="hearts-display">❤❤❤❤❤</div>
-      <div style="color:#f7d070;font-size:7px;">BUJET: Rp150.000</div>
+      <div style="color:var(--gold);font-size:7px;" id="hud-step-counter">RUTE 01 / 09</div>
     </div>
   </div>
 
-  <!-- 2. OVERWORLD MAP SCREEN -->
+  <!-- 2. OVERWORLD MAP SCREEN WITH 01-09 CHRONOLOGICAL PATH -->
   <div class="screen-bezel">
     <div class="pixel-map-canvas" id="map-canvas">
-      <!-- Path SVG Dotted -->
+      
+      <!-- SVG Track connecting 01 to 09 in sequential order -->
       <svg class="overworld-path" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 40 185 L 100 115 L 200 160 L 320 50 L 280 120" fill="none" stroke="rgba(247,208,112,0.4)" stroke-width="3" stroke-dasharray="4,4"/>
+        <path d="
+          M 40 280 
+          L 110 240 
+          L 210 265 
+          L 340 180 
+          L 250 140 
+          L 130 150 
+          L 100 80 
+          L 220 50 
+          L 330 65
+        " fill="none" stroke="rgba(246,200,95,0.45)" stroke-width="3" stroke-dasharray="5,4"/>
       </svg>
 
-      <!-- Titik Lokasi Peta -->
-      <div class="map-tile tile-stasiun" onclick="walkTo(35, 175, 'STASIUN', 'Stasiun Ketapang', 'Titik awal kedatangan kereta wisata. Segar menghirup udara pesisir!')">
+      <!-- HARI 01: PUSAT KOTA & KANOPI ALAM -->
+      <div class="map-tile active" id="tile-1" style="left:20px; top:255px;" onclick="goToStep(1)">
         <div class="tile-icon">🏰</div>
-        <div class="tile-tag">01. STASIUN</div>
+        <div class="tile-tag">01. KOPER</div>
       </div>
 
-      <div class="map-tile tile-djawatan" onclick="walkTo(95, 105, 'DJAWATAN', 'Hutan De Djawatan', 'Kanopi pohon trembesi tua berusia seabad menyapa para petualang!')">
+      <div class="map-tile" id="tile-2" style="left:95px; top:215px;" onclick="goToStep(2)">
         <div class="tile-icon">🌲</div>
         <div class="tile-tag">02. DJAWATAN</div>
       </div>
 
-      <div class="map-tile tile-tempong" onclick="walkTo(195, 150, 'TEMPONG', 'Sego Tempong Mbok Wah', 'Aroma sambal segar dadak menggoda selera makan malam!')">
+      <div class="map-tile" id="tile-3" style="left:190px; top:240px;" onclick="goToStep(3)">
         <div class="tile-icon">🌶️</div>
-        <div class="tile-tag">03. KULINER</div>
+        <div class="tile-tag">03. TEMPONG</div>
       </div>
 
-      <div class="map-tile tile-ijen" onclick="walkTo(320, 40, 'IJEN', 'Puncak Kawah Ijen', 'Dini hari menembus kabut kaldera menuju api biru abadi!')">
+      <!-- HARI 02: KAWAH & KALDERA -->
+      <div class="map-tile" id="tile-4" style="left:315px; top:155px;" onclick="goToStep(4)">
         <div class="tile-icon">🌋</div>
-        <div class="tile-tag">04. KAWAH IJEN</div>
+        <div class="tile-tag">04. IJEN</div>
       </div>
 
-      <div class="map-tile tile-kemiren" onclick="walkTo(270, 115, 'KEMIREN', 'Desa Adat Kemiren', 'Mampir ke desa adat suku Osing, nikmati seduhan kopi hangat!')">
+      <div class="map-tile" id="tile-5" style="left:225px; top:115px;" onclick="goToStep(5)">
+        <div class="tile-icon">🍃</div>
+        <div class="tile-tag">05. WURUNG</div>
+      </div>
+
+      <div class="map-tile" id="tile-6" style="left:110px; top:125px;" onclick="goToStep(6)">
+        <div class="tile-icon">💧</div>
+        <div class="tile-tag">06. JAGIR</div>
+      </div>
+
+      <!-- HARI 03: BEKAL & PULANG -->
+      <div class="map-tile" id="tile-7" style="left:75px; top:55px;" onclick="goToStep(7)">
         <div class="tile-icon">🏡</div>
-        <div class="tile-tag">05. KEMIREN</div>
+        <div class="tile-tag">07. KEMIREN</div>
       </div>
 
-      <!-- Karakter Petualang Wisatawan -->
-      <div class="hero-sprite" id="hero" style="left:35px; top:175px;">🧙‍♂️</div>
+      <div class="map-tile" id="tile-8" style="left:195px; top:25px;" onclick="goToStep(8)">
+        <div class="tile-icon">🛍️</div>
+        <div class="tile-tag">08. BAGIAK</div>
+      </div>
+
+      <div class="map-tile" id="tile-9" style="left:305px; top:40px;" onclick="goToStep(9)">
+        <div class="tile-icon">🚂</div>
+        <div class="tile-tag">09. KERETA</div>
+      </div>
+
+      <!-- Hero Sprite Token -->
+      <div class="hero-sprite" id="hero" style="left:35px; top:260px;">🧙‍♂️</div>
     </div>
   </div>
 
-  <!-- 3. HARVEST MOON VILLAGER DIALOGUE BOX -->
+  <!-- 3. VILLAGER DIALOGUE & PANDUAN WISATA -->
   <div class="dialogue-window">
     <div class="speaker-portrait" id="speaker-avatar">👨‍🌾</div>
     <div class="dialogue-body">
-      <div class="speaker-name" id="speaker-name">KANG OSING (PEMANDU DESA)</div>
+      <div class="speaker-name" id="speaker-name">PEMANDU WISATA</div>
       <div class="dialogue-text" id="dialogue-text">
-        "Selamat datang di Banyuwangi, Wisatawan! Ketuk destinasi di peta untuk jalan ke sana!"
+        "Halo Wisatawan! Aku tunggu di lobi Snooze Hostel ya!"
       </div>
     </div>
   </div>
 
-  <!-- 4. ALMANAK & FUN FACT -->
+  <!-- 4. CATATAN ALMANAK DESA & FUN FACT -->
   <div class="almanac-panel">
     <div class="almanac-title">
       <span>📖</span>
-      <span>CATATAN ALMANAK DESA:</span>
+      <span>ALMANAK & FUN FACT:</span>
     </div>
     <div id="almanac-content">
-      <b>Tahukah Kamu?</b> Pohon trembesi raksasa di De Djawatan dijuluki 'Hutan Lord of the Rings' karena sanggup menyerap 28 ton CO2 per tahun!
+      <b>Tahukah Kamu?</b> Stasiun Ketapang adalah stasiun kereta api paling timur di Pulau Jawa, titik temu jalur darat dan selat Bali.
     </div>
   </div>
 
-  <!-- 5. ITEM TOOLBAR & ACTION BUTTONS -->
+  <!-- 5. RANSEL ITEM & TOMBOL LANGKAH RUTE -->
   <div class="action-hud">
-    <!-- Ransel Item Harvest Moon -->
+    <!-- Item Backpack -->
     <div class="item-backpack">
-      <div class="inv-slot" onclick="useBackpackItem('kopi')" title="Kopi Osing">☕</div>
-      <div class="inv-slot" onclick="useBackpackItem('tempong')" title="Sego Tempong">🌶️</div>
-      <div class="inv-slot" onclick="useBackpackItem('masker')" title="Masker Gas">🎭</div>
-      <div class="inv-slot" onclick="useBackpackItem('kamera')" title="Kamera Wisata">📷</div>
+      <div class="inv-slot" onclick="useItem('kopi')" title="Kopi Osing">☕</div>
+      <div class="inv-slot" onclick="useItem('tempong')" title="Sego Tempong">🌶️</div>
+      <div class="inv-slot" onclick="useItem('masker')" title="Masker Gas">🎭</div>
+      <div class="inv-slot" onclick="useItem('kamera')" title="Kamera Polaroid">📷</div>
     </div>
 
-    <!-- Tombol Action Gameboy A & B -->
-    <div class="controller-buttons">
-      <div class="retro-btn btn-b" onclick="actionB()" title="Ngobrol">B</div>
-      <div class="retro-btn" onclick="actionA()" title="Aksi / Periksa">A</div>
+    <!-- Tombol Prev / Next Langkah -->
+    <div class="step-nav">
+      <button class="nav-btn" onclick="prevStep()">◀ Mundur</button>
+      <button class="nav-btn next" onclick="nextStep()">Lanjut ▶</button>
     </div>
   </div>
 
 </div>
 
 <script>
+// ─── DATA LENGKAP ITINERARY WANDR BANYUWANGI 3H2M (01 - 09 CHRONOLOGICAL) ───
+const ITINERARY = {
+  1: {
+    day: 1,
+    dayLabel: "HARI 01 • PUSAT KOTA",
+    time: "13.00 WIB • CHECK-IN",
+    weather: "☀️",
+    title: "Koper ke Hotel / Stasiun",
+    avatar: "🏨",
+    speaker: "PEMANDU WISATA",
+    dialogue: "\"Selamat datang di Banyuwangi! Aku tunggu di lobi Snooze Hostel ya, simpan koper dulu biar jalan-jalannya santai!\"",
+    funFact: "<b>Tahukah Kamu?</b> Stasiun Ketapang adalah stasiun kereta api paling ujung timur di Pulau Jawa, langsung menghadap Selat Bali.",
+    pos: { x: 35, y: 260 }
+  },
+  2: {
+    day: 1,
+    dayLabel: "HARI 01 • PUSAT KOTA",
+    time: "15.00 WIB • SORE",
+    weather: "⛅",
+    title: "Hutan De Djawatan",
+    avatar: "🌲",
+    speaker: "KANG OSING (PEMANDU LOKAL)",
+    dialogue: "\"Spot foto terbaik ada di lorong tengah sebelum jam 5 sore pas cahaya matahari nembus dahan trembesi ya!\"",
+    funFact: "<b>Tahukah Kamu?</b> Pohon trembesi raksasa berusia seabad di De Djawatan sanggup menyerap hingga 28 ton gas CO2 per pohon setiap tahunnya!",
+    pos: { x: 110, y: 220 }
+  },
+  3: {
+    day: 1,
+    dayLabel: "HARI 01 • PUSAT KOTA",
+    time: "18.30 WIB • MALAM",
+    weather: "🌙",
+    title: "Sego Tempong Mbok Wah",
+    avatar: "👩‍🍳",
+    speaker: "MBOK WAH (KULINER LOKAL)",
+    dialogue: "\"Wah, sambal tempongnya baru diulek dadak pakai tomat ranti dan terasi gandrung! Dijamin bikin melek nagih!\"",
+    funFact: "<b>Tahukah Kamu?</b> Kata 'Tempong' berasal dari bahasa Osing yang berarti 'tampar', karena rasa pedas sambalnya serasa menampar pipi!",
+    pos: { x: 205, y: 245 }
+  },
+  4: {
+    day: 2,
+    dayLabel: "HARI 02 • KAWAH & KALDERA",
+    time: "03.00 WIB • DINI HARI",
+    weather: "🌙",
+    title: "Mendaki Api Biru Ijen",
+    avatar: "⛏️",
+    speaker: "PAK PENAMBANG BELERANG",
+    dialogue: "\"Wajib pasang masker gas respirator sebelum turun ke kawah ya! Asap belerang lagi pekat kalau tertiup angin barat.\"",
+    funFact: "<b>Tahukah Kamu?</b> Fenomena api biru (Blue Fire) alami di Kawah Ijen hanya ada 2 di seluruh dunia, satunya berada di Gunung Dallol, Ethiopia!",
+    pos: { x: 330, y: 160 }
+  },
+  5: {
+    day: 2,
+    dayLabel: "HARI 02 • KAWAH & KALDERA",
+    time: "08.00 WIB • PAGI",
+    weather: "🍃",
+    title: "Padang Sabana Kawah Wurung",
+    avatar: "📸",
+    speaker: "PEMANDU WISATA",
+    dialogue: "\"Spot favorit buat foto sinematik ala padang rumput Selandia Baru! Hawanya sejuk dan perbukitannya melingkar hijau!\"",
+    funFact: "<b>Tahukah Kamu?</b> Nama 'Wurung' dalam bahasa Jawa berarti 'batal / tidak jadi', karena kawah ini tidak memiliki letusan lahar seperti kawah umumnya.",
+    pos: { x: 240, y: 120 }
+  },
+  6: {
+    day: 2,
+    dayLabel: "HARI 02 • KAWAH & KALDERA",
+    time: "11.30 WIB • SIANG",
+    weather: "💧",
+    title: "Segarnya Curug Jagir",
+    avatar: "🌊",
+    speaker: "WISATAWAN",
+    dialogue: "\"Airnya dingin dan segar banget langsung dari sumber mata air alami Kampung Anyar! Puas banget buat cuci muka!\"",
+    funFact: "<b>Tahukah Kamu?</b> Air Terjun Jagir dikenal juga sebagai 'Air Terjun Kembar' karena dialiri oleh tiga mata air alami dari lereng Gunung Ijen.",
+    pos: { x: 125, y: 130 }
+  },
+  7: {
+    day: 3,
+    dayLabel: "HARI 03 • BEKAL & PULANG",
+    time: "08.30 WIB • PAGI",
+    weather: "☕",
+    title: "Ngopi di Desa Kemiren",
+    avatar: "👨‍🌾",
+    speaker: "TETUA ADAT KEMIREN",
+    dialogue: "\"Sarapan kopi dan jajan kucur dulu! Ingat pepatah Osing: Sekali nyeduh kopi bareng, sak lawase dadi sedulur!\"",
+    funFact: "<b>Tahukah Kamu?</b> Warga Desa Kemiren memiliki tradisi jemur kasur berwarna merah dan hitam serentak di sepanjang jalan desa pada bulan Dzulhijjah.",
+    pos: { x: 90, y: 60 }
+  },
+  8: {
+    day: 3,
+    dayLabel: "HARI 03 • BEKAL & PULANG",
+    time: "11.30 WIB • SIANG",
+    weather: "🛍️",
+    title: "Bagiak & Batik Osing",
+    avatar: "🎁",
+    speaker: "PEMANDU WISATA",
+    dialogue: "\"Bagiak rasa pandan, kopi kemasan, sama kain batik motif Gajah Oling jangan sampai lupa dibungkus buat keluarga di rumah!\"",
+    funFact: "<b>Tahukah Kamu?</b> Motif Batik Gajah Oling adalah motif tertua khas Banyuwangi yang melambangkan kebesaran dan ketundukan kepada Sang Pencipta.",
+    pos: { x: 210, y: 30 }
+  },
+  9: {
+    day: 3,
+    dayLabel: "HARI 03 • BEKAL & PULANG",
+    time: "14.00 WIB • SIANG",
+    weather: "🚂",
+    title: "Diantar ke Stasiun",
+    avatar: "👋",
+    speaker: "PEMANDU WISATA",
+    dialogue: "\"Trip Banyuwangi 3H2M tuntas berkesan! Hati-hati di perjalanan pulang keretamu, sampai jumpa di petualangan berikutnya!\"",
+    funFact: "<b>Tahukah Kamu?</b> Kereta api dari Ketapang menghubungkan langsung wisatawan kembali ke Surabaya, Malang, Yogyakarta, hingga Jakarta.",
+    pos: { x: 320, y: 45 }
+  }
+};
+
+let currentStep = 1;
+
 const hero = document.getElementById('hero');
+const hudDayLabel = document.getElementById('hud-day-label');
+const hudTimeLabel = document.getElementById('hud-time-label');
+const hudStepCounter = document.getElementById('hud-step-counter');
+const weatherIcon = document.getElementById('weather-icon');
 const speakerAvatar = document.getElementById('speaker-avatar');
 const speakerName = document.getElementById('speaker-name');
 const dialogueText = document.getElementById('dialogue-text');
 const almanacContent = document.getElementById('almanac-content');
-const weatherIcon = document.getElementById('weather-icon');
-const dateLabel = document.getElementById('date-label');
-const clockLabel = document.getElementById('clock-label');
 const heartsDisplay = document.getElementById('hearts-display');
 
-let currentDestination = 'STASIUN';
+function goToStep(step) {
+  currentStep = step;
+  const d = ITINERARY[step];
 
-const DESTINATIONS = {
-  STASIUN: {
-    avatar: '👨‍✈️',
-    speaker: 'PETUGAS STASIUN KETAPANG',
-    dialogue: '"Tiket kereta terverifikasi! Silakan simpan koper di hotel dan nikmati petualanganmu di ujung timur Jawa!"',
-    funFact: '<b>Tahukah Kamu?</b> Stasiun Banyuwangi Kota & Ketapang adalah jalur rel kereta api paling timur di Pulau Jawa!',
-    weather: '☀️',
-    date: 'SPRING 14 (HARI 01)',
-    clock: '13:00 WIB • SIANG'
-  },
-  DJAWATAN: {
-    avatar: '👨‍🌾',
-    speaker: 'KANG OSING (PEMANDU DESA)',
-    dialogue: '"Cahaya matahari sore yang menembus sela dahan trembesi ini dinamakan Tyndall Effect. Waktu terbaik foto adalah jam 4 sore!"',
-    funFact: '<b>Tahukah Kamu?</b> Kawasan De Djawatan dulunya merupakan tempat penimbunan kayu jati (TPK) pada era kolonial Belanda sejak 1911.',
-    weather: '⛅',
-    date: 'SPRING 14 (HARI 01)',
-    clock: '16:00 WIB • SORE'
-  },
-  TEMPONG: {
-    avatar: '👩‍🍳',
-    speaker: 'MBOK WAH (KULINER LOKAL)',
-    dialogue: '"Monggo dicicipi Sego Tempong-e! Sambalnya baru diulek dadak pakai terasi gandrung dan ranti asli!"',
-    funFact: '<b>Tahukah Kamu?</b> Nama "Tempong" berasal dari bahasa Osing yang berarti "tampar", karena rasa pedas sambalnya serasa menampar pipi!',
-    weather: '🌙',
-    date: 'SPRING 14 (HARI 01)',
-    clock: '19:30 WIB • MALAM'
-  },
-  IJEN: {
-    avatar: '⛏️',
-    speaker: 'PAK PENAMBANG BELERANG',
-    dialogue: '"Pakai masker gas respirator ya! Jangan dekati dasar kawah saat asap tebal mengarah ke barat. Tetap di jalur aman!"',
-    funFact: '<b>Tahukah Kamu?</b> Fenomena Blue Fire Kawah Ijen hanya ada 2 di dunia (Banyuwangi & Dallol Ethiopia), bersuhu hingga 360°C!',
-    weather: '🌙',
-    date: 'SPRING 15 (HARI 02)',
-    clock: '03:15 WIB • DINI HARI'
-  },
-  KEMIREN: {
-    avatar: '👵',
-    speaker: 'MAK EROT (TETUA ADAT KEMIREN)',
-    dialogue: '"Mampir ngopi disik le! Ada pepatah: Sekali nyeduh kopi bareng, sak lawase dadi sedulur (selamanya jadi saudara)!"',
-    funFact: '<b>Tahukah Kamu?</b> Warga Kemiren punya tradisi jemur kasur berwarna merah-hitam serentak di jalan desa pada bulan Dzulhijjah untuk tolak bala.',
-    weather: '☀️',
-    date: 'SPRING 16 (HARI 03)',
-    clock: '09:00 WIB • PAGI'
-  }
-};
+  // Move Hero Token
+  hero.style.left = d.pos.x + 'px';
+  hero.style.top = d.pos.y + 'px';
 
-function walkTo(x, y, key, name, intro) {
-  currentDestination = key;
-  hero.style.left = x + 'px';
-  hero.style.top = y + 'px';
+  // Highlight Active Tile
+  document.querySelectorAll('.map-tile').forEach((t, idx) => {
+    t.classList.toggle('active', (idx + 1) === step);
+  });
 
-  const data = DESTINATIONS[key];
-  speakerAvatar.textContent = data.avatar;
-  speakerName.textContent = data.speaker;
-  dialogueText.textContent = data.dialogue;
-  almanacContent.innerHTML = data.funFact;
-  weatherIcon.textContent = data.weather;
-  dateLabel.textContent = data.date;
-  clockLabel.textContent = data.clock;
+  // Update HUD
+  hudDayLabel.textContent = d.dayLabel;
+  hudTimeLabel.textContent = d.time;
+  hudStepCounter.textContent = `RUTE 0${step} / 09`;
+  weatherIcon.textContent = d.weather;
+
+  // Update Dialogue & Villager
+  speakerAvatar.textContent = d.avatar;
+  speakerName.textContent = d.speaker;
+  dialogueText.textContent = d.dialogue;
+
+  // Update Almanac Fun Fact
+  almanacContent.innerHTML = d.funFact;
 }
 
-function useBackpackItem(type) {
+function nextStep() {
+  let next = currentStep + 1;
+  if (next > 9) next = 1;
+  goToStep(next);
+}
+
+function prevStep() {
+  let prev = currentStep - 1;
+  if (prev < 1) prev = 9;
+  goToStep(prev);
+}
+
+function useItem(type) {
   if (type === 'kopi') {
     speakerAvatar.textContent = '☕';
     speakerName.textContent = '[ ITEM DIGUNAKAN ]';
-    dialogueText.textContent = 'Wisatawan meminum Kopi Osing panas! Hawa dingin sirna, stamina pulih maksimal! ✨';
+    dialogueText.textContent = 'Menyeruput Kopi Osing hangat! Stamina pulih penuh dan siap lanjut ke rute berikutnya! ✨';
     heartsDisplay.textContent = '❤❤❤❤❤';
   } else if (type === 'tempong') {
     speakerAvatar.textContent = '🌶️';
     speakerName.textContent = '[ ITEM DIGUNAKAN ]';
-    dialogueText.textContent = 'Makan Sego Tempong pedas! Rasa pedas menghentak, semangat petualangan naik 200%! 🔥';
+    dialogueText.textContent = 'Makan Sego Tempong pedas! Mata langsung segar dan semangat petualangan membara! 🔥';
     heartsDisplay.textContent = '❤❤❤❤❤';
   } else if (type === 'masker') {
     speakerAvatar.textContent = '🎭';
     speakerName.textContent = '[ PERLENGKAPAN ]';
-    dialogueText.textContent = 'Masker Gas Respirator terpasang rapat. Asap belerang tersaring sempurna, siap mendaki Ijen! 👌';
+    dialogueText.textContent = 'Masker Gas Respirator siap terpasang! Aman dari gas belerang untuk pendakian Kawah Ijen! 👌';
   } else if (type === 'kamera') {
     speakerAvatar.textContent = '📸';
-    speakerName.textContent = '[ POTO MOMEN ]';
-    dialogueText.textContent = '*CEKREK!* Pemandangan indah berhasil disimpan ke album petualangan Wisatawan! 🎞️';
+    speakerName.textContent = '[ CEKREK! ]';
+    dialogueText.textContent = 'Foto pemandangan rute 0' + currentStep + ' berhasil diabadikan ke album petualangan! 🎞️';
   }
-}
-
-function actionA() {
-  const data = DESTINATIONS[currentDestination];
-  speakerAvatar.textContent = '🔍';
-  speakerName.textContent = '[ PEMERIKSAAN AREA ]';
-  dialogueText.textContent = 'Memeriksa ' + currentDestination + ': ' + data.funFact.replace(/<[^>]+>/g, '');
-}
-
-function actionB() {
-  const data = DESTINATIONS[currentDestination];
-  speakerAvatar.textContent = data.avatar;
-  speakerName.textContent = data.speaker;
-  dialogueText.textContent = data.dialogue;
 }
 </script>
 
