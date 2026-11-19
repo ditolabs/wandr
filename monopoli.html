@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PAPAN WISATA | Banyuwangi — Tur Pribadi Masdit</title>
-  <meta name="description" content="Itinerary 3H2M Banyuwangi dalam format visual Gameboard Monopoli retro vintage.">
+  <meta name="description" content="Itinerary 3H2M Banyuwangi dalam format visual Gameboard Monopoli kronologis persis seperti video referensi.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
@@ -19,13 +19,14 @@
       --border-dark: #24211e;
       --border-thick: 2px solid #24211e;
       
-      /* Calibrated Vintage Board Accents */
+      /* Calibrated Retro Palette matching Video */
       --retro-red: #c84b31;
       --retro-teal: #226b5e;
       --retro-gold: #d49b35;
       --retro-navy: #2d4059;
       --retro-soft-blue: #cadbd7;
       --retro-soft-peach: #f5dfd5;
+      --retro-soft-sand: #e8dcc4;
       
       --font-serif: 'DM Serif Display', Georgia, serif;
       --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
@@ -42,7 +43,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px 14px;
+      padding: 18px 12px;
       background-image: radial-gradient(#dfd4be 1px, transparent 1px);
       background-size: 20px 20px;
     }
@@ -53,10 +54,10 @@
       background: var(--bg-canvas);
       border: 3px solid var(--border-dark);
       border-radius: 8px;
-      padding: 24px 28px;
+      padding: 22px 26px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
       box-shadow: 0 16px 36px rgba(43, 38, 33, 0.15);
     }
 
@@ -65,7 +66,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 16px;
+      padding-bottom: 14px;
       border-bottom: 2px solid var(--border-dark);
     }
     .top-left {
@@ -88,14 +89,14 @@
     }
     .top-title {
       font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 13.5px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       font-weight: 700;
     }
     .top-title-sub {
       font-family: var(--font-serif);
-      font-size: 19px;
+      font-size: 18px;
       font-style: italic;
       color: var(--retro-teal);
       margin-left: 6px;
@@ -116,7 +117,7 @@
     .main-grid {
       display: grid;
       grid-template-columns: 1.15fr 1fr;
-      gap: 28px;
+      gap: 26px;
       align-items: start;
     }
 
@@ -125,7 +126,7 @@
         grid-template-columns: 1fr;
       }
       #game-layout {
-        padding: 16px;
+        padding: 16px 14px;
       }
     }
 
@@ -133,7 +134,7 @@
     .dest-column {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
     .dest-header-tag {
       font-family: var(--font-mono);
@@ -148,7 +149,7 @@
     .dest-image-frame {
       position: relative;
       width: 100%;
-      height: 280px;
+      height: 275px;
       border: var(--border-thick);
       border-radius: 6px;
       overflow: hidden;
@@ -160,13 +161,13 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.25s ease;
     }
     .dest-badge-tag {
       position: absolute;
       top: 14px;
       left: 14px;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       border: 1.5px solid var(--border-dark);
       padding: 4px 10px;
       border-radius: 20px;
@@ -208,20 +209,20 @@
       font-size: 32px;
       line-height: 1.15;
       color: var(--ink-main);
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .dest-desc {
       font-size: 14px;
       line-height: 1.6;
       color: var(--ink-muted);
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     /* ─── RIGHT COLUMN: PAPAN MONOPOLI ──────────────────────────────────── */
     .board-column {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
     .board-header-tag {
       font-family: var(--font-mono);
@@ -232,7 +233,7 @@
       color: var(--ink-muted);
     }
 
-    /* Grid Papan Monopoli Persegi */
+    /* Grid Papan Monopoli Persegi (5x5) */
     .monopoly-board {
       width: 100%;
       aspect-ratio: 1 / 1;
@@ -266,7 +267,7 @@
     }
     .tile-header-bar {
       width: 100%;
-      height: 10px;
+      height: 9px;
       border-bottom: 1px solid var(--border-dark);
     }
     .tile-num {
@@ -290,7 +291,7 @@
     }
     .tile-chance {
       font-family: var(--font-serif);
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
       color: #fff;
       background: var(--retro-red);
@@ -314,7 +315,7 @@
     }
     .tile-start-arrow {
       color: var(--retro-teal);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 800;
     }
     .tile-start-text {
@@ -374,7 +375,7 @@
       position: relative;
     }
     .board-center.day-2 { background: var(--retro-soft-blue); }
-    .board-center.day-3 { background: #e8dcc4; }
+    .board-center.day-3 { background: var(--retro-soft-sand); }
 
     .center-day-tag {
       font-family: var(--font-mono);
@@ -465,7 +466,7 @@
       display: flex;
       align-items: center;
       gap: 24px;
-      padding-top: 18px;
+      padding-top: 16px;
       border-top: 2px solid var(--border-dark);
       flex-wrap: wrap;
     }
@@ -555,7 +556,7 @@
       <!-- Frame Gambar -->
       <div class="dest-image-frame">
         <span class="dest-badge-tag" id="dest-code-tag">BWI / 01</span>
-        <img id="dest-img" src="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=900&q=80" alt="Destinasi Wisata Banyuwangi">
+        <img id="dest-img" src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80" alt="Destinasi Wisata Banyuwangi">
       </div>
 
       <!-- Tag Meta Jam & Kategori -->
@@ -571,90 +572,99 @@
       </p>
     </div>
 
-    <!-- Right Column: Papan Perjalanan Monopoli -->
+    <!-- Right Column: Papan Perjalanan Monopoli Kronologis -->
     <div class="board-column">
       <div class="board-header-tag">PAPAN PERJALANAN</div>
 
       <div class="monopoly-board" id="monopoly-board">
-        <!-- Perimeter Tiles: 16 petak mengitari papan -->
-        <!-- Row 1 (Top) -->
-        <div class="tile" data-slot="0" style="grid-column: 1; grid-row: 1;">
-          <div class="tile-chance">+</div>
-        </div>
-        <div class="tile" data-slot="1" style="grid-column: 2; grid-row: 1;">
-          <div class="tile-header-bar" style="background:var(--retro-red);"></div>
-          <div class="tile-num">03</div>
-          <div class="tile-name">MBOK WAH</div>
-        </div>
-        <div class="tile" data-slot="2" style="grid-column: 3; grid-row: 1;">
-          <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
-          <div class="tile-num">04</div>
-          <div class="tile-name">SNOOZE</div>
-        </div>
-        <div class="tile" data-slot="3" style="grid-column: 4; grid-row: 1;">
-          <div class="tile-chance teal">⚂</div>
-        </div>
-        <div class="tile" data-slot="4" style="grid-column: 5; grid-row: 1;">
-          <div class="tile-header-bar" style="background:var(--retro-navy);"></div>
-          <div class="tile-num">05</div>
-          <div class="tile-name">GWD</div>
-        </div>
+        <!-- ─── PERIMETER TILES (CLOCKWISE DARI MULAI) ─── -->
 
-        <!-- Col 5 (Right) -->
-        <div class="tile" data-slot="5" style="grid-column: 5; grid-row: 2;">
-          <div class="tile-chance">+</div>
-        </div>
-        <div class="tile" data-slot="6" style="grid-column: 5; grid-row: 3;">
-          <div class="tile-header-bar" style="background:var(--retro-gold);"></div>
-          <div class="tile-num">06</div>
-          <div class="tile-name">IJEN</div>
-        </div>
-        <div class="tile" data-slot="7" style="grid-column: 5; grid-row: 4;">
-          <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
-          <div class="tile-num">07</div>
-          <div class="tile-name">WURUNG</div>
-        </div>
-
-        <!-- Row 5 (Bottom) -->
-        <div class="tile" data-slot="8" style="grid-column: 5; grid-row: 5;">
-          <div class="tile-chance">+</div>
-        </div>
-        <div class="tile" data-slot="9" style="grid-column: 4; grid-row: 5;">
-          <div class="tile-header-bar" style="background:var(--retro-navy);"></div>
-          <div class="tile-num">08</div>
-          <div class="tile-name">JAGIR</div>
-        </div>
-        <div class="tile" data-slot="10" style="grid-column: 3; grid-row: 5;">
-          <div class="tile-chance teal">+</div>
-        </div>
-        <div class="tile" data-slot="11" style="grid-column: 2; grid-row: 5;">
-          <div class="tile-header-bar" style="background:var(--retro-red);"></div>
-          <div class="tile-num">09</div>
-          <div class="tile-name">KEMIREN</div>
-        </div>
-        <div class="tile" data-slot="12" style="grid-column: 1; grid-row: 5;">
+        <!-- 1. Bottom-Left Corner: MULAI -->
+        <div class="tile" data-dest-id="0" style="grid-column: 1; grid-row: 5;">
           <div class="tile-start-box">
             <div class="tile-start-arrow">▲</div>
             <div class="tile-start-text">MULAI</div>
           </div>
         </div>
 
-        <!-- Col 1 (Left) -->
-        <div class="tile" data-slot="13" style="grid-column: 1; grid-row: 4;">
-          <div class="tile-header-bar" style="background:var(--retro-gold);"></div>
+        <!-- 2. Going UP along Left Edge (HARI 01) -->
+        <div class="tile" data-dest-id="1" style="grid-column: 1; grid-row: 4;">
+          <div class="tile-header-bar" style="background:var(--retro-red);"></div>
           <div class="tile-num">01</div>
-          <div class="tile-name">STASIUN</div>
+          <div class="tile-name">KOPER</div>
         </div>
-        <div class="tile" data-slot="14" style="grid-column: 1; grid-row: 3;">
+        <div class="tile" style="grid-column: 1; grid-row: 3;">
           <div class="tile-chance">+</div>
         </div>
-        <div class="tile" data-slot="15" style="grid-column: 1; grid-row: 2;">
+        <div class="tile" data-dest-id="2" style="grid-column: 1; grid-row: 2;">
           <div class="tile-header-bar" style="background:var(--retro-red);"></div>
           <div class="tile-num">02</div>
           <div class="tile-name">DJAWATAN</div>
         </div>
 
-        <!-- Board Center Box -->
+        <!-- 3. Top-Left Corner -->
+        <div class="tile" style="grid-column: 1; grid-row: 1;">
+          <div class="tile-chance">+</div>
+        </div>
+
+        <!-- 4. Going RIGHT along Top Edge (HARI 01 & HARI 02) -->
+        <div class="tile" data-dest-id="3" style="grid-column: 2; grid-row: 1;">
+          <div class="tile-header-bar" style="background:var(--retro-red);"></div>
+          <div class="tile-num">03</div>
+          <div class="tile-name">TEMPONG</div>
+        </div>
+        <div class="tile" data-dest-id="4" style="grid-column: 3; grid-row: 1;">
+          <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
+          <div class="tile-num">04</div>
+          <div class="tile-name">IJEN</div>
+        </div>
+        <div class="tile" style="grid-column: 4; grid-row: 1;">
+          <div class="tile-chance teal">⚂</div>
+        </div>
+
+        <!-- 5. Top-Right Corner: 05 WURUNG -->
+        <div class="tile" data-dest-id="5" style="grid-column: 5; grid-row: 1;">
+          <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
+          <div class="tile-num">05</div>
+          <div class="tile-name">WURUNG</div>
+        </div>
+
+        <!-- 6. Going DOWN along Right Edge (HARI 02 & HARI 03) -->
+        <div class="tile" style="grid-column: 5; grid-row: 2;">
+          <div class="tile-chance teal">⚁</div>
+        </div>
+        <div class="tile" data-dest-id="6" style="grid-column: 5; grid-row: 3;">
+          <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
+          <div class="tile-num">06</div>
+          <div class="tile-name">JAGIR</div>
+        </div>
+        <div class="tile" data-dest-id="7" style="grid-column: 5; grid-row: 4;">
+          <div class="tile-header-bar" style="background:var(--retro-gold);"></div>
+          <div class="tile-num">07</div>
+          <div class="tile-name">KEMIREN</div>
+        </div>
+
+        <!-- 7. Bottom-Right Corner -->
+        <div class="tile" style="grid-column: 5; grid-row: 5;">
+          <div class="tile-chance">+</div>
+        </div>
+
+        <!-- 8. Going LEFT along Bottom Edge (HARI 03) -->
+        <div class="tile" data-dest-id="8" style="grid-column: 4; grid-row: 5;">
+          <div class="tile-header-bar" style="background:var(--retro-gold);"></div>
+          <div class="tile-num">08</div>
+          <div class="tile-name">BAKPIAK</div>
+        </div>
+        <div class="tile" style="grid-column: 3; grid-row: 5;">
+          <div class="tile-chance">+</div>
+        </div>
+        <div class="tile" data-dest-id="9" style="grid-column: 2; grid-row: 5;">
+          <div class="tile-header-bar" style="background:var(--retro-navy);"></div>
+          <div class="tile-num">09</div>
+          <div class="tile-name">KERETA</div>
+        </div>
+
+        <!-- ─── BOARD CENTER (STAGE & DICE) ─── -->
         <div class="board-center" id="board-center-box">
           <span class="center-day-tag" id="center-day-tag">HARI 01</span>
           <h2 class="center-theme-title" id="center-theme-title">Pusat</h2>
@@ -664,7 +674,7 @@
           <span class="center-turn-label" id="center-turn-label">GILIRAN MASDIT</span>
         </div>
 
-        <!-- Bidak Karakter Lucu (Pawn Token) -->
+        <!-- Bidak Karakter Lucu (Pawn Couple) -->
         <div class="pawn-token" id="pawn-token">
           <span class="pawn-icon">👫</span>
           <span class="pawn-label">KOPER</span>
@@ -674,7 +684,7 @@
       <!-- Dialogue Bubble -->
       <div class="dialogue-bar">
         <span class="dialogue-speaker" id="dialogue-speaker">PEMANDU</span>
-        <span class="dialogue-text" id="dialogue-text">Aku tunggu di lobi Snooze Hostel ya, Masdit!</span>
+        <span class="dialogue-text" id="dialogue-text">Aku jemput di lobi hotel Snooze ya, Masdit!</span>
       </div>
     </div>
   </div>
@@ -684,17 +694,17 @@
     <div class="timeline-tab active" data-day="1">
       <div class="timeline-radio"></div>
       <span class="timeline-day-code">HARI 01</span>
-      <span class="timeline-day-name">Sore di Kota & De Djawatan</span>
+      <span class="timeline-day-name">Sore di Kota</span>
     </div>
     <div class="timeline-tab" data-day="2">
       <div class="timeline-radio"></div>
       <span class="timeline-day-code">HARI 02</span>
-      <span class="timeline-day-name">Kawah Ijen & Air Terjun</span>
+      <span class="timeline-day-name">Kawah & Air Terjun</span>
     </div>
     <div class="timeline-tab" data-day="3">
       <div class="timeline-radio"></div>
       <span class="timeline-day-code">HARI 03</span>
-      <span class="timeline-day-name">Kemiren & Oleh-Oleh</span>
+      <span class="timeline-day-name">Oleh-oleh & Pulang</span>
     </div>
 
     <a href="https://maps.google.com" target="_blank" class="btn-maps-route" id="footer-maps-link">
@@ -705,17 +715,29 @@
 </div>
 
 <script>
-// ─── DATA DESTINASI PERSIS SEPERTI VIDEO UNTUK BANYUWANGI ─────────────────────
-const DEST_DATA = {
+// ─── 9 CHRONOLOGICAL DESTINATIONS (PERSIS SEPERTI STRUKTUR VIDEO) ───────────────
+const CHRONO_DESTINATIONS = {
   1: {
-    dayCode: "HARI 01",
-    themeMain: "Pusat",
-    themeSub: "kota",
-    themeClass: "",
-    slot: 15, // Petak De Djawatan
-    cardTag: "KARTU DESTINASI / 02",
-    badgeTag: "BWI / 02",
-    time: "14.30 WIB",
+    id: 1,
+    day: 1,
+    code: "01",
+    dayTheme: { code: "HARI 01", main: "Pusat", sub: "kota", css: "" },
+    time: "13.00 WIB",
+    category: "HOTEL",
+    title: "Ketemu di hotel",
+    desc: "Aku jemput di lobi hotel Snooze Banyuwangi. Titip koper, makan siang sego tempong, lalu check-in sekitar pukul 15.00.",
+    img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80",
+    speaker: "PEMANDU",
+    speakerClass: "",
+    dialogue: "Aku tunggu di lobi Snooze Hostel ya, Masdit!",
+    maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2201,114.3688"
+  },
+  2: {
+    id: 2,
+    day: 1,
+    code: "02",
+    dayTheme: { code: "HARI 01", main: "Pusat", sub: "kota", css: "" },
+    time: "15.00 WIB",
     category: "DE DJAWATAN",
     title: "Hutan De Djawatan",
     desc: "Menikmati kanopi pohon trembesi raksasa berusia ratusan tahun. Cahaya sore yang menembus dahan bikin suasana persis negeri dongeng.",
@@ -725,14 +747,26 @@ const DEST_DATA = {
     dialogue: "Spot foto terbaik di lorong tengah sebelum jam 5 sore!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.4116,114.2185"
   },
-  2: {
-    dayCode: "HARI 02",
-    themeMain: "Kawah",
-    themeSub: "& kaldera",
-    themeClass: "day-2",
-    slot: 6, // Petak Ijen
-    cardTag: "KARTU DESTINASI / 06",
-    badgeTag: "BWI / 06",
+  3: {
+    id: 3,
+    day: 1,
+    code: "03",
+    dayTheme: { code: "HARI 01", main: "Pusat", sub: "kota", css: "" },
+    time: "18.30 WIB",
+    category: "KULINER",
+    title: "Sego Tempong Mbok Wah",
+    desc: "Makan malam kuliner legendaris khas Banyuwangi dengan sambal dadak terasi tomat segar pedas menyengat plus lauk ikan asin dan sayur rebus.",
+    img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+    speaker: "MASDIT",
+    speakerClass: "masdit",
+    dialogue: "Wah, sambal tempongnya beneran nagih pedasnya!",
+    maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2163,114.3639"
+  },
+  4: {
+    id: 4,
+    day: 2,
+    code: "04",
+    dayTheme: { code: "HARI 02", main: "Kawah", sub: "& kaldera", css: "day-2" },
     time: "03.00 WIB",
     category: "KAWAH IJEN",
     title: "Mendaki Api Biru Ijen",
@@ -743,49 +777,91 @@ const DEST_DATA = {
     dialogue: "Wah, kawahnya megah banget seperti danau cermin raksasa!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.0584,114.2422"
   },
-  3: {
-    dayCode: "HARI 03",
-    themeMain: "Bekal",
-    themeSub: "pulang",
-    themeClass: "day-3",
-    slot: 11, // Petak Kemiren
-    cardTag: "KARTU DESTINASI / 09",
-    badgeTag: "BWI / 09",
-    time: "09.00 WIB",
-    category: "DESA KEMIREN",
+  5: {
+    id: 5,
+    day: 2,
+    code: "05",
+    dayTheme: { code: "HARI 02", main: "Kawah", sub: "& kaldera", css: "day-2" },
+    time: "08.00 WIB",
+    category: "KAWAH WURUNG",
+    title: "Padang Sabana Wurung",
+    desc: "Bentangan bukit hijau melingkar mirip bukit Teletubbies dengan udara sejuk pegunungan dan panorama padang rumput memukau.",
+    img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80",
+    speaker: "PEMANDU",
+    speakerClass: "",
+    dialogue: "Spot favorit buat foto sinematik ala padang rumput Selandia Baru!",
+    maps: "https://www.google.com/maps/dir/?api=1&destination=-8.1177,114.2063"
+  },
+  6: {
+    id: 6,
+    day: 2,
+    code: "06",
+    dayTheme: { code: "HARI 02", main: "Kawah", sub: "& kaldera", css: "day-2" },
+    time: "11.30 WIB",
+    category: "AIR TERJUN",
+    title: "Segarnya Curug Jagir",
+    desc: "Air terjun kembar dari mata air alami pegunungan di Kampung Anyar. Sangat menyegarkan untuk cuci muka dan istirahat santai.",
+    img: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=900&q=80",
+    speaker: "MASDIT",
+    speakerClass: "masdit",
+    dialogue: "Airnya dingin dan segar banget langsung dari sumber mata air!",
+    maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2154,114.1872"
+  },
+  7: {
+    id: 7,
+    day: 3,
+    code: "07",
+    dayTheme: { code: "HARI 03", main: "Bekal", sub: "pulang", css: "day-3" },
+    time: "08.30 WIB",
+    category: "DESA ADAT",
     title: "Ngopi di Desa Kemiren",
-    desc: "Mengenal tradisi suku Osing, melihat arsitektur rumah adat kuno, dan mencicipi seduhan Kopi Osing legendaris sebelum meluncur ke stasiun.",
+    desc: "Mengenal tradisi suku Osing, melihat arsitektur rumah tikel balung, dan mencicipi seduhan Kopi Osing legendaris sebelum pulang.",
     img: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=900&q=80",
     speaker: "PEMANDU",
     speakerClass: "",
-    dialogue: "Sampai ketemu lagi di trip Banyuwangi berikutnya, Masdit!",
+    dialogue: "Sarapan kopi dan jajan pasar dulu sebelum kita beres-beres koper!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2045,114.3168"
+  },
+  8: {
+    id: 8,
+    day: 3,
+    code: "08",
+    dayTheme: { code: "HARI 03", main: "Bekal", sub: "pulang", css: "day-3" },
+    time: "11.30 WIB",
+    category: "OLEH-OLEH",
+    title: "Bagiak & Batik Osing",
+    desc: "Borong buah tangan khas Banyuwangi: kue Bagiak renyah, Rengginang, Kopi Osing kemasan, dan kerajinan batik motif Gajah Oling.",
+    img: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=900&q=80",
+    speaker: "MASDIT",
+    speakerClass: "masdit",
+    dialogue: "Bagiak rasa pandan sama kopinya jangan sampai ketinggalan dibungkus!",
+    maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2014,114.3680"
+  },
+  9: {
+    id: 9,
+    day: 3,
+    code: "09",
+    dayTheme: { code: "HARI 03", main: "Bekal", sub: "pulang", css: "day-3" },
+    time: "14.00 WIB",
+    category: "STASIUN",
+    title: "Diantar ke stasiun",
+    desc: "Aku antar ke Stasiun Ketapang. Jam antar bisa kita geser mengikuti jadwal keretamu. Trip Banyuwangi 3H2M tuntas berkesan!",
+    img: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80",
+    speaker: "PEMANDU",
+    speakerClass: "",
+    dialogue: "Sampai ketemu lagi di trip Banyuwangi berikutnya, Masdit!",
+    maps: "https://www.google.com/maps/dir/?api=1&destination=-8.1472,114.3980"
   }
 };
 
-// ─── SLOT TO DESTINATION MAPPING ──────────────────────────────────────────────
-const SLOT_MAP = {
-  12: { slot: 12, code: "00", name: "Stasiun Ketapang (START)", time: "11.00 WIB", cat: "KEDATANGAN", title: "Tiba di Stasiun Ketapang", desc: "Penjemputan kedatangan kereta api, serah terima kunci motor sewaan, dan bersiap mulai petualangan.", img: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80", speaker: "PEMANDU", dialogue: "Selamat datang di Banyuwangi, Masdit!" },
-  15: DEST_DATA[1],
-  1: { slot: 1, code: "03", name: "Sego Tempong Mbok Wah", time: "12.30 WIB", cat: "KULINER", title: "Makan Siang Mbok Wah", desc: "Pedas menyengat sambal dadak tomat ranti khas Osing dengan lauk ikan goreng renyah dan sayur rebus segar.", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80", speaker: "MASDIT", dialogue: "Sambal tempongnya beneran nagih pedasnya!" },
-  2: { slot: 2, code: "04", name: "Snooze Hostel", time: "14.00 WIB", cat: "CHECK-IN", title: "Ketemu di Hotel Snooze", desc: "Istirahat sejenak di kamar yang nyaman dan tenang untuk mengumpulkan stamina pendakian dini hari.", img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80", speaker: "PEMANDU", dialogue: "Kamar sudah siap, jangan lupa pasang alarm malam ya!" },
-  4: { slot: 4, code: "05", name: "Grand Watu Dodol", time: "16.30 WIB", cat: "PANTAI", title: "Sunset di Watu Dodol", desc: "Duduk santai di tepi pantai memandang siluet Pulau Bali di seberang selat sambil menikmati es kelapa muda.", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80", speaker: "MASDIT", dialogue: "Angin lautnya sejuk banget, pas buat santai sore." },
-  6: DEST_DATA[2],
-  7: { slot: 7, code: "07", name: "Kawah Wurung", time: "08.00 WIB", cat: "SABANA", title: "Padang Sabana Wurung", desc: "Bentangan bukit hijau melingkar mirip bukit Teletubbies dengan udara sejuk pegunungan.", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80", speaker: "PEMANDU", dialogue: "Spot favorit buat foto sinematik ala padang rumput Selandia Baru!" },
-  9: { slot: 9, code: "08", name: "Air Terjun Jagir", time: "10.30 WIB", cat: "CURUG", title: "Segarnya Curug Jagir", desc: "Mata air alami dari tebing batu yang jernih dan segar untuk membasuh lelah setelah turun dari Ijen.", img: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=900&q=80", speaker: "MASDIT", dialogue: "Airnya dingin dan segar banget langsung dari sumber mata air!" },
-  11: DEST_DATA[3],
-  13: { slot: 13, code: "10", name: "Stasiun Ketapang (PULANG)", time: "15.00 WIB", cat: "STASIUN", title: "Diantar ke Stasiun", desc: "Perjalanan tuntas dengan selamat, pengembalian motor sewaan, dan siap boarding kereta pulang.", img: "https://images.unsplash.com/photo-1515165562839-978bbcf18277?auto=format&fit=crop&w=900&q=80", speaker: "PEMANDU", dialogue: "Hati-hati di jalan pulang dan sampai jumpa lagi, Masdit!" }
-};
-
 // ─── STATE MANAGEMENT ────────────────────────────────────────────────────────
-let activeDay = 1;
-let currentSlot = 15;
+let currentDestId = 1;
 let isRolling = false;
 
 // ─── DOM REFS ────────────────────────────────────────────────────────────────
 const pawnToken = document.getElementById('pawn-token');
 const monopolyBoard = document.getElementById('monopoly-board');
-const tiles = document.querySelectorAll('.tile');
+const tiles = document.querySelectorAll('.tile[data-dest-id]');
 
 // Left Column Cards
 const cardIndexTag = document.getElementById('card-index-tag');
@@ -809,10 +885,9 @@ const dialogueText = document.getElementById('dialogue-text');
 const footerMapsLink = document.getElementById('footer-maps-link');
 const timelineTabs = document.querySelectorAll('.timeline-tab');
 
-// ─── POSITION PAWN TO TILE ───────────────────────────────────────────────────
-function placePawn(slotIndex) {
-  currentSlot = slotIndex;
-  const targetTile = document.querySelector(`.tile[data-slot="${slotIndex}"]`);
+// ─── POSITION PAWN TO TILE (SMOOTH GLIDE) ───────────────────────────────────
+function placePawn(destId) {
+  const targetTile = document.querySelector(`.tile[data-dest-id="${destId}"]`);
   if (!targetTile) return;
 
   const tileRect = targetTile.getBoundingClientRect();
@@ -825,16 +900,25 @@ function placePawn(slotIndex) {
   pawnToken.style.top = `${y}px`;
 }
 
-// ─── UPDATE DESTINATION CARD ─────────────────────────────────────────────────
-function updateCard(data) {
-  cardIndexTag.textContent = data.cardTag || `KARTU DESTINASI / ${data.code || '01'}`;
-  destCodeTag.textContent = data.badgeTag || `BWI / ${data.code || '01'}`;
+// ─── RENDER DESTINATION STEP ─────────────────────────────────────────────────
+function goToDestination(destId) {
+  currentDestId = destId;
+  const data = CHRONO_DESTINATIONS[destId];
+  if (!data) return;
+
+  // 1. Move Pawn
+  placePawn(destId);
+
+  // 2. Update Left Column Card
+  cardIndexTag.textContent = `KARTU DESTINASI  /  ${data.code}`;
+  destCodeTag.textContent = `BWI / ${data.code}`;
   destTime.textContent = data.time;
-  destCategory.textContent = data.category || data.cat;
+  destCategory.textContent = data.category;
   destTitle.textContent = data.title;
   destDesc.textContent = data.desc;
   destImg.src = data.img;
 
+  // 3. Update Dialogue
   dialogueSpeaker.textContent = data.speaker;
   if (data.speaker === 'MASDIT') {
     dialogueSpeaker.classList.add('masdit');
@@ -843,31 +927,24 @@ function updateCard(data) {
   }
   dialogueText.textContent = data.dialogue;
 
+  // 4. Update Board Center (matching current day)
+  centerDayTag.textContent = data.dayTheme.code;
+  centerThemeTitle.textContent = data.dayTheme.main;
+  centerThemeSub.textContent = data.dayTheme.sub;
+  boardCenterBox.className = `board-center ${data.dayTheme.css}`;
+
+  // 5. Update Timeline Footer Tabs
+  timelineTabs.forEach(tab => {
+    tab.classList.toggle('active', parseInt(tab.dataset.day) === data.day);
+  });
+
+  // 6. Update Maps link
   if (data.maps) {
     footerMapsLink.href = data.maps;
   }
 }
 
-// ─── SWITCH DAY ──────────────────────────────────────────────────────────────
-function setDay(day) {
-  activeDay = day;
-  const d = DEST_DATA[day];
-
-  // Update tabs
-  timelineTabs.forEach(t => t.classList.toggle('active', parseInt(t.dataset.day) === day));
-
-  // Update Board Center
-  centerDayTag.textContent = d.dayCode;
-  centerThemeTitle.textContent = d.themeMain;
-  centerThemeSub.textContent = d.themeSub;
-  boardCenterBox.className = `board-center ${d.themeClass}`;
-
-  // Place pawn to that day's hero destination
-  placePawn(d.slot);
-  updateCard(d);
-}
-
-// ─── DICE ROLLING SIMULATION ─────────────────────────────────────────────────
+// ─── DICE ROLLING (ADVANCE 1 STEP CHRONOLOGICALLY) ───────────────────────────
 function rollDice() {
   if (isRolling) return;
   isRolling = true;
@@ -883,44 +960,43 @@ function rollDice() {
     if (count > 8) {
       clearInterval(timer);
       isRolling = false;
-      const finalRoll = Math.floor(Math.random() * 3) + 1; // 1 s/d 3 langkah
-      centerDiceBox.textContent = diceFaces[finalRoll - 1];
+      
+      // Advance by 1 step chronologically (or loop back from 9 to 1)
+      let nextDestId = currentDestId + 1;
+      if (nextDestId > 9) nextDestId = 1;
 
-      // Melompat ke petak berikutnya yang valid
-      const slotKeys = Object.keys(SLOT_MAP).map(Number);
-      let currIdx = slotKeys.indexOf(currentSlot);
-      let nextIdx = (currIdx + finalRoll) % slotKeys.length;
-      let targetSlot = slotKeys[nextIdx];
-
-      placePawn(targetSlot);
-      updateCard(SLOT_MAP[targetSlot]);
+      centerDiceBox.textContent = diceFaces[(nextDestId % 6)];
+      goToDestination(nextDestId);
     }
-  }, 60);
+  }, 65);
 }
 
 // ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
 tiles.forEach(tile => {
   tile.addEventListener('click', () => {
-    const slot = parseInt(tile.dataset.slot);
-    if (SLOT_MAP[slot]) {
-      placePawn(slot);
-      updateCard(SLOT_MAP[slot]);
+    const destId = parseInt(tile.dataset.destId);
+    if (destId > 0) {
+      goToDestination(destId);
     }
   });
 });
 
 boardCenterBox.addEventListener('click', rollDice);
 
+// Timeline Footer Tabs (Jump to Day 1: 01, Day 2: 04, Day 3: 07)
 timelineTabs.forEach(tab => {
   tab.addEventListener('click', () => {
-    setDay(parseInt(tab.dataset.day));
+    const day = parseInt(tab.dataset.day);
+    if (day === 1) goToDestination(1);
+    else if (day === 2) goToDestination(4);
+    else if (day === 3) goToDestination(7);
   });
 });
 
-window.addEventListener('resize', () => placePawn(currentSlot));
+window.addEventListener('resize', () => placePawn(currentDestId));
 
-// Initial load
-setTimeout(() => setDay(1), 80);
+// Initial load: Start at 01 KOPER (HARI 01)
+setTimeout(() => goToDestination(1), 100);
 </script>
 
 </body>
