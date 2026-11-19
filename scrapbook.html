@@ -1,1 +1,525 @@
-[sent with this call and left out of the context to make room once it ran: 16957 characters, 437 lines. The call's result says what it did; read the file to see it as it is now]
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOCKUP 4: Scrapbook Diary x Harvest Moon | Jurnal Kembara Banyuwangi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Press+Start+2P&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --craft-paper: #ebdcc2;
+      --paper-card: #fdfaf3;
+      --wood-dark: #4a3424;
+      --wood-border: #6d4c35;
+      --hm-gold: #f6c85f;
+      --hm-blue: #3b82f6;
+      --hm-green: #22c55e;
+      --tape-rose: rgba(235, 140, 130, 0.75);
+      --tape-teal: rgba(120, 190, 185, 0.75);
+      --ink: #2c241e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: #2b231d;
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 18px 10px;
+      background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .scrapbook-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--craft-paper);
+      border-radius: 12px;
+      padding: 22px 18px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.6);
+      position: relative;
+      border-left: 14px solid var(--wood-dark);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ─── HARVEST MOON TOP HUD (JAM, CUACA, STAMINA) ─── */
+    .hm-hud {
+      background: var(--wood-dark);
+      border: 2px solid var(--wood-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      color: #fff;
+    }
+    .hm-date-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hm-weather-icon {
+      font-size: 22px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    }
+    .hm-season-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--hm-gold);
+      letter-spacing: 0.05em;
+    }
+    .hm-clock-text {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 2px;
+    }
+    .hm-stamina-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .hm-stamina-bar {
+      width: 80px;
+      height: 8px;
+      background: #222;
+      border: 1px solid #777;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .hm-stamina-fill {
+      width: 85%;
+      height: 100%;
+      background: linear-gradient(90deg, #eab308, var(--hm-green));
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    .hm-stamina-label {
+      font-size: 9px;
+      font-family: 'Press Start 2P', monospace;
+      color: #cbd5e1;
+    }
+
+    /* ─── POLAROID MAIN PHOTO FRAME ─── */
+    .polaroid-stage {
+      position: relative;
+      margin: 8px 4px;
+    }
+    .polaroid-card {
+      background: #fff;
+      padding: 14px 14px 22px;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(43,36,30,0.2);
+      transform: rotate(-1.5deg);
+      position: relative;
+      transition: transform 0.25s ease;
+    }
+    .polaroid-card:hover {
+      transform: rotate(0deg) scale(1.02);
+    }
+    .washi-tape-top {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 24px;
+      background: var(--tape-rose);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      border-left: 3px dashed rgba(0,0,0,0.15);
+      border-right: 3px dashed rgba(0,0,0,0.15);
+      z-index: 5;
+    }
+    .polaroid-photo-box {
+      width: 100%;
+      height: 220px;
+      background: #333;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .polaroid-photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.2s ease;
+    }
+    .location-stamp {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.92);
+      border: 1.5px solid #333;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-family: 'Special Elite', cursive;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+    }
+    .handwritten-caption {
+      font-family: 'Caveat', cursive;
+      font-size: 24px;
+      font-weight: 700;
+      color: #3b2c24;
+      margin-top: 14px;
+      line-height: 1.2;
+    }
+    .handwritten-sub {
+      font-family: 'Special Elite', cursive;
+      font-size: 11.5px;
+      color: #716259;
+      margin-top: 4px;
+    }
+
+    /* ─── HARVEST MOON VILLAGER GUIDE BOX (KOTAK PANDUAN WARGA) ─── */
+    .villager-dialogue-box {
+      background: var(--paper-card);
+      border: 2px solid var(--wood-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      position: relative;
+    }
+    .villager-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e2d2b8;
+      border: 2px solid var(--wood-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      box-shadow: 2px 2px 0 var(--wood-dark);
+    }
+    .dialogue-content {
+      flex-grow: 1;
+    }
+    .villager-name-tag {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: #9a3412;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .villager-speech {
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--ink);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* ─── HARVEST MOON ALMANAC & FUN FACTS (CATATAN ALMANAK) ─── */
+    .almanac-card {
+      background: #fdf6e6;
+      border: 1.5px dashed #b45309;
+      border-radius: 8px;
+      padding: 12px 14px;
+      position: relative;
+    }
+    .almanac-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fed7aa;
+      border: 1px solid #f97316;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #9a3412;
+      text-transform: uppercase;
+    }
+    .almanac-text {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #451a03;
+      margin-top: 6px;
+    }
+
+    /* ─── HARVEST MOON INVENTORY POUCH (TAS PERBEKALAN) ─── */
+    .inventory-section {
+      background: var(--wood-dark);
+      border: 2px solid var(--wood-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+    }
+    .inv-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .inv-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--hm-gold);
+    }
+    .inv-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .inv-slot {
+      background: #2a1f18;
+      border: 1.5px solid #5a4130;
+      border-radius: 8px;
+      height: 52px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s;
+    }
+    .inv-slot:hover {
+      background: #3e2e23;
+      border-color: var(--hm-gold);
+      transform: translateY(-2px);
+    }
+    .inv-slot.active {
+      border-color: var(--hm-gold);
+      box-shadow: 0 0 8px rgba(246, 200, 95, 0.5);
+    }
+    .inv-icon {
+      font-size: 20px;
+    }
+    .inv-qty {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--hm-gold);
+    }
+
+    /* ─── SCRAPBOOK BINDER DAY TABS ─── */
+    .binder-nav {
+      display: flex;
+      gap: 8px;
+      border-top: 2px dashed rgba(43,36,30,0.25);
+      padding-top: 14px;
+      margin-top: 4px;
+    }
+    .binder-tab {
+      flex: 1;
+      padding: 8px 4px;
+      background: rgba(255,255,255,0.7);
+      border: 1.5px solid rgba(0,0,0,0.2);
+      border-radius: 6px;
+      font-family: 'Caveat', cursive;
+      font-size: 19px;
+      font-weight: 700;
+      color: #5c4738;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .binder-tab.active {
+      background: #fff;
+      color: #1a120c;
+      border-color: var(--wood-dark);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+<div class="scrapbook-container">
+  
+  <!-- 1. HARVEST MOON TOP HUD -->
+  <div class="hm-hud">
+    <div class="hm-date-box">
+      <div class="hm-weather-icon" id="hm-weather-icon">☀️</div>
+      <div>
+        <div class="hm-season-title" id="hm-season-title">SPRING • HARI 01</div>
+        <div class="hm-clock-text" id="hm-clock-text">15:00 WIB • SORE</div>
+      </div>
+    </div>
+    <div class="hm-stamina-wrap">
+      <div class="hm-stamina-label">STAMINA</div>
+      <div class="hm-stamina-bar">
+        <div class="hm-stamina-fill" id="hm-stamina-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. POLAROID PHOTO MAIN CARD -->
+  <div class="polaroid-stage">
+    <div class="polaroid-card">
+      <div class="washi-tape-top"></div>
+      
+      <div class="polaroid-photo-box">
+        <img id="polaroid-img" src="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80" alt="Destinasi">
+        <div class="location-stamp" id="polaroid-stamp">BWI / 01 • DE DJAWATAN</div>
+      </div>
+
+      <div class="handwritten-caption" id="polaroid-caption">
+        "Magisnya kanopi pohon trembesi tua... cahayanya cantik bangeeet!"
+      </div>
+      <div class="handwritten-sub" id="polaroid-sub">
+        Pukul 15.00 WIB — Hutan De Djawatan, Benculuk
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. HARVEST MOON VILLAGER PANDUAN LOKAL -->
+  <div class="villager-dialogue-box">
+    <div class="villager-avatar" id="villager-avatar">👨‍🌾</div>
+    <div class="dialogue-content">
+      <div class="villager-name-tag" id="villager-name">KANG OSING (PEMANDU DESA)</div>
+      <div class="villager-speech" id="villager-speech">
+        "Halo Wisatawan! Kalau mau foto paling epik di lorong De Djawatan, jalan sedikit ke lorong tengah jam 4 sore pas cahaya matahari nembus dahan trembesi ya!"
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. HARVEST MOON ALMANAK & FUN FACT -->
+  <div class="almanac-card">
+    <div class="almanac-badge">
+      <span>📖</span>
+      <span>ALMANAK DESA & FUN FACT</span>
+    </div>
+    <div class="almanac-text" id="almanac-text">
+      <b>Tahukah Kamu?</b> Pohon Trembesi di De Djawatan dijuluki 'Hutan Lord of the Rings'. Pohon-pohon raksasa ini sudah berdiri sejak zaman Belanda dan mampu menyerap hingga 28 ton gas CO2 per tahun!
+    </div>
+  </div>
+
+  <!-- 5. HARVEST MOON INVENTORY POUCH -->
+  <div class="inventory-section">
+    <div class="inv-header">
+      <span class="inv-title">RANSEL PERBEKALAN</span>
+      <span style="font-size:10px;color:#cbd5e1;font-weight:600;">Pilih item untuk dipakai:</span>
+    </div>
+    <div class="inv-grid">
+      <div class="inv-slot active" onclick="useItem('masker')" title="Masker Gas">
+        <span class="inv-icon">🎭</span>
+        <span class="inv-qty">x1</span>
+      </div>
+      <div class="inv-slot" onclick="useItem('kopi')" title="Kopi Osing">
+        <span class="inv-icon">☕</span>
+        <span class="inv-qty">x3</span>
+      </div>
+      <div class="inv-slot" onclick="useItem('tempong')" title="Sego Tempong">
+        <span class="inv-icon">🌶️</span>
+        <span class="inv-qty">x1</span>
+      </div>
+      <div class="inv-slot" onclick="useItem('kamera')" title="Kamera Polaroid">
+        <span class="inv-icon">📷</span>
+        <span class="inv-qty">x12</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. BINDER TABS UNTUK PINDAH HARI -->
+  <div class="binder-nav">
+    <div class="binder-tab active" onclick="changeDay(1, this)">Hari 01: Kota</div>
+    <div class="binder-tab" onclick="changeDay(2, this)">Hari 02: Kawah</div>
+    <div class="binder-tab" onclick="changeDay(3, this)">Hari 03: Kemiren</div>
+  </div>
+
+</div>
+
+<script>
+const DIARY_DATA = {
+  1: {
+    season: "SPRING • HARI 01",
+    clock: "15:00 WIB • SORE",
+    weather: "☀️",
+    stamina: "85%",
+    img: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80",
+    stamp: "BWI / 01 • DE DJAWATAN",
+    caption: "\"Magisnya kanopi pohon trembesi tua... cahayanya cantik bangeeet!\"",
+    sub: "Pukul 15.00 WIB — Hutan De Djawatan, Benculuk",
+    villagerName: "KANG OSING (PEMANDU DESA)",
+    villagerAvatar: "👨‍🌾",
+    speech: "\"Halo Wisatawan! Kalau mau foto paling epik di lorong De Djawatan, jalan sedikit ke lorong tengah jam 4 sore pas cahaya matahari nembus dahan trembesi ya!\"",
+    funFact: "<b>Tahukah Kamu?</b> Pohon Trembesi di De Djawatan dijuluki 'Hutan Lord of the Rings'. Pohon-pohon raksasa ini sudah berdiri sejak zaman Belanda dan mampu menyerap hingga 28 ton gas CO2 per tahun!"
+  },
+  2: {
+    season: "SPRING • HARI 02",
+    clock: "03:00 WIB • DINI HARI",
+    weather: "🌙",
+    stamina: "60%",
+    img: "https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=800&q=80",
+    stamp: "BWI / 02 • KAWAH IJEN",
+    caption: "\"Api biru misterius di dasar kawah, dinginnya tembus tulang tapi takjub!\"",
+    sub: "Pukul 03.00 WIB — Puncak Kaldera Kawah Ijen",
+    villagerName: "PAK PENAMBANG (WARGA LOKAL)",
+    villagerAvatar: "⛏️",
+    speech: "\"Pakai masker gas respirator sebelum turun ke kawah ya! Gas belerangnya pekat kalau tertiup angin barat. Jangan lupa minum air hangat!\"",
+    funFact: "<b>Tahukah Kamu?</b> Fenomena api biru (Blue Fire) alami di Kawah Ijen hanya ada 2 di seluruh dunia! Satunya lagi berada di kawasan Gunung Dallol, Ethiopia."
+  },
+  3: {
+    season: "SPRING • HARI 03",
+    clock: "08:30 WIB • PAGI",
+    weather: "⛅",
+    stamina: "100%",
+    img: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80",
+    stamp: "BWI / 03 • DESA KEMIREN",
+    caption: "\"Secangkir kopi Osing hangat, jajan kucur, dan senyum ramah warga desa.\"",
+    sub: "Pukul 08.30 WIB — Desa Adat Osing Kemiren",
+    villagerName: "MBAK YUYUN (WARGA KEMIREN)",
+    villagerAvatar: "👩‍🍳",
+    speech: "\"Mampir sarapan Pecel Pitik dulu! Di sini ada pepatah Osing: 'Sekali nyeduh kopi bareng, sak lawase dadi sedulur' (selamanya jadi saudara)!\"",
+    funFact: "<b>Tahukah Kamu?</b> Tradisi Sangaran di Desa Kemiren mewajibkan warganya menjemur kasur berwarna merah dan hitam secara serentak di sepanjang jalan desa tiap bulan Dzulhijjah!"
+  }
+};
+
+function changeDay(day, tabEl) {
+  document.querySelectorAll('.binder-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+
+  const d = DIARY_DATA[day];
+  document.getElementById('hm-season-title').textContent = d.season;
+  document.getElementById('hm-clock-text').textContent = d.clock;
+  document.getElementById('hm-weather-icon').textContent = d.weather;
+  document.getElementById('hm-stamina-fill').style.width = d.stamina;
+
+  document.getElementById('polaroid-img').src = d.img;
+  document.getElementById('polaroid-stamp').textContent = d.stamp;
+  document.getElementById('polaroid-caption').textContent = d.caption;
+  document.getElementById('polaroid-sub').textContent = d.sub;
+
+  document.getElementById('villager-name').textContent = d.villagerName;
+  document.getElementById('villager-avatar').textContent = d.villagerAvatar;
+  document.getElementById('villager-speech').textContent = d.speech;
+  document.getElementById('almanac-text').innerHTML = d.funFact;
+}
+
+function useItem(itemName) {
+  const speech = document.getElementById('villager-speech');
+  const stamina = document.getElementById('hm-stamina-fill');
+  
+  if (itemName === 'kopi') {
+    speech.textContent = "Wisatawan menyeruput Kopi Osing panas! Tubuh hangat, stamina bertambah +30%! ☕✨";
+    stamina.style.width = "100%";
+  } else if (itemName === 'tempong') {
+    speech.textContent = "Wisatawan makan Sego Tempong! Sambalnya membakar lidah, rasa kantuk langsung hilang! 🌶️🔥";
+    stamina.style.width = "100%";
+  } else if (itemName === 'masker') {
+    speech.textContent = "Masker Gas Respirator dipasang! Bau belerang tersaring sempurna, pernapasan aman! 🎭👌";
+  } else if (itemName === 'kamera') {
+    speech.textContent = "*CEKREK!* Foto Polaroid berhasil dicetak dan ditempel ke jurnal! 📸🎞️";
+  }
+}
+</script>
+
+</body>
+</html>
