@@ -41,6 +41,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
+      transition: max-width 0.3s ease;
     }
 
     /* ─── 1. TOP HUD (HARVEST MOON CLOCK, DAY, WEATHER, STAMINA) ─── */
@@ -536,6 +537,42 @@
       background: rgba(0,0,0,0.5);
       border-radius: 3px;
     }
+
+    /* ─── RESPONSIVE DESKTOP SITE LAYOUT (CHROME MOBILE DESKTOP / PC) ─── */
+    .rpg-layout-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    @media (min-width: 860px) {
+      .rpg-device {
+        max-width: 1060px;
+        padding: 22px;
+      }
+      .rpg-layout-grid {
+        display: grid;
+        grid-template-columns: 520px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .col-map-zone {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .col-story-zone {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .pixel-map-canvas {
+        height: 500px;
+      }
+      .quest-list-scroll {
+        max-height: 250px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -557,207 +594,218 @@
     </div>
   </div>
 
-  <!-- DAY FILTER BAR -->
-  <div class="day-filter-bar">
-    <div class="day-tab-btn active" id="tab-all" onclick="filterDay(0)">SEMUA (16)</div>
-    <div class="day-tab-btn" id="tab-d1" onclick="filterDay(1)">HARI 1 (01-06)</div>
-    <div class="day-tab-btn" id="tab-d2" onclick="filterDay(2)">HARI 2 (07-12)</div>
-    <div class="day-tab-btn" id="tab-d3" onclick="filterDay(3)">HARI 3 (13-16)</div>
-  </div>
-
-  <!-- 2. OVERWORLD MAP SCREEN (EXPANDED TO 480PX HEIGHT WITH PAN & ZOOM) -->
-  <div class="screen-bezel">
-    <div class="pixel-map-canvas" id="map-canvas">
-      
-      <!-- Floating Retro Zoom & Center Controls -->
-      <div class="map-floating-controls">
-        <button class="retro-tool-btn" onclick="zoomIn()" title="Perbesar Peta">+</button>
-        <button class="retro-tool-btn" onclick="zoomOut()" title="Perkecil Peta">-</button>
-        <button class="retro-tool-btn" onclick="centerOnHero(true)" title="Fokus Kamera ke Karakter">🎯</button>
-        <div class="zoom-level-badge" id="zoom-badge">100%</div>
+  <!-- RESPONSIVE 2-COLUMN GRID (STACKS ON MOBILE, SPLITS ON DESKTOP SITE) -->
+  <div class="rpg-layout-grid">
+    
+    <!-- KOLOM KIRI: MAP ZONE (PETA + TOMBOL STEPPER DI BAWAHNYA) -->
+    <div class="col-map-zone">
+      <!-- DAY FILTER BAR -->
+      <div class="day-filter-bar">
+        <div class="day-tab-btn active" id="tab-all" onclick="filterDay(0)">SEMUA (16)</div>
+        <div class="day-tab-btn" id="tab-d1" onclick="filterDay(1)">HARI 1 (01-06)</div>
+        <div class="day-tab-btn" id="tab-d2" onclick="filterDay(2)">HARI 2 (07-12)</div>
+        <div class="day-tab-btn" id="tab-d3" onclick="filterDay(3)">HARI 3 (13-16)</div>
       </div>
 
-      <!-- Movable / Scalable RPG World Container -->
-      <div class="map-world" id="map-world">
-      
-        <!-- Golden Dotted SVG Trail connecting 01 to 16 in exact order -->
-        <svg class="overworld-path" xmlns="http://www.w3.org/2000/svg">
-          <path id="svg-trail-path" d="
-            M 410 45 
-            L 340 90 
-            L 210 420 
-            L 310 320 
-            L 280 230 
-            L 100 240 
-            L 65 130 
-            L 100 240 
-            L 165 170 
-            L 330 260 
-            L 420 120 
-            L 240 180 
-            L 210 140 
-            L 290 160 
-            L 350 115 
-            L 410 45
-          " fill="none" stroke="rgba(246,200,95,0.45)" stroke-width="3" stroke-dasharray="5,4"/>
-        </svg>
+      <!-- OVERWORLD MAP SCREEN -->
+      <div class="screen-bezel">
+        <div class="pixel-map-canvas" id="map-canvas">
+          
+          <!-- Floating Retro Zoom & Center Controls -->
+          <div class="map-floating-controls">
+            <button class="retro-tool-btn" onclick="zoomIn()" title="Perbesar Peta">+</button>
+            <button class="retro-tool-btn" onclick="zoomOut()" title="Perkecil Peta">-</button>
+            <button class="retro-tool-btn" onclick="centerOnHero(true)" title="Fokus Kamera ke Karakter">🎯</button>
+            <div class="zoom-level-badge" id="zoom-badge">100%</div>
+          </div>
 
-        <!-- HARI 1: 01 - 06 -->
-        <div class="map-tile active" id="tile-1" style="left:380px; top:25px;" onclick="goToStep(1)">
-          <div class="tile-icon">🚂</div>
-          <div class="tile-tag">01. KETAPANG</div>
-        </div>
+          <!-- Movable / Scalable RPG World Container -->
+          <div class="map-world" id="map-world">
+          
+            <!-- Golden Dotted SVG Trail connecting 01 to 16 in exact order -->
+            <svg class="overworld-path" xmlns="http://www.w3.org/2000/svg">
+              <path id="svg-trail-path" d="
+                M 410 45 
+                L 340 90 
+                L 210 420 
+                L 310 320 
+                L 280 230 
+                L 100 240 
+                L 65 130 
+                L 100 240 
+                L 165 170 
+                L 330 260 
+                L 420 120 
+                L 240 180 
+                L 210 140 
+                L 290 160 
+                L 350 115 
+                L 410 45
+              " fill="none" stroke="rgba(246,200,95,0.45)" stroke-width="3" stroke-dasharray="5,4"/>
+            </svg>
 
-        <div class="map-tile" id="tile-2" style="left:310px; top:70px;" onclick="goToStep(2)">
-          <div class="tile-icon">🥣</div>
-          <div class="tile-tag">02. SEGO CAWUK</div>
-        </div>
+            <!-- HARI 1: 01 - 06 -->
+            <div class="map-tile active" id="tile-1" style="left:380px; top:25px;" onclick="goToStep(1)">
+              <div class="tile-icon">🚂</div>
+              <div class="tile-tag">01. KETAPANG</div>
+            </div>
 
-        <div class="map-tile" id="tile-3" style="left:170px; top:400px;" onclick="goToStep(3)">
-          <div class="tile-icon">🌲</div>
-          <div class="tile-tag">03. DE DJAWATAN</div>
-        </div>
+            <div class="map-tile" id="tile-2" style="left:310px; top:70px;" onclick="goToStep(2)">
+              <div class="tile-icon">🥣</div>
+              <div class="tile-tag">02. SEGO CAWUK</div>
+            </div>
 
-        <div class="map-tile" id="tile-4" style="left:275px; top:300px;" onclick="goToStep(4)">
-          <div class="tile-icon">🌶️</div>
-          <div class="tile-tag">04. MAK NDUT</div>
-        </div>
+            <div class="map-tile" id="tile-3" style="left:170px; top:400px;" onclick="goToStep(3)">
+              <div class="tile-icon">🌲</div>
+              <div class="tile-tag">03. DE DJAWATAN</div>
+            </div>
 
-        <div class="map-tile" id="tile-5" style="left:245px; top:210px;" onclick="goToStep(5)">
-          <div class="tile-icon">☕</div>
-          <div class="tile-tag">05. SRENGENGE</div>
-        </div>
+            <div class="map-tile" id="tile-4" style="left:275px; top:300px;" onclick="goToStep(4)">
+              <div class="tile-icon">🌶️</div>
+              <div class="tile-tag">04. MAK NDUT</div>
+            </div>
 
-        <div class="map-tile" id="tile-6" style="left:70px; top:220px;" onclick="goToStep(6)">
-          <div class="tile-icon">🏕️</div>
-          <div class="tile-tag">06. IGLAM GLAMPING</div>
-        </div>
+            <div class="map-tile" id="tile-5" style="left:245px; top:210px;" onclick="goToStep(5)">
+              <div class="tile-icon">☕</div>
+              <div class="tile-tag">05. SRENGENGE</div>
+            </div>
 
-        <!-- HARI 2: 07 - 12 -->
-        <div class="map-tile" id="tile-7" style="left:40px; top:110px;" onclick="goToStep(7)">
-          <div class="tile-icon">🌋</div>
-          <div class="tile-tag">07. KAWAH IJEN</div>
-        </div>
+            <div class="map-tile" id="tile-6" style="left:70px; top:220px;" onclick="goToStep(6)">
+              <div class="tile-icon">🏕️</div>
+              <div class="tile-tag">06. IGLAM GLAMPING</div>
+            </div>
 
-        <div class="map-tile" id="tile-8" style="left:70px; top:260px;" onclick="goToStep(8)">
-          <div class="tile-icon">🍳</div>
-          <div class="tile-tag">08. RESTO IGLAM</div>
-        </div>
+            <!-- HARI 2: 07 - 12 -->
+            <div class="map-tile" id="tile-7" style="left:40px; top:110px;" onclick="goToStep(7)">
+              <div class="tile-icon">🌋</div>
+              <div class="tile-tag">07. KAWAH IJEN</div>
+            </div>
 
-        <div class="map-tile" id="tile-9" style="left:140px; top:150px;" onclick="goToStep(9)">
-          <div class="tile-icon">🎋</div>
-          <div class="tile-tag">09. SENDANG SERUNI</div>
-        </div>
+            <div class="map-tile" id="tile-8" style="left:70px; top:260px;" onclick="goToStep(8)">
+              <div class="tile-icon">🍳</div>
+              <div class="tile-tag">08. RESTO IGLAM</div>
+            </div>
 
-        <div class="map-tile" id="tile-10" style="left:300px; top:240px;" onclick="goToStep(10)">
-          <div class="tile-icon">🍲</div>
-          <div class="tile-tag">10. RUJAK SOTO MUS</div>
-        </div>
+            <div class="map-tile" id="tile-9" style="left:140px; top:150px;" onclick="goToStep(9)">
+              <div class="tile-icon">🎋</div>
+              <div class="tile-tag">09. SENDANG SERUNI</div>
+            </div>
 
-        <div class="map-tile" id="tile-11" style="left:395px; top:100px;" onclick="goToStep(11)">
-          <div class="tile-icon">🌅</div>
-          <div class="tile-tag">11. PANTAI GWD</div>
-        </div>
+            <div class="map-tile" id="tile-10" style="left:300px; top:240px;" onclick="goToStep(10)">
+              <div class="tile-icon">🍲</div>
+              <div class="tile-tag">10. RUJAK SOTO MUS</div>
+            </div>
 
-        <div class="map-tile" id="tile-12" style="left:215px; top:160px;" onclick="goToStep(12)">
-          <div class="tile-icon">🔥</div>
-          <div class="tile-tag">12. AVRILA RESTO</div>
-        </div>
+            <div class="map-tile" id="tile-11" style="left:395px; top:100px;" onclick="goToStep(11)">
+              <div class="tile-icon">🌅</div>
+              <div class="tile-tag">11. PANTAI GWD</div>
+            </div>
 
-        <!-- HARI 3: 13 - 16 -->
-        <div class="map-tile" id="tile-13" style="left:180px; top:120px;" onclick="goToStep(13)">
-          <div class="tile-icon">🏡</div>
-          <div class="tile-tag">13. DESA KEMIREN</div>
-        </div>
+            <div class="map-tile" id="tile-12" style="left:215px; top:160px;" onclick="goToStep(12)">
+              <div class="tile-icon">🔥</div>
+              <div class="tile-tag">12. AVRILA RESTO</div>
+            </div>
 
-        <div class="map-tile" id="tile-14" style="left:260px; top:140px;" onclick="goToStep(14)">
-          <div class="tile-icon">🍜</div>
-          <div class="tile-tag">14. SOTO LOSARI</div>
-        </div>
+            <!-- HARI 3: 13 - 16 -->
+            <div class="map-tile" id="tile-13" style="left:180px; top:120px;" onclick="goToStep(13)">
+              <div class="tile-icon">🏡</div>
+              <div class="tile-tag">13. DESA KEMIREN</div>
+            </div>
 
-        <div class="map-tile" id="tile-15" style="left:320px; top:95px;" onclick="goToStep(15)">
-          <div class="tile-icon">🛍️</div>
-          <div class="tile-tag">15. OLEH-OLEH</div>
-        </div>
+            <div class="map-tile" id="tile-14" style="left:260px; top:140px;" onclick="goToStep(14)">
+              <div class="tile-icon">🍜</div>
+              <div class="tile-tag">14. SOTO LOSARI</div>
+            </div>
 
-        <div class="map-tile" id="tile-16" style="left:380px; top:25px;" onclick="goToStep(16)">
-          <div class="tile-icon">🚂</div>
-          <div class="tile-tag">16. BOARDING KERETA</div>
-        </div>
+            <div class="map-tile" id="tile-15" style="left:320px; top:95px;" onclick="goToStep(15)">
+              <div class="tile-icon">🛍️</div>
+              <div class="tile-tag">15. OLEH-OLEH</div>
+            </div>
 
-        <!-- Hero Sprite Token -->
-        <div class="hero-sprite" id="hero" style="left:395px; top:30px;">🧙‍♂️</div>
-      </div> <!-- End map-world -->
-    </div> <!-- End pixel-map-canvas -->
-  </div>
+            <div class="map-tile" id="tile-16" style="left:380px; top:25px;" onclick="goToStep(16)">
+              <div class="tile-icon">🚂</div>
+              <div class="tile-tag">16. BOARDING KERETA</div>
+            </div>
 
-  <!-- 3. VILLAGER DIALOGUE & PANDUAN WISATA -->
-  <div class="dialogue-window">
-    <div class="speaker-portrait" id="speaker-avatar">👨‍✈️</div>
-    <div class="dialogue-body">
-      <div class="speaker-name" id="speaker-name">KONDEKTUR BLAMBANGAN EKSPRES</div>
-      <div class="dialogue-text" id="dialogue-text">
-        "Selamat tiba di Stasiun Ketapang dari Pasarsenen! Pembersihan diri dan persiapan perjalanan trip 3H2M!"
+            <!-- Hero Sprite Token -->
+            <div class="hero-sprite" id="hero" style="left:395px; top:30px;">🧙‍♂️</div>
+          </div> <!-- End map-world -->
+        </div> <!-- End pixel-map-canvas -->
       </div>
-    </div>
-  </div>
 
-  <!-- 4. ALMANAK & DETAIL PANDUAN CARD -->
-  <div class="almanac-panel">
-    <div class="almanac-header">
-      <div class="almanac-title">
-        <span>📖</span>
-        <span>CATATAN PANDUAN & ALMANAK:</span>
+      <!-- STEPPER BAR PERSIS DI BAWAH PETA -->
+      <div class="stepper-bar">
+        <button class="nav-btn" onclick="prevStep()" aria-label="Langkah Mundur">◀ MUNDUR</button>
+        <button class="nav-btn next" onclick="nextStep()" aria-label="Langkah Selanjutnya">LANJUT ▶</button>
       </div>
-      <span class="rating-badge" id="rating-badge">GAPEKA Resmi</span>
-    </div>
-    <div id="almanac-content">
-      <b>Estimasi:</b> Pembersihan diri, istirahat sejenak di stasiun sebelum mulai petualangan kuliner sarapan pagi.
-    </div>
-  </div>
+    </div> <!-- End col-map-zone -->
 
-  <!-- 5. ERGONOMIC ITEM BACKPACK & DUAL ARCADE STEPPER -->
-  <div class="backpack-section">
-    <div class="backpack-header">
-      <span>🎒 RANSEL PETUALANG (HARVEST MOON)</span>
-      <span style="font-size:6.5px;color:#94a3b8;">Ketuk item untuk pakai</span>
-    </div>
-    <div class="item-slots-row">
-      <div class="inv-slot" onclick="useItem('cawuk')" title="Sego Cawuk">
-        <span class="inv-slot-icon">🥣</span>
-        <span class="inv-slot-label">Cawuk</span>
+    <!-- KOLOM KANAN: STORY & ALMANAC ZONE -->
+    <div class="col-story-zone">
+      <!-- 2. VILLAGER DIALOGUE & PANDUAN WISATA -->
+      <div class="dialogue-window">
+        <div class="speaker-portrait" id="speaker-avatar">👨‍✈️</div>
+        <div class="dialogue-body">
+          <div class="speaker-name" id="speaker-name">KONDEKTUR BLAMBANGAN EKSPRES</div>
+          <div class="dialogue-text" id="dialogue-text">
+            "Selamat tiba di Stasiun Ketapang dari Pasarsenen! Pembersihan diri dan persiapan perjalanan trip 3H2M!"
+          </div>
+        </div>
       </div>
-      <div class="inv-slot" onclick="useItem('masker')" title="Masker Gas Ijen">
-        <span class="inv-slot-icon">🎭</span>
-        <span class="inv-slot-label">Masker</span>
-      </div>
-      <div class="inv-slot" onclick="useItem('glamping')" title="Heated Blanket">
-        <span class="inv-slot-icon">♨️</span>
-        <span class="inv-slot-label">Selimut</span>
-      </div>
-      <div class="inv-slot" onclick="useItem('kamera')" title="Kamera Wisata">
-        <span class="inv-slot-icon">📷</span>
-        <span class="inv-slot-label">Kamera</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- Dedicated Dual Stepper Bar (Full-Width Tactile Buttons) -->
-  <div class="stepper-bar">
-    <button class="nav-btn" onclick="prevStep()" aria-label="Langkah Mundur">◀ MUNDUR</button>
-    <button class="nav-btn next" onclick="nextStep()" aria-label="Langkah Selanjutnya">LANJUT ▶</button>
-  </div>
+      <!-- 3. ALMANAK & DETAIL PANDUAN CARD -->
+      <div class="almanac-panel">
+        <div class="almanac-header">
+          <div class="almanac-title">
+            <span>📖</span>
+            <span>CATATAN PANDUAN & ALMANAK:</span>
+          </div>
+          <span class="rating-badge" id="rating-badge">GAPEKA Resmi</span>
+        </div>
+        <div id="almanac-content">
+          <b>Detail Rute:</b> Meeting point utama kedatangan KA Blambangan Ekspres (04:44 WIB). Pembersihan diri dan persiapan perjalanan hari pertama.
+        </div>
+      </div>
 
-  <!-- 6. BUKU JURNAL PETUALANG (QUEST LOG) -->
-  <div class="quest-log-box">
-    <div class="quest-log-title">
-      <span>📜 BUKU JURNAL PETUALANG (16 CHECKPOINTS)</span>
-      <span style="font-size:7px;color:#94a3b8;">Ketuk rute untuk jalan</span>
-    </div>
-    <div class="quest-list-scroll" id="quest-list-container">
-      <!-- Diisi otomatis oleh JavaScript -->
-    </div>
-  </div>
+      <!-- 4. RANSEL ITEM HARVEST MOON -->
+      <div class="backpack-section">
+        <div class="backpack-header">
+          <span>🎒 RANSEL PETUALANG (HARVEST MOON)</span>
+          <span style="font-size:6.5px;color:#94a3b8;">Ketuk item untuk pakai</span>
+        </div>
+        <div class="item-slots-row">
+          <div class="inv-slot" onclick="useItem('cawuk')" title="Sego Cawuk">
+            <span class="inv-slot-icon">🥣</span>
+            <span class="inv-slot-label">Cawuk</span>
+          </div>
+          <div class="inv-slot" onclick="useItem('masker')" title="Masker Gas Ijen">
+            <span class="inv-slot-icon">🎭</span>
+            <span class="inv-slot-label">Masker</span>
+          </div>
+          <div class="inv-slot" onclick="useItem('glamping')" title="Heated Blanket">
+            <span class="inv-slot-icon">♨️</span>
+            <span class="inv-slot-label">Selimut</span>
+          </div>
+          <div class="inv-slot" onclick="useItem('kamera')" title="Kamera Wisata">
+            <span class="inv-slot-icon">📷</span>
+            <span class="inv-slot-label">Kamera</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. BUKU JURNAL PETUALANG (QUEST LOG) -->
+      <div class="quest-log-box">
+        <div class="quest-log-title">
+          <span>📜 BUKU JURNAL PETUALANG (16 CHECKPOINTS)</span>
+          <span style="font-size:7px;color:#94a3b8;">Ketuk rute untuk jalan</span>
+        </div>
+        <div class="quest-list-scroll" id="quest-list-container">
+          <!-- Diisi otomatis oleh JavaScript -->
+        </div>
+      </div>
+    </div> <!-- End col-story-zone -->
+
+  </div> <!-- End rpg-layout-grid -->
 
 </div>
 
