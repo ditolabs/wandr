@@ -122,14 +122,7 @@
       box-shadow: 0 0 10px rgba(246, 200, 95, 0.5);
     }
 
-    /* ─── 2. ENLARGED OVERWORLD MAP (HEIGHT 480PX) ─── */
-    .screen-bezel {
-      background: #0d0a07;
-      border: 3px solid #22150c;
-      border-radius: 16px;
-      padding: 8px;
-      box-shadow: inset 0 0 16px rgba(0,0,0,0.9);
-    }
+    /* ─── PAN & ZOOM STYLING (60FPS ACCELERATED) ─── */
     .pixel-map-canvas {
       height: 480px;
       background-color: var(--gb-canvas);
@@ -142,6 +135,71 @@
       border-radius: 10px;
       position: relative;
       overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    .pixel-map-canvas:active {
+      cursor: grabbing;
+    }
+    .map-world {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 520px;
+      height: 480px;
+      transform-origin: 0 0;
+      will-change: transform;
+      transition: transform 0.05s ease-out;
+    }
+    .map-world.smooth-transition {
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Floating Retro Zoom & Focus Controls */
+    .map-floating-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 25;
+    }
+    .retro-tool-btn {
+      width: 32px;
+      height: 32px;
+      background: #1c1109;
+      border: 2px solid var(--gold);
+      border-radius: 6px;
+      color: var(--gold);
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+      transition: all 0.15s;
+    }
+    .retro-tool-btn:hover {
+      background: var(--gold);
+      color: #110e0b;
+      transform: scale(1.08);
+    }
+    .retro-tool-btn:active {
+      transform: scale(0.95);
+    }
+    .zoom-level-badge {
+      font-family: var(--font-pixel);
+      font-size: 6px;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 2px 4px;
+      border-radius: 3px;
+      text-align: center;
+      margin-top: 2px;
     }
 
     /* Golden Dotted Route SVG */
@@ -456,118 +514,130 @@
     <div class="day-tab-btn" id="tab-d3" onclick="filterDay(3)">HARI 3 (13-16)</div>
   </div>
 
-  <!-- 2. OVERWORLD MAP SCREEN (EXPANDED TO 480PX HEIGHT) -->
+  <!-- 2. OVERWORLD MAP SCREEN (EXPANDED TO 480PX HEIGHT WITH PAN & ZOOM) -->
   <div class="screen-bezel">
     <div class="pixel-map-canvas" id="map-canvas">
       
-      <!-- Golden Dotted SVG Trail connecting 01 to 16 in exact order -->
-      <svg class="overworld-path" xmlns="http://www.w3.org/2000/svg">
-        <path id="svg-trail-path" d="
-          M 410 45 
-          L 340 90 
-          L 210 420 
-          L 310 320 
-          L 280 230 
-          L 100 240 
-          L 65 130 
-          L 100 240 
-          L 165 170 
-          L 330 260 
-          L 420 120 
-          L 240 180 
-          L 210 140 
-          L 290 160 
-          L 350 115 
-          L 410 45
-        " fill="none" stroke="rgba(246,200,95,0.45)" stroke-width="3" stroke-dasharray="5,4"/>
-      </svg>
-
-      <!-- HARI 1: 01 - 06 -->
-      <div class="map-tile active" id="tile-1" style="left:380px; top:25px;" onclick="goToStep(1)">
-        <div class="tile-icon">🚂</div>
-        <div class="tile-tag">01. KETAPANG</div>
+      <!-- Floating Retro Zoom & Center Controls -->
+      <div class="map-floating-controls">
+        <button class="retro-tool-btn" onclick="zoomIn()" title="Perbesar Peta">+</button>
+        <button class="retro-tool-btn" onclick="zoomOut()" title="Perkecil Peta">-</button>
+        <button class="retro-tool-btn" onclick="centerOnHero(true)" title="Fokus Kamera ke Karakter">🎯</button>
+        <div class="zoom-level-badge" id="zoom-badge">100%</div>
       </div>
 
-      <div class="map-tile" id="tile-2" style="left:310px; top:70px;" onclick="goToStep(2)">
-        <div class="tile-icon">🥣</div>
-        <div class="tile-tag">02. SEGO CAWUK</div>
-      </div>
+      <!-- Movable / Scalable RPG World Container -->
+      <div class="map-world" id="map-world">
+      
+        <!-- Golden Dotted SVG Trail connecting 01 to 16 in exact order -->
+        <svg class="overworld-path" xmlns="http://www.w3.org/2000/svg">
+          <path id="svg-trail-path" d="
+            M 410 45 
+            L 340 90 
+            L 210 420 
+            L 310 320 
+            L 280 230 
+            L 100 240 
+            L 65 130 
+            L 100 240 
+            L 165 170 
+            L 330 260 
+            L 420 120 
+            L 240 180 
+            L 210 140 
+            L 290 160 
+            L 350 115 
+            L 410 45
+          " fill="none" stroke="rgba(246,200,95,0.45)" stroke-width="3" stroke-dasharray="5,4"/>
+        </svg>
 
-      <div class="map-tile" id="tile-3" style="left:170px; top:400px;" onclick="goToStep(3)">
-        <div class="tile-icon">🌲</div>
-        <div class="tile-tag">03. DE DJAWATAN</div>
-      </div>
+        <!-- HARI 1: 01 - 06 -->
+        <div class="map-tile active" id="tile-1" style="left:380px; top:25px;" onclick="goToStep(1)">
+          <div class="tile-icon">🚂</div>
+          <div class="tile-tag">01. KETAPANG</div>
+        </div>
 
-      <div class="map-tile" id="tile-4" style="left:275px; top:300px;" onclick="goToStep(4)">
-        <div class="tile-icon">🌶️</div>
-        <div class="tile-tag">04. MAK NDUT</div>
-      </div>
+        <div class="map-tile" id="tile-2" style="left:310px; top:70px;" onclick="goToStep(2)">
+          <div class="tile-icon">🥣</div>
+          <div class="tile-tag">02. SEGO CAWUK</div>
+        </div>
 
-      <div class="map-tile" id="tile-5" style="left:245px; top:210px;" onclick="goToStep(5)">
-        <div class="tile-icon">☕</div>
-        <div class="tile-tag">05. SRENGENGE</div>
-      </div>
+        <div class="map-tile" id="tile-3" style="left:170px; top:400px;" onclick="goToStep(3)">
+          <div class="tile-icon">🌲</div>
+          <div class="tile-tag">03. DE DJAWATAN</div>
+        </div>
 
-      <div class="map-tile" id="tile-6" style="left:70px; top:220px;" onclick="goToStep(6)">
-        <div class="tile-icon">🏕️</div>
-        <div class="tile-tag">06. IGLAM GLAMPING</div>
-      </div>
+        <div class="map-tile" id="tile-4" style="left:275px; top:300px;" onclick="goToStep(4)">
+          <div class="tile-icon">🌶️</div>
+          <div class="tile-tag">04. MAK NDUT</div>
+        </div>
 
-      <!-- HARI 2: 07 - 12 -->
-      <div class="map-tile" id="tile-7" style="left:40px; top:110px;" onclick="goToStep(7)">
-        <div class="tile-icon">🌋</div>
-        <div class="tile-tag">07. KAWAH IJEN</div>
-      </div>
+        <div class="map-tile" id="tile-5" style="left:245px; top:210px;" onclick="goToStep(5)">
+          <div class="tile-icon">☕</div>
+          <div class="tile-tag">05. SRENGENGE</div>
+        </div>
 
-      <div class="map-tile" id="tile-8" style="left:70px; top:260px;" onclick="goToStep(8)">
-        <div class="tile-icon">🍳</div>
-        <div class="tile-tag">08. RESTO IGLAM</div>
-      </div>
+        <div class="map-tile" id="tile-6" style="left:70px; top:220px;" onclick="goToStep(6)">
+          <div class="tile-icon">🏕️</div>
+          <div class="tile-tag">06. IGLAM GLAMPING</div>
+        </div>
 
-      <div class="map-tile" id="tile-9" style="left:140px; top:150px;" onclick="goToStep(9)">
-        <div class="tile-icon">🎋</div>
-        <div class="tile-tag">09. SENDANG SERUNI</div>
-      </div>
+        <!-- HARI 2: 07 - 12 -->
+        <div class="map-tile" id="tile-7" style="left:40px; top:110px;" onclick="goToStep(7)">
+          <div class="tile-icon">🌋</div>
+          <div class="tile-tag">07. KAWAH IJEN</div>
+        </div>
 
-      <div class="map-tile" id="tile-10" style="left:300px; top:240px;" onclick="goToStep(10)">
-        <div class="tile-icon">🍲</div>
-        <div class="tile-tag">10. RUJAK SOTO MUS</div>
-      </div>
+        <div class="map-tile" id="tile-8" style="left:70px; top:260px;" onclick="goToStep(8)">
+          <div class="tile-icon">🍳</div>
+          <div class="tile-tag">08. RESTO IGLAM</div>
+        </div>
 
-      <div class="map-tile" id="tile-11" style="left:395px; top:100px;" onclick="goToStep(11)">
-        <div class="tile-icon">🌅</div>
-        <div class="tile-tag">11. PANTAI GWD</div>
-      </div>
+        <div class="map-tile" id="tile-9" style="left:140px; top:150px;" onclick="goToStep(9)">
+          <div class="tile-icon">🎋</div>
+          <div class="tile-tag">09. SENDANG SERUNI</div>
+        </div>
 
-      <div class="map-tile" id="tile-12" style="left:215px; top:160px;" onclick="goToStep(12)">
-        <div class="tile-icon">🔥</div>
-        <div class="tile-tag">12. AVRILA RESTO</div>
-      </div>
+        <div class="map-tile" id="tile-10" style="left:300px; top:240px;" onclick="goToStep(10)">
+          <div class="tile-icon">🍲</div>
+          <div class="tile-tag">10. RUJAK SOTO MUS</div>
+        </div>
 
-      <!-- HARI 3: 13 - 16 -->
-      <div class="map-tile" id="tile-13" style="left:180px; top:120px;" onclick="goToStep(13)">
-        <div class="tile-icon">🏡</div>
-        <div class="tile-tag">13. DESA KEMIREN</div>
-      </div>
+        <div class="map-tile" id="tile-11" style="left:395px; top:100px;" onclick="goToStep(11)">
+          <div class="tile-icon">🌅</div>
+          <div class="tile-tag">11. PANTAI GWD</div>
+        </div>
 
-      <div class="map-tile" id="tile-14" style="left:260px; top:140px;" onclick="goToStep(14)">
-        <div class="tile-icon">🍜</div>
-        <div class="tile-tag">14. SOTO LOSARI</div>
-      </div>
+        <div class="map-tile" id="tile-12" style="left:215px; top:160px;" onclick="goToStep(12)">
+          <div class="tile-icon">🔥</div>
+          <div class="tile-tag">12. AVRILA RESTO</div>
+        </div>
 
-      <div class="map-tile" id="tile-15" style="left:320px; top:95px;" onclick="goToStep(15)">
-        <div class="tile-icon">🛍️</div>
-        <div class="tile-tag">15. OLEH-OLEH</div>
-      </div>
+        <!-- HARI 3: 13 - 16 -->
+        <div class="map-tile" id="tile-13" style="left:180px; top:120px;" onclick="goToStep(13)">
+          <div class="tile-icon">🏡</div>
+          <div class="tile-tag">13. DESA KEMIREN</div>
+        </div>
 
-      <div class="map-tile" id="tile-16" style="left:380px; top:25px;" onclick="goToStep(16)">
-        <div class="tile-icon">🚂</div>
-        <div class="tile-tag">16. BOARDING KERETA</div>
-      </div>
+        <div class="map-tile" id="tile-14" style="left:260px; top:140px;" onclick="goToStep(14)">
+          <div class="tile-icon">🍜</div>
+          <div class="tile-tag">14. SOTO LOSARI</div>
+        </div>
 
-      <!-- Hero Sprite Token -->
-      <div class="hero-sprite" id="hero" style="left:395px; top:30px;">🧙‍♂️</div>
-    </div>
+        <div class="map-tile" id="tile-15" style="left:320px; top:95px;" onclick="goToStep(15)">
+          <div class="tile-icon">🛍️</div>
+          <div class="tile-tag">15. OLEH-OLEH</div>
+        </div>
+
+        <div class="map-tile" id="tile-16" style="left:380px; top:25px;" onclick="goToStep(16)">
+          <div class="tile-icon">🚂</div>
+          <div class="tile-tag">16. BOARDING KERETA</div>
+        </div>
+
+        <!-- Hero Sprite Token -->
+        <div class="hero-sprite" id="hero" style="left:395px; top:30px;">🧙‍♂️</div>
+      </div> <!-- End map-world -->
+    </div> <!-- End pixel-map-canvas -->
   </div>
 
   <!-- 3. VILLAGER DIALOGUE & PANDUAN WISATA -->
@@ -637,7 +707,7 @@ const ITINERARY_v3 = {
     category: "Stasiun Ketapang (Banyuwangi)",
     avatar: "👨‍✈️",
     speaker: "KONDEKTUR BLAMBANGAN EKSPRES",
-    dialogue: "\"Selamat tiba di Stasiun Ketapang dari Pasarsenen! Pembersihan diri dulu di stasiun, istirahat sejenak sebelum petualangan dimulai!\"",
+    dialogue: "Selamat tiba di Stasiun Ketapang dari Pasarsenen! Pembersihan diri dulu di stasiun, istirahat sejenak sebelum petualangan dimulai!",
     rating: "GAPEKA Resmi",
     almanac: "<b>Detail Rute:</b> Meeting point utama kedatangan KA Blambangan Ekspres (04:44 WIB). Pembersihan diri dan persiapan perjalanan hari pertama.",
     pos: { x: 395, y: 30 }
@@ -651,7 +721,7 @@ const ITINERARY_v3 = {
     category: "[Kuliner Baru] Sego Cawuk Dan Jajanan Pasar Kalimas",
     avatar: "👵",
     speaker: "PENJUAL SEGO CAWUK KALIMAS",
-    dialogue: "\"Monggo sarapan Sego Cawuk kuah parutan kelapa muda & jagung manis pipil! Lauknya pindang gurih dan sambal serapah!\"",
+    dialogue: "Monggo sarapan Sego Cawuk kuah parutan kelapa muda & jagung manis pipil! Lauknya pindang gurih dan sambal serapah!",
     rating: "★ 4.4 (126 ulasan)",
     almanac: "<b>[Kuliner Baru]:</b> Perjalanan 10 km dari stasiun. Kuliner khas sarapan pagi kuah parutan kelapa & jagung manis khas Banyuwangi.",
     pos: { x: 325, y: 75 }
@@ -665,7 +735,7 @@ const ITINERARY_v3 = {
     category: "Hutan Trembesi Raksasa 'Lord of the Rings'",
     avatar: "🌲",
     speaker: "KANG OSING (PEMANDU ALAM)",
-    dialogue: "\"Selamat datang di hutan kanopi trembesi raksasa! Spot foto ikonik pohon trembesi rindang meneduhkan bumi!\"",
+    dialogue: "Selamat datang di hutan kanopi trembesi raksasa! Spot foto ikonik pohon trembesi rindang meneduhkan bumi!",
     rating: "★ 4.6 (17k ulasan)",
     almanac: "<b>Wisata Alam Ikonik:</b> Perjalanan 35 km ke selatan (Benculuk). Pohon trembesi tua abad ke-19 yang menyerap hingga 28 ton CO2 per tahun.",
     pos: { x: 185, y: 405 }
@@ -679,7 +749,7 @@ const ITINERARY_v3 = {
     category: "[Kuliner Baru] Nasi Tempong Mak Ndut Kertosari",
     avatar: "👩‍🍳",
     speaker: "MAK NDUT (KULINER KERTOSARI)",
-    dialogue: "\"Ini sego tempong pedas segarnya! Sambal terasi dadak tomat ranti dengan sayuran rebus kubis bayam plus ikan asin renyah!\"",
+    dialogue: "Ini sego tempong pedas segarnya! Sambal terasi dadak tomat ranti dengan sayuran rebus kubis bayam plus ikan asin renyah!",
     rating: "★ 4.4 (378 ulasan)",
     almanac: "<b>[Kuliner Baru]:</b> Sego tempong pedas segar sayuran rebus & lauk komplit khas Kertosari. Pilihan makan siang yang bikin melek!",
     pos: { x: 290, y: 305 }
@@ -693,7 +763,7 @@ const ITINERARY_v3 = {
     category: "[Kuliner Baru] Srengenge Wetan Resto & Cafe",
     avatar: "👨‍🍳",
     speaker: "BARISTA SRENGENGE WETAN",
-    dialogue: "\"Silakan santai sore di pusat kota! Nikmati seduhan Kopi Osing asli dan kudapan snack tradisional khas Banyuwangi!\"",
+    dialogue: "Silakan santai sore di pusat kota! Nikmati seduhan Kopi Osing asli dan kudapan snack tradisional khas Banyuwangi!",
     rating: "★ 4.5 (3.265 ulasan)",
     almanac: "<b>[Kuliner Baru]:</b> Pusat kota Banyuwangi. Istirahat santai sambil ngopi dan menikmati snack Osing di resto heritage.",
     pos: { x: 260, y: 215 }
@@ -707,7 +777,7 @@ const ITINERARY_v3 = {
     category: "[Penginapan Baru] Iglam Blue Fire Ijen Glamping",
     avatar: "🏕️",
     speaker: "HOST IGLAM GLAMPING",
-    dialogue: "\"Selamat datang di kabin Iglam Paltuding! Hawa lereng gunung mulai dingin, nikmati kabin mewah dengan heated blanket ya!\"",
+    dialogue: "Selamat datang di kabin Iglam Paltuding! Hawa lereng gunung mulai dingin, nikmati kabin mewah dengan heated blanket ya!",
     rating: "★ 4.9 (113 ulasan)",
     almanac: "<b>[Penginapan Baru]:</b> Paltuding Kawah Ijen. Check-in kabin mewah lereng gunung, menikmati heated blanket & hawa sejuk pegunungan.",
     pos: { x: 85, y: 225 }
@@ -721,7 +791,7 @@ const ITINERARY_v3 = {
     category: "Kawah Ijen Nature Reserve",
     avatar: "⛏️",
     speaker: "PAK PENAMBANG KAWAH IJEN",
-    dialogue: "\"Trekking dini hari hanya 200m dari Iglam! Api biru menyala abadi di bibir danau toska. Wajib pasang masker gas respirator!\"",
+    dialogue: "Trekking dini hari hanya 200m dari Iglam! Api biru menyala abadi di bibir danau toska. Wajib pasang masker gas respirator!",
     rating: "★ 4.7 (5.2k ulasan)",
     almanac: "<b>Trekking Ikonik Dunia:</b> Akses langsung dari Iglam Glamping (hanya 200m ke gerbang tiket Paltuding). Fenomena api biru danau kawah asam dunia.",
     pos: { x: 55, y: 115 }
@@ -735,7 +805,7 @@ const ITINERARY_v3 = {
     category: "Iglam Blue Fire Ijen Resto",
     avatar: "👨‍🍳",
     speaker: "KOKI IGLAM RESTO",
-    dialogue: "\"Setelah turun dari puncak, mandi air hangat di kabin lalu nikmati sarapan hangat teh/kopi lereng gunung!\"",
+    dialogue: "Setelah turun dari puncak, mandi air hangat di kabin lalu nikmati sarapan hangat teh/kopi lereng gunung!",
     rating: "★ 4.9 (Kabin Resto)",
     almanac: "<b>Pemulihan Energi:</b> Sarapan hangat teh/kopi dan mandi air hangat di kabin glamping untuk memulihkan stamina petualang.",
     pos: { x: 85, y: 265 }
@@ -749,7 +819,7 @@ const ITINERARY_v3 = {
     category: "[Wisata Baru] Sendang Seruni & Batu Ampar",
     avatar: "💧",
     speaker: "PEMANDU SENDANG SERUNI",
-    dialogue: "\"Ayo basuh wajah dan berendam! Air kolam mata air alami pegunungan ini sangat jernih dan dikelilingi rimbun rumpun bambu!\"",
+    dialogue: "Ayo basuh wajah dan berendam! Air kolam mata air alami pegunungan ini sangat jernih dan dikelilingi rimbun rumpun bambu!",
     rating: "★ 4.6 & ★ 4.5",
     almanac: "<b>[Wisata Baru]:</b> Kawasan Licin. Berendam di kolam mata air alami pegunungan yang jernih di rimbun bambu pedesaan.",
     pos: { x: 155, y: 155 }
@@ -763,7 +833,7 @@ const ITINERARY_v3 = {
     category: "[Kuliner Baru] Rujak Soto Mbok Mus",
     avatar: "👩‍🍳",
     speaker: "MBOK MUS (KULINER DADAPAN)",
-    dialogue: "\"Cicipi perpaduan unik rujak cingur petis khas Banyuwangi diguyur kuah soto babat daging sapi gurih panas!\"",
+    dialogue: "Cicipi perpaduan unik rujak cingur petis khas Banyuwangi diguyur kuah soto babat daging sapi gurih panas!",
     rating: "★ 4.4 (182 ulasan)",
     almanac: "<b>[Kuliner Baru]:</b> Kombinasi unik rujak cingur petis khas Banyuwangi diguyur kuah soto gurih hangat legendaris.",
     pos: { x: 315, y: 245 }
@@ -777,7 +847,7 @@ const ITINERARY_v3 = {
     category: "Pantai Grand Watudodol",
     avatar: "🌴",
     speaker: "PENJAGA PANTAI GWD",
-    dialogue: "\"Sunset sore Pantai Grand Watudodol! Angin sore semilir, deretan pohon kelapa pantai, dan pemandangan Selat Bali!\"",
+    dialogue: "Sunset sore Pantai Grand Watudodol! Angin sore semilir, deretan pohon kelapa pantai, dan pemandangan Selat Bali!",
     rating: "★ 4.4 (677 ulasan)",
     almanac: "<b>Sunset Pesisir:</b> Pemandangan Selat Bali, deretan pohon kelapa dan angin sore dengan latar feri penyeberangan Ketapang-Gilimanuk.",
     pos: { x: 410, y: 105 }
@@ -791,7 +861,7 @@ const ITINERARY_v3 = {
     category: "Avrila Cafe & Resto Tamansari",
     avatar: "🎸",
     speaker: "HOST AVRILA TAMANSARI",
-    dialogue: "\"Makan malam santai dengan api unggun di lereng Tamansari sebelum kembali istirahat di kabin Iglam!\"",
+    dialogue: "Makan malam santai dengan api unggun di lereng Tamansari sebelum kembali istirahat di kabin Iglam!",
     rating: "★ 4.4 (Tamansari)",
     almanac: "<b>Makan Malam Pegunungan:</b> Makan malam santai, api unggun dan istirahat menenangkan di lereng sejuk Tamansari.",
     pos: { x: 230, y: 165 }
@@ -805,7 +875,7 @@ const ITINERARY_v3 = {
     category: "Desa Adat Osing Kemiren",
     avatar: "👵",
     speaker: "TETUA ADAT KEMIREN",
-    dialogue: "\"Sugeng rawuh! Mari melihat rumah adat tradisional Osing Tikel Balung dan tradisi sangrai kopi wajan tanah liat!\"",
+    dialogue: "Sugeng rawuh! Mari melihat rumah adat tradisional Osing Tikel Balung dan tradisi sangrai kopi wajan tanah liat!",
     rating: "★ 4.8 (115 ulasan)",
     almanac: "<b>Heritage Budaya Osing:</b> Melihat rumah adat tradisional Osing dan tradisi sangrai kopi wajan tanah liat yang harum.",
     pos: { x: 195, y: 125 }
@@ -819,7 +889,7 @@ const ITINERARY_v3 = {
     category: "[Kuliner Baru] Rujak Soto Losari No. 39",
     avatar: "👨‍🍳",
     speaker: "PAK SOTO LOSARI",
-    dialogue: "\"Makan siang awal sebelum pulang! Rujak Soto Losari No. 39 di Kepatihan ini kuliner legendaris wajib coba!\"",
+    dialogue: "Makan siang awal sebelum pulang! Rujak Soto Losari No. 39 di Kepatihan ini kuliner legendaris wajib coba!",
     rating: "★ 4.4 (322 ulasan)",
     almanac: "<b>[Kuliner Baru]:</b> Pusat kota Kepatihan. Kuliner legendaris wajib sebelum kepulangan ke kota asal.",
     pos: { x: 275, y: 145 }
@@ -833,7 +903,7 @@ const ITINERARY_v3 = {
     category: "Pusat Oleh-Oleh Osing Khas Banyuwangi",
     avatar: "🎁",
     speaker: "KASIR PUSAT OLEH-OLEH",
-    dialogue: "\"Kue Bagiak renyah, sale pisang manis, dan bubuk kopi Osing kemasan sudah siap dibungkus buat keluarga di rumah!\"",
+    dialogue: "Kue Bagiak renyah, sale pisang manis, dan bubuk kopi Osing kemasan sudah siap dibungkus buat keluarga di rumah!",
     rating: "Pusat Oleh-Oleh Resmi",
     almanac: "<b>Buah Tangan Banyuwangi:</b> Membeli Bagiak, Sale Pisang, dan Kopi Osing kemasan sebagai buah tangan perjalanan.",
     pos: { x: 335, y: 100 }
@@ -847,7 +917,7 @@ const ITINERARY_v3 = {
     category: "Stasiun Ketapang (Banyuwangi)",
     avatar: "👋",
     speaker: "PETUGAS KERETA BLAMBANGAN",
-    dialogue: "\"Tiba di stasiun jam 14:00 sesuai standar. KA Blambangan Ekspres siap berangkat jam 15:50 WIB menuju Jakarta Pasarsenen!\"",
+    dialogue: "Tiba di stasiun jam 14:00 sesuai standar. KA Blambangan Ekspres siap berangkat jam 15:50 WIB menuju Jakarta Pasarsenen!",
     rating: "GAPEKA 15:50 WIB",
     almanac: "<b>Drop-off & Boarding:</b> Tiba di stasiun jam 14:00 (standar Yukbanyuwangi). KA Blambangan Ekspres berangkat jam 15:50 WIB menuju Jakarta. Trip 3H2M tuntas berkesan!",
     pos: { x: 395, y: 30 }
@@ -868,6 +938,130 @@ const almanacContent = document.getElementById('almanac-content');
 const ratingBadge = document.getElementById('rating-badge');
 const heartsDisplay = document.getElementById('hearts-display');
 const questContainer = document.getElementById('quest-list-container');
+
+// ─── INTERACTIVE PAN & PINCH-TO-ZOOM ENGINE ───
+const mapCanvas = document.getElementById('map-canvas');
+const mapWorld = document.getElementById('map-world');
+const zoomBadge = document.getElementById('zoom-badge');
+
+let scale = 1.0;
+const minScale = 0.65;
+const maxScale = 2.5;
+
+let panX = 0;
+let panY = 0;
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+
+let initialTouchDist = null;
+let initialTouchScale = 1.0;
+
+function updateTransform(smooth = false) {
+  if (smooth) {
+    mapWorld.classList.add('smooth-transition');
+    setTimeout(() => mapWorld.classList.remove('smooth-transition'), 380);
+  } else {
+    mapWorld.classList.remove('smooth-transition');
+  }
+  mapWorld.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+  zoomBadge.textContent = Math.round(scale * 100) + '%';
+}
+
+function zoomIn() {
+  scale = Math.min(maxScale, Number((scale + 0.25).toFixed(2)));
+  centerOnHero(true);
+}
+
+function zoomOut() {
+  scale = Math.max(minScale, Number((scale - 0.25).toFixed(2)));
+  centerOnHero(true);
+}
+
+function centerOnHero(smooth = true) {
+  const d = ITINERARY_v3[currentStep];
+  const rect = mapCanvas.getBoundingClientRect();
+  const cWidth = rect.width || 460;
+  const cHeight = rect.height || 480;
+
+  // Center camera on hero position (d.pos.x, d.pos.y)
+  panX = Math.round((cWidth / 2) - (d.pos.x * scale));
+  panY = Math.round((cHeight / 2) - (d.pos.y * scale));
+  updateTransform(smooth);
+}
+
+// Mouse Drag Events
+mapCanvas.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.map-floating-controls')) return;
+  isDragging = true;
+  startX = e.clientX - panX;
+  startY = e.clientY - panY;
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  panX = e.clientX - startX;
+  panY = e.clientY - startY;
+  updateTransform(false);
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+// Mouse Wheel Zoom
+mapCanvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.15 : -0.15;
+  const oldScale = scale;
+  scale = Math.min(maxScale, Math.max(minScale, Number((scale + delta).toFixed(2))));
+  
+  const rect = mapCanvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  panX -= (mouseX - panX) * (scale / oldScale - 1);
+  panY -= (mouseY - panY) * (scale / oldScale - 1);
+  updateTransform(false);
+}, { passive: false });
+
+// Mobile Touch Events (1 Finger Pan & 2 Fingers Pinch Zoom)
+mapCanvas.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.map-floating-controls')) return;
+  if (e.touches.length === 1) {
+    isDragging = true;
+    startX = e.touches[0].clientX - panX;
+    startY = e.touches[0].clientY - panY;
+    initialTouchDist = null;
+  } else if (e.touches.length === 2) {
+    isDragging = false;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    initialTouchDist = Math.hypot(dx, dy);
+    initialTouchScale = scale;
+  }
+}, { passive: false });
+
+mapCanvas.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1 && isDragging) {
+    panX = e.touches[0].clientX - startX;
+    panY = e.touches[0].clientY - startY;
+    updateTransform(false);
+  } else if (e.touches.length === 2 && initialTouchDist) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const currentDist = Math.hypot(dx, dy);
+    const distRatio = currentDist / initialTouchDist;
+    scale = Math.min(maxScale, Math.max(minScale, Number((initialTouchScale * distRatio).toFixed(2))));
+    updateTransform(false);
+  }
+}, { passive: false });
+
+mapCanvas.addEventListener('touchend', (e) => {
+  if (e.touches.length === 0) {
+    isDragging = false;
+    initialTouchDist = null;
+  }
+});
 
 // Render Quest Log List
 function renderQuestLog() {
@@ -926,6 +1120,7 @@ function goToStep(step) {
 
   // Update Tab Styling
   updateFilterTabStyle(d.day);
+  centerOnHero(true);
 }
 
 function nextStep() {
