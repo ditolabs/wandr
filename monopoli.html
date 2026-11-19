@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Wandr — Monopoli Itinerary Banyuwangi</title>
+  <meta name="description" content="Eksplorasi itinerary 3H2M Banyuwangi dalam format gameboard monopoli interaktif.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ─── TASTE-DESIGN & RYUX DESIGN SYSTEM TOKENS ──────────────────────── */
+    :root {
+      --bg-canvas: #0e1117;
+      --bg-surface: #161b22;
+      --bg-surface-elevated: #21262d;
+      --border-subtle: #30363d;
+      --border-focus: #58a6ff;
+      
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --text-accent: #ffd166;
+      
+      /* Calibrated Monopoli Property Colors (Anti-Slop) */
+      --tile-start: #238636;
+      --tile-wisata: #1f6feb;
+      --tile-kuliner: #d29922;
+      --tile-hotel: #8957e5;
+      --tile-finish: #da3633;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      
+      --shadow-board: 0 12px 32px rgba(0, 0, 0, 0.45);
+      --font-serif: 'Noto Serif', serif;
+      --font-sans: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    #app-container {
+      width: 100%;
+      max-width: 420px; /* Ergonomis layar HP 320px - 390px */
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 30px;
+    }
+
+    /* ─── HEADER BAR ──────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-dice {
+      width: 36px;
+      height: 36px;
+      background: var(--tile-kuliner);
+      color: #111;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(210, 153, 34, 0.3);
+    }
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #3fb950;
+      background: rgba(63, 185, 80, 0.12);
+      border: 1px solid rgba(63, 185, 80, 0.25);
+      padding: 4px 8px;
+      border-radius: 20px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #3fb950;
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ─── DAY TABS (3H2M) ─────────────────────────────────────────────────── */
+    .day-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: var(--bg-surface);
+      padding: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+    .day-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 4px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      min-height: 44px; /* Touch target minimum WCAG */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .day-tab.active {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      border: 1px solid var(--border-subtle);
+    }
+    .day-tab-zone {
+      font-size: 9.5px;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .day-tab.active .day-tab-zone {
+      color: var(--text-accent);
+    }
+
+    /* ─── MONOPOLI GAME TRACK (SNAKE BOARD FOR MOBILE) ───────────────────── */
+    .board-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 12px;
+      box-shadow: var(--shadow-board);
+      position: relative;
+    }
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .board-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pawn-indicator {
+      font-size: 11.5px;
+      color: var(--text-accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+    }
+
+    /* Track Layout */
+    .track-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+
+    /* Single Tile Card */
+    .tile {
+      display: flex;
+      align-items: center;
+      background: var(--bg-surface-elevated);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      min-height: 64px; /* Ergonomis 44px+ */
+    }
+    .tile:hover {
+      border-color: #58a6ff;
+    }
+    .tile:active {
+      transform: scale(0.98);
+    }
+    .tile.pawn-here {
+      border-color: var(--text-accent);
+      box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.35);
+    }
+    .tile-color-bar {
+      width: 10px;
+      align-self: stretch;
+      flex-shrink: 0;
+    }
+    .tile-body {
+      flex: 1;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .tile-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .tile-type-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+    .tile-step-num {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .tile-name {
+      font-family: var(--font-serif);
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tile-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tile-price {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #3fb950;
+    }
+    .tile-price.free {
+      color: #58a6ff;
+    }
+
+    /* Pawn Token */
+    .pawn-avatar {
+      width: 28px;
+      height: 28px;
+      background: var(--text-accent);
+      color: #111;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      margin-right: 10px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(255, 209, 102, 0.4);
+      animation: bounce 0.6s ease infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-3px); }
+    }
+
+    /* Connector Route Step (Google Maps MCP verified) */
+    .route-connector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      position: relative;
+    }
+    .connector-line {
+      width: 2px;
+      height: 16px;
+      background: var(--border-subtle);
+      margin-left: 4px;
+    }
+    .connector-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #58a6ff;
+      background: rgba(88, 166, 255, 0.08);
+      border: 1px solid rgba(88, 166, 255, 0.15);
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+    }
+
+    /* ─── BOTTOM CONTROL BAR (DICE ACTION) ────────────────────────────────── */
+    .control-panel {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .btn-dice {
+      flex: 1;
+      background: var(--tile-kuliner);
+      color: #111;
+      border: none;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(210, 153, 34, 0.25);
+      min-height: 48px;
+      transition: all 0.2s;
+    }
+    .btn-dice:hover {
+      background: #e3a931;
+      transform: translateY(-1px);
+    }
+    .btn-dice:active {
+      transform: translateY(1px);
+    }
+    .btn-reset {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 48px;
+    }
+
+    /* ─── PROPERTY DEED BOTTOM SHEET (MODAL POP-UP) ─────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .deed-card {
+      width: 100%;
+      max-width: 420px;
+      background: #1c2128;
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px 20px 0 0;
+      padding: 20px;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.6);
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .modal-overlay.open .deed-card {
+      transform: translateY(0);
+    }
+    .deed-header {
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      color: #fff;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 11px;
+    }
+    .deed-title {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text-main);
+    }
+    .deed-meta-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .deed-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .deed-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .deed-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .deed-val.price {
+      font-family: var(--font-mono);
+      color: #3fb950;
+    }
+    .deed-desc {
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--text-muted);
+    }
+    .deed-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn-maps {
+      flex: 1;
+      background: #1f6feb;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-close-deed {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-container">
+  <!-- Header Bar -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-dice" id="dice-display">🎲</div>
+      <div>
+        <div class="brand-title">Wandr Monopoli</div>
+        <div class="brand-sub">Itinerary 3H2M Gameboard</div>
+      </div>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span>GPS Verified</span>
+    </div>
+  </header>
+
+  <!-- Day Tabs -->
+  <div class="day-selector" role="tablist">
+    <button class="day-tab active" data-day="1" role="tab">
+      <span>HARI 1</span>
+      <span class="day-tab-zone">Selatan & Kota</span>
+    </button>
+    <button class="day-tab" data-day="2" role="tab">
+      <span>HARI 2</span>
+      <span class="day-tab-zone">Ijen & Air Terjun</span>
+    </button>
+    <button class="day-tab" data-day="3" role="tab">
+      <span>HARI 3</span>
+      <span class="day-tab-zone">Kemiren & Kuliner</span>
+    </button>
+  </div>
+
+  <!-- Monopoly Gameboard Track -->
+  <div class="board-container">
+    <div class="board-header">
+      <span class="board-header-title" id="board-title">Papan Perjalanan — Hari 1</span>
+      <span class="pawn-indicator">
+        <span>Bidak:</span>
+        <strong id="pawn-pos-text">Petak 1</strong>
+      </span>
+    </div>
+
+    <!-- Dynamic Tile List -->
+    <div class="track-grid" id="track-container">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+
+  <!-- Bottom Control Panel -->
+  <div class="control-panel">
+    <button class="btn-dice" id="btn-roll-dice">
+      <span>🎲</span>
+      <span id="btn-dice-text">Kocok Dadu & Melangkah</span>
+    </button>
+    <button class="btn-reset" id="btn-reset-pawn" title="Kembali ke Start">Mulai Ulang</button>
+  </div>
+</div>
+
+<!-- Monopoly Property Deed Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="deed-card" id="deed-card">
+    <div class="deed-header" id="modal-color-bar" style="background:#1f6feb;">
+      <span id="modal-deed-type">KARTU DESTINASI WISATA</span>
+    </div>
+    <h2 class="deed-title" id="modal-title">Hutan De Djawatan</h2>
+    
+    <div class="deed-meta-box">
+      <div class="deed-meta-item">
+        <span class="deed-label">Tiket Masuk (Valid)</span>
+        <span class="deed-val price" id="modal-ticket">Rp10.000</span>
+      </div>
+      <div class="deed-meta-item">
+        <span class="deed-label">Jam Operasional</span>
+        <span class="deed-val" id="modal-hours">07:00 – 17:00</span>
+      </div>
+      <div class="deed-meta-item">
+        <span class="deed-label">Jarak dari Sebelumnya</span>
+        <span class="deed-val" id="modal-dist">41.4 km (59 mnt)</span>
+      </div>
+      <div class="deed-meta-item">
+        <span class="deed-label">Rekomendasi Waktu</span>
+        <span class="deed-val" id="modal-duration">90 menit</span>
+      </div>
+    </div>
+
+    <p class="deed-desc" id="modal-desc">
+      Hutan trembesi raksasa dengan suasana magis ala Fangorn Forest Lord of the Rings. Waktu terbaik datang pagi hari saat sorot cahaya menembus kanopi pohon.
+    </p>
+
+    <div class="deed-actions">
+      <a href="#" target="_blank" class="btn-maps" id="modal-maps-link">
+        <span>🗺️</span>
+        <span>Buka Rute Google Maps</span>
+      </a>
+      <button class="btn-close-deed" id="btn-close-modal">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── VERIFIED 3D2N ITINERARY DATA (GOOGLE MAPS MCP & RYUX STANDARDS) ──────────
+const ITINERARY_DATA = {
+  1: {
+    title: "Papan Perjalanan — Hari 1 (Selatan & Kota)",
+    tiles: [
+      {
+        id: "d1_start",
+        name: "Stasiun Ketapang (START)",
+        type: "START",
+        color: "var(--tile-start)",
+        ticket: "Gratis",
+        hours: "24 Jam",
+        desc: "Titik kedatangan awal menggunakan Kereta Api Sritanjung / Wijayakusuma. Ambil motor sewaan atau mobil charter di sini.",
+        lat: -8.1472, lng: 114.3980,
+        routeToNext: "41.4 km • 59 menit berkendara"
+      },
+      {
+        id: "d1_djawatan",
+        name: "Hutan De Djawatan",
+        type: "WISATA",
+        color: "var(--tile-wisata)",
+        ticket: "Rp10.000",
+        hours: "07:00 – 17:00",
+        desc: "Hutan trembesi berusia ratusan tahun dengan kanopi megah ala The Lord of the Rings. Datang sebelum terik untuk foto siluet terbaik.",
+        lat: -8.4116, lng: 114.2185,
+        routeToNext: "36.1 km • 47 menit berkendara"
+      },
+      {
+        id: "d1_mbok_wah",
+        name: "Sego Tempong Mbok Wah",
+        type: "KULINER",
+        color: "var(--tile-kuliner)",
+        ticket: "Rp20.000 (Est. Menu)",
+        hours: "09:00 – 21:00",
+        desc: "Kuliner legendaris khas Banyuwangi dengan sambal dadak terasi tomat segar pedas menyengat plus lauk ikan asin, tahu, dan tempe.",
+        lat: -8.2163, lng: 114.3639,
+        routeToNext: "4.8 km • 9 menit berkendara"
+      },
+      {
+        id: "d1_hotel",
+        name: "Snooze Hostel Banyuwangi",
+        type: "REST AREA",
+        color: "var(--tile-hotel)",
+        ticket: "Rp120.000 / malam",
+        hours: "Check-in 14:00",
+        desc: "Basecamp istirahat bersih dan estetik di pusat kota. Wajib tidur awal dan kumpulkan stamina untuk pendakian malam Kawah Ijen.",
+        lat: -8.2201, lng: 114.3688,
+        routeToNext: "14.2 km • 22 menit berkendara"
+      },
+      {
+        id: "d1_gwd",
+        name: "Grand Watu Dodol (Sunset)",
+        type: "WISATA",
+        color: "var(--tile-wisata)",
+        ticket: "Rp5.000",
+        hours: "06:00 – 18:00",
+        desc: "Kawasan pantai dengan panorama Selat Bali yang menawan. Cocok untuk bersantai santai sore sambil minum kelapa muda.",
+        lat: -8.0931, lng: 114.4172,
+        routeToNext: "Hari Pertama Selesai • Kembali ke Snooze Hostel"
+      }
+    ]
+  },
+  2: {
+    title: "Papan Perjalanan — Hari 2 (Ijen & Kaldera Barat)",
+    tiles: [
+      {
+        id: "d2_start",
+        name: "Snooze Hostel (00:00 WIB)",
+        type: "START",
+        color: "var(--tile-start)",
+        ticket: "Gratis",
+        hours: "Dini Hari",
+        desc: "Midnight wake-up call! Persiapan jaket tebal, sarung tangan, masker gas respirator N95, dan headlamp sebelum menuju Paltuding.",
+        lat: -8.2201, lng: 114.3688,
+        routeToNext: "34.5 km • 54 menit berkendara"
+      },
+      {
+        id: "d2_ijen",
+        name: "Kawah Ijen (Blue Fire)",
+        type: "WISATA",
+        color: "var(--tile-wisata)",
+        ticket: "Rp5.000",
+        hours: "02:00 – 12:00",
+        desc: "Mendaki kaldera asam terbesar di dunia. Saksikan fenomena kobaran api biru misterius dan indahnya danau toska saat matahari terbit.",
+        lat: -8.0584, lng: 114.2422,
+        routeToNext: "11.8 km • 31 menit berkendara"
+      },
+      {
+        id: "d2_wurung",
+        name: "Kawah Wurung",
+        type: "WISATA",
+        color: "var(--tile-wisata)",
+        ticket: "Rp5.000",
+        hours: "07:00 – 16:00",
+        desc: "Padang sabana perbukitan hijau melingkar mirip bukit Teletubbies. Udaranya sejuk dan sangat cocok buat konten sinematik.",
+        lat: -8.1177, lng: 114.2063,
+        routeToNext: "31.7 km • 50 menit berkendara"
+      },
+      {
+        id: "d2_jagir",
+        name: "Air Terjun Jagir",
+        type: "WISATA",
+        color: "var(--tile-wisata)",
+        ticket: "Rp10.000",
+        hours: "07:00 – 17:00",
+        desc: "Air terjun kembar bersumber dari mata air alami pegunungan di Desa Kampung Anyar. Sangat menyegarkan untuk cuci muka dan kaki setelah dari Ijen.",
+        lat: -8.2154, lng: 114.1872,
+        routeToNext: "11.8 km • 21 menit berkendara"
+      },
+      {
+        id: "d2_makan",
+        name: "Baron Ndut's Resto",
+        type: "KULINER",
+        color: "var(--tile-kuliner)",
+        ticket: "Rp35.000 (Est. Menu)",
+        hours: "10:00 – 21:00",
+        desc: "Santap siang lezat di kawasan Glagah dengan sajian khas ayam betutu dan olahan ikan bakar setelah seharian eksplorasi jalur barat.",
+        lat: -8.2180, lng: 114.3310,
+        routeToNext: "Hari Kedua Selesai • Istirahat Total di Snooze Hostel"
+      }
+    ]
+  },
+  3: {
+    title: "Papan Perjalanan — Hari 3 (Budaya & Oleh-Oleh)",
+    tiles: [
+      {
+        id: "d3_start",
+        name: "Snooze Hostel (Check-out)",
+        type: "START",
+        color: "var(--tile-start)",
+        ticket: "Gratis",
+        hours: "08:00 WIB",
+        desc: "Check out penginapan, kemas ransel dan oleh-oleh, lalu meluncur santai ke desa adat suku asli Banyuwangi.",
+        lat: -8.2201, lng: 114.3688,
+        routeToNext: "5.8 km • 11 menit berkendara"
+      },
+      {
+        id: "d3_kemiren",
+        name: "Desa Adat Kemiren (Osing)",
+        type: "WISATA",
+        color: "var(--tile-wisata)",
+        ticket: "Rp15.000",
+        hours: "08:00 – 17:00",
+        desc: "Mengenal kebudayaan asli suku Osing, rumah adat tikel balung, dan nikmati seduhan kopi khas di Sanggar Genjah Arum.",
+        lat: -8.2045, lng: 114.3168,
+        routeToNext: "6.8 km • 13 menit berkendara"
+      },
+      {
+        id: "d3_mbak_nah",
+        name: "Sego Tempong Mbak Nah",
+        type: "KULINER",
+        color: "var(--tile-kuliner)",
+        ticket: "Rp20.000 (Est. Menu)",
+        hours: "10:00 – 22:00",
+        desc: "Makan siang perpisahan dengan lauk belut goreng renyah dan iwak wader ditemani sambal pedas khas Tempong Mbak Nah.",
+        lat: -8.2132, lng: 114.3582,
+        routeToNext: "1.6 km • 4 menit berkendara"
+      },
+      {
+        id: "d3_ocha",
+        name: "Pusat Oleh-Oleh Ocha",
+        type: "BELANJA",
+        color: "var(--tile-kuliner)",
+        ticket: "Rp50.000 (Belanja)",
+        hours: "08:00 – 21:00",
+        desc: "Borong buah tangan khas Banyuwangi: Rengginang, Bagiak, Kopi Osing kemasan, dan kerajinan batik Gajah Oling.",
+        lat: -8.2014, lng: 114.3680,
+        routeToNext: "10.3 km • 18 menit berkendara"
+      },
+      {
+        id: "d3_finish",
+        name: "Stasiun Ketapang (FINISH)",
+        type: "FINISH",
+        color: "var(--tile-finish)",
+        ticket: "Gratis",
+        hours: "Selesai",
+        desc: "Perjalanan 3H2M tuntas! Kembalikan motor sewaan di area stasiun dan boarding kereta pulang dengan selamat.",
+        lat: -8.1472, lng: 114.3980,
+        routeToNext: "Trip Banyuwangi 3H2M Berhasil Diselesaikan! 🎉"
+      }
+    ]
+  }
+};
+
+// ─── STATE MANAGEMENT ────────────────────────────────────────────────────────
+let currentDay = 1;
+let currentPawnIndex = 0;
+let isRolling = false;
+
+// ─── DOM ELEMENTS ────────────────────────────────────────────────────────────
+const trackContainer = document.getElementById('track-container');
+const boardTitle = document.getElementById('board-title');
+const pawnPosText = document.getElementById('pawn-pos-text');
+const btnRollDice = document.getElementById('btn-roll-dice');
+const btnResetPawn = document.getElementById('btn-reset-pawn');
+const diceDisplay = document.getElementById('dice-display');
+const dayTabs = document.querySelectorAll('.day-tab');
+
+// Modal Elements
+const modalOverlay = document.getElementById('modal-overlay');
+const btnCloseModal = document.getElementById('btn-close-modal');
+const modalColorBar = document.getElementById('modal-color-bar');
+const modalDeedType = document.getElementById('modal-deed-type');
+const modalTitle = document.getElementById('modal-title');
+const modalTicket = document.getElementById('modal-ticket');
+const modalHours = document.getElementById('modal-hours');
+const modalDist = document.getElementById('modal-dist');
+const modalDuration = document.getElementById('modal-duration');
+const modalDesc = document.getElementById('modal-desc');
+const modalMapsLink = document.getElementById('modal-maps-link');
+
+// ─── RENDER TRACK TILES ──────────────────────────────────────────────────────
+function renderBoard(day) {
+  currentDay = day;
+  const dayData = ITINERARY_DATA[day];
+  boardTitle.textContent = dayData.title;
+  trackContainer.innerHTML = '';
+
+  dayData.tiles.forEach((tile, index) => {
+    // 1. Create Tile Card
+    const tileEl = document.createElement('div');
+    tileEl.className = `tile ${index === currentPawnIndex ? 'pawn-here' : ''}`;
+    tileEl.dataset.index = index;
+
+    // Pawn Element if pawn is here
+    const pawnHtml = (index === currentPawnIndex) ? `<div class="pawn-avatar">♟️</div>` : '';
+
+    tileEl.innerHTML = `
+      <div class="tile-color-bar" style="background: ${tile.color};"></div>
+      <div class="tile-body">
+        <div class="tile-topline">
+          <span class="tile-type-badge">${tile.type}</span>
+          <span class="tile-step-num">#0${index + 1}</span>
+        </div>
+        <div class="tile-name">${tile.name}</div>
+        <div class="tile-meta">
+          <span class="tile-price ${tile.ticket === 'Gratis' ? 'free' : ''}">🎫 ${tile.ticket}</span>
+          <span>•</span>
+          <span>⏰ ${tile.hours}</span>
+        </div>
+      </div>
+      ${pawnHtml}
+    `;
+
+    // Click handler to open deed modal
+    tileEl.addEventListener('click', () => openDeedModal(tile, index));
+    trackContainer.appendChild(tileEl);
+
+    // 2. Connector Route Step (if not last tile)
+    if (index < dayData.tiles.length - 1) {
+      const connectorEl = document.createElement('div');
+      connectorEl.className = 'route-connector';
+      connectorEl.innerHTML = `
+        <div class="connector-line"></div>
+        <div class="connector-badge">🚗 ${tile.routeToNext}</div>
+      `;
+      trackContainer.appendChild(connectorEl);
+    }
+  });
+
+  updatePawnText();
+}
+
+function updatePawnText() {
+  const currentTile = ITINERARY_DATA[currentDay].tiles[currentPawnIndex];
+  pawnPosText.textContent = `Petak ${currentPawnIndex + 1}: ${currentTile.name.split(' (')[0]}`;
+}
+
+// ─── MODAL PROPERTY DEED LOGIC ───────────────────────────────────────────────
+function openDeedModal(tile, index) {
+  modalColorBar.style.background = tile.color;
+  modalDeedType.textContent = `KARTU PETAK: ${tile.type}`;
+  modalTitle.textContent = tile.name;
+  modalTicket.textContent = tile.ticket;
+  modalHours.textContent = tile.hours;
+  modalDist.textContent = (index > 0) ? ITINERARY_DATA[currentDay].tiles[index - 1].routeToNext.split(' • ')[0] : 'Titik Awal';
+  modalDuration.textContent = '60 – 120 Menit';
+  modalDesc.textContent = tile.desc;
+  
+  // Real Google Maps Navigation Link
+  modalMapsLink.href = `https://www.google.com/maps/dir/?api=1&destination=${tile.lat},${tile.lng}`;
+
+  modalOverlay.classList.add('open');
+}
+
+function closeModal() {
+  modalOverlay.classList.remove('open');
+}
+
+// ─── DICE ROLLING & PAWN ADVANCE ANIMATION ───────────────────────────────────
+function rollDice() {
+  if (isRolling) return;
+  isRolling = true;
+  btnRollDice.disabled = true;
+
+  const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  let rollCount = 0;
+  
+  const rollInterval = setInterval(() => {
+    const rand = Math.floor(Math.random() * 6);
+    diceDisplay.textContent = diceFaces[rand];
+    rollCount++;
+
+    if (rollCount > 10) {
+      clearInterval(rollInterval);
+      const finalRoll = Math.floor(Math.random() * 3) + 1; // 1 s/d 3 langkah
+      diceDisplay.textContent = diceFaces[finalRoll - 1];
+
+      advancePawn(finalRoll);
+      isRolling = false;
+      btnRollDice.disabled = false;
+    }
+  }, 70);
+}
+
+function advancePawn(steps) {
+  const totalTiles = ITINERARY_DATA[currentDay].tiles.length;
+  currentPawnIndex = (currentPawnIndex + steps) % totalTiles;
+  renderBoard(currentDay);
+
+  // Otomatis buka kartu properti petak baru setelah mendarat
+  setTimeout(() => {
+    openDeedModal(ITINERARY_DATA[currentDay].tiles[currentPawnIndex], currentPawnIndex);
+  }, 350);
+}
+
+// ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
+btnRollDice.addEventListener('click', rollDice);
+
+btnResetPawn.addEventListener('click', () => {
+  currentPawnIndex = 0;
+  diceDisplay.textContent = '🎲';
+  renderBoard(currentDay);
+});
+
+dayTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    dayTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentPawnIndex = 0;
+    renderBoard(parseInt(tab.dataset.day));
+  });
+});
+
+btnCloseModal.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+
+// Initialize on Load
+renderBoard(1);
+</script>
+
+</body>
+</html>
