@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PAPAN WISATA | Banyuwangi — Tur Pribadi Masdit</title>
-  <meta name="description" content="Itinerary 3H2M Banyuwangi dalam format visual Gameboard Monopoli kronologis persis seperti video referensi.">
+  <meta name="description" content="Itinerary 3H2M Banyuwangi dalam format visual Gameboard Monopoli kronologis dengan animasi fisika bidak melompat halus (60 FPS).">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
@@ -130,12 +130,18 @@
       }
     }
 
-    /* ─── LEFT COLUMN: KARTU DESTINASI ─────────────────────────────────── */
+    /* ─── LEFT COLUMN: KARTU DESTINASI WITH SMOOTH FADE ─────────────────── */
     .dest-column {
       display: flex;
       flex-direction: column;
       gap: 14px;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
     }
+    .dest-column.card-switching {
+      opacity: 0.2;
+      transform: translateY(6px);
+    }
+
     .dest-header-tag {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -161,7 +167,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: opacity 0.25s ease;
+      transition: transform 0.4s ease, opacity 0.25s ease;
     }
     .dest-badge-tag {
       position: absolute;
@@ -193,6 +199,7 @@
       font-weight: 700;
       padding: 4px 14px;
       border-radius: 20px;
+      transition: background 0.3s ease;
     }
     .pill-category {
       font-family: var(--font-mono);
@@ -260,10 +267,14 @@
       position: relative;
       cursor: pointer;
       user-select: none;
-      transition: background 0.15s;
+      transition: background 0.2s, box-shadow 0.2s;
     }
     .tile:hover {
       background: #f1ebd8;
+    }
+    .tile.active-dest {
+      background: #fff6df !important;
+      box-shadow: inset 0 0 0 2px var(--retro-red);
     }
     .tile-header-bar {
       width: 100%;
@@ -325,36 +336,68 @@
       letter-spacing: 0.05em;
     }
 
-    /* Bidak Pion Pemandu & Masdit */
+    /* ─── BIDAK PION INTERAKTIF DENGAN FISIKA HOPPING ───────────────────── */
     .pawn-token {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 38px;
-      height: 38px;
-      background: #fff;
+      width: 40px;
+      height: 40px;
+      background: #ffffff;
       border: 2px solid var(--border-dark);
       border-radius: 50%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.28);
       z-index: 10;
-      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
       pointer-events: none;
+      transition: left 0.18s cubic-bezier(0.25, 1, 0.5, 1), top 0.18s cubic-bezier(0.25, 1, 0.5, 1);
     }
+    
+    /* Efek Lompatan Saat Melangkah (Hop) */
+    .pawn-token.hopping {
+      animation: pawnHopJump 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    @keyframes pawnHopJump {
+      0% {
+        transform: translate(-50%, -50%) scale(1) translateY(0);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      }
+      45% {
+        transform: translate(-50%, -50%) scale(1.18) translateY(-16px);
+        box-shadow: 0 16px 22px rgba(0,0,0,0.38);
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1) translateY(0);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      }
+    }
+
+    /* Efek Mendarat Mantul Cantik (Settle Squish) */
+    .pawn-token.settle {
+      animation: pawnSettle 0.35s ease-out;
+    }
+    @keyframes pawnSettle {
+      0% { transform: translate(-50%, -50%) scale(1.22, 0.82); }
+      40% { transform: translate(-50%, -50%) scale(0.92, 1.08); }
+      70% { transform: translate(-50%, -50%) scale(1.05, 0.96); }
+      100% { transform: translate(-50%, -50%) scale(1, 1); }
+    }
+
     .pawn-icon {
-      font-size: 16px;
+      font-size: 17px;
       line-height: 1;
     }
     .pawn-label {
       font-family: var(--font-mono);
-      font-size: 7px;
+      font-size: 7.5px;
       font-weight: 800;
       text-transform: uppercase;
       color: var(--retro-red);
+      letter-spacing: 0.04em;
     }
 
     /* Bagian Tengah Monopoli (Center Stage) */
@@ -373,6 +416,7 @@
       text-align: center;
       cursor: pointer;
       position: relative;
+      transition: background 0.4s ease;
     }
     .board-center.day-2 { background: var(--retro-soft-blue); }
     .board-center.day-3 { background: var(--retro-soft-sand); }
@@ -384,6 +428,7 @@
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--retro-red);
+      transition: color 0.3s ease;
     }
     .center-theme-title {
       font-family: var(--font-serif);
@@ -398,7 +443,10 @@
       font-size: 24px;
       font-style: italic;
       color: var(--retro-red);
+      transition: color 0.3s ease;
     }
+    
+    /* Dadu Interaktif dengan Animasi Kocok */
     .center-dice-box {
       width: 44px;
       height: 44px;
@@ -411,11 +459,23 @@
       font-size: 26px;
       margin-top: 8px;
       box-shadow: 2px 2px 0 var(--border-dark);
-      transition: transform 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      user-select: none;
     }
     .center-dice-box:hover {
-      transform: scale(1.08) rotate(5deg);
+      transform: scale(1.08) rotate(4deg);
     }
+    .center-dice-box.rolling {
+      animation: diceWobbleSpin 0.5s ease-in-out infinite;
+    }
+    @keyframes diceWobbleSpin {
+      0% { transform: scale(1.15) rotate(0deg); }
+      25% { transform: scale(1.22) rotate(14deg) translateY(-3px); }
+      50% { transform: scale(1.18) rotate(-14deg) translateY(2px); }
+      75% { transform: scale(1.24) rotate(8deg) translateY(-2px); }
+      100% { transform: scale(1.15) rotate(0deg); }
+    }
+
     .center-turn-label {
       font-family: var(--font-mono);
       font-size: 9px;
@@ -436,6 +496,10 @@
       align-items: center;
       gap: 12px;
       box-shadow: 2px 2px 0 var(--border-dark);
+      transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    .dialogue-bar.popping {
+      transform: scale(1.02);
     }
     .dialogue-speaker {
       background: var(--retro-teal);
@@ -448,6 +512,7 @@
       padding: 4px 10px;
       border-radius: 20px;
       flex-shrink: 0;
+      transition: background 0.3s ease;
     }
     .dialogue-speaker.masdit {
       background: var(--retro-red);
@@ -476,7 +541,11 @@
       gap: 8px;
       cursor: pointer;
       opacity: 0.45;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.25s ease, transform 0.2s ease;
+    }
+    .timeline-tab:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
     }
     .timeline-tab.active {
       opacity: 1;
@@ -526,6 +595,11 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-maps-route:hover {
+      transform: translateY(-2px);
+      box-shadow: 3px 3px 0 var(--border-dark);
     }
   </style>
 </head>
@@ -550,7 +624,7 @@
   <div class="main-grid">
     
     <!-- Left Column: Kartu Destinasi -->
-    <div class="dest-column">
+    <div class="dest-column" id="dest-column">
       <div class="dest-header-tag" id="card-index-tag">KARTU DESTINASI &nbsp;/&nbsp; 01</div>
       
       <!-- Frame Gambar -->
@@ -574,98 +648,114 @@
 
     <!-- Right Column: Papan Perjalanan Monopoli Kronologis -->
     <div class="board-column">
-      <div class="board-header-tag">PAPAN PERJALANAN</div>
+      <div class="board-header-tag">PAPAN PERJALANAN (KLIK DADU UNTUK JALAN)</div>
 
       <div class="monopoly-board" id="monopoly-board">
-        <!-- ─── PERIMETER TILES (CLOCKWISE DARI MULAI) ─── -->
+        <!-- ─── 16 PERIMETER TILES (SEARAH JARUM JAM DARI MULAI) ─── -->
 
-        <!-- 1. Bottom-Left Corner: MULAI -->
-        <div class="tile" data-dest-id="0" style="grid-column: 1; grid-row: 5;">
+        <!-- Slot 0: Bottom-Left Corner: MULAI -->
+        <div class="tile" id="tile-slot-0" data-dest-id="0" style="grid-column: 1; grid-row: 5;">
           <div class="tile-start-box">
             <div class="tile-start-arrow">▲</div>
             <div class="tile-start-text">MULAI</div>
           </div>
         </div>
 
-        <!-- 2. Going UP along Left Edge (HARI 01) -->
-        <div class="tile" data-dest-id="1" style="grid-column: 1; grid-row: 4;">
+        <!-- Slot 1: 01 KOPER -->
+        <div class="tile" id="tile-slot-1" data-dest-id="1" style="grid-column: 1; grid-row: 4;">
           <div class="tile-header-bar" style="background:var(--retro-red);"></div>
           <div class="tile-num">01</div>
           <div class="tile-name">KOPER</div>
         </div>
-        <div class="tile" style="grid-column: 1; grid-row: 3;">
+
+        <!-- Slot 2: [+] -->
+        <div class="tile" id="tile-slot-2" style="grid-column: 1; grid-row: 3;">
           <div class="tile-chance">+</div>
         </div>
-        <div class="tile" data-dest-id="2" style="grid-column: 1; grid-row: 2;">
+
+        <!-- Slot 3: 02 DJAWATAN -->
+        <div class="tile" id="tile-slot-3" data-dest-id="2" style="grid-column: 1; grid-row: 2;">
           <div class="tile-header-bar" style="background:var(--retro-red);"></div>
           <div class="tile-num">02</div>
           <div class="tile-name">DJAWATAN</div>
         </div>
 
-        <!-- 3. Top-Left Corner -->
-        <div class="tile" style="grid-column: 1; grid-row: 1;">
+        <!-- Slot 4: Top-Left Corner [+] -->
+        <div class="tile" id="tile-slot-4" style="grid-column: 1; grid-row: 1;">
           <div class="tile-chance">+</div>
         </div>
 
-        <!-- 4. Going RIGHT along Top Edge (HARI 01 & HARI 02) -->
-        <div class="tile" data-dest-id="3" style="grid-column: 2; grid-row: 1;">
+        <!-- Slot 5: 03 TEMPONG -->
+        <div class="tile" id="tile-slot-5" data-dest-id="3" style="grid-column: 2; grid-row: 1;">
           <div class="tile-header-bar" style="background:var(--retro-red);"></div>
           <div class="tile-num">03</div>
           <div class="tile-name">TEMPONG</div>
         </div>
-        <div class="tile" data-dest-id="4" style="grid-column: 3; grid-row: 1;">
+
+        <!-- Slot 6: 04 IJEN -->
+        <div class="tile" id="tile-slot-6" data-dest-id="4" style="grid-column: 3; grid-row: 1;">
           <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
           <div class="tile-num">04</div>
           <div class="tile-name">IJEN</div>
         </div>
-        <div class="tile" style="grid-column: 4; grid-row: 1;">
+
+        <!-- Slot 7: [⚂] -->
+        <div class="tile" id="tile-slot-7" style="grid-column: 4; grid-row: 1;">
           <div class="tile-chance teal">⚂</div>
         </div>
 
-        <!-- 5. Top-Right Corner: 05 WURUNG -->
-        <div class="tile" data-dest-id="5" style="grid-column: 5; grid-row: 1;">
+        <!-- Slot 8: Top-Right Corner 05 WURUNG -->
+        <div class="tile" id="tile-slot-8" data-dest-id="5" style="grid-column: 5; grid-row: 1;">
           <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
           <div class="tile-num">05</div>
           <div class="tile-name">WURUNG</div>
         </div>
 
-        <!-- 6. Going DOWN along Right Edge (HARI 02 & HARI 03) -->
-        <div class="tile" style="grid-column: 5; grid-row: 2;">
+        <!-- Slot 9: [⚁] -->
+        <div class="tile" id="tile-slot-9" style="grid-column: 5; grid-row: 2;">
           <div class="tile-chance teal">⚁</div>
         </div>
-        <div class="tile" data-dest-id="6" style="grid-column: 5; grid-row: 3;">
+
+        <!-- Slot 10: 06 JAGIR -->
+        <div class="tile" id="tile-slot-10" data-dest-id="6" style="grid-column: 5; grid-row: 3;">
           <div class="tile-header-bar" style="background:var(--retro-teal);"></div>
           <div class="tile-num">06</div>
           <div class="tile-name">JAGIR</div>
         </div>
-        <div class="tile" data-dest-id="7" style="grid-column: 5; grid-row: 4;">
+
+        <!-- Slot 11: 07 KEMIREN -->
+        <div class="tile" id="tile-slot-11" data-dest-id="7" style="grid-column: 5; grid-row: 4;">
           <div class="tile-header-bar" style="background:var(--retro-gold);"></div>
           <div class="tile-num">07</div>
           <div class="tile-name">KEMIREN</div>
         </div>
 
-        <!-- 7. Bottom-Right Corner -->
-        <div class="tile" style="grid-column: 5; grid-row: 5;">
+        <!-- Slot 12: Bottom-Right Corner [+] -->
+        <div class="tile" id="tile-slot-12" style="grid-column: 5; grid-row: 5;">
           <div class="tile-chance">+</div>
         </div>
 
-        <!-- 8. Going LEFT along Bottom Edge (HARI 03) -->
-        <div class="tile" data-dest-id="8" style="grid-column: 4; grid-row: 5;">
+        <!-- Slot 13: 08 BAKPIAK -->
+        <div class="tile" id="tile-slot-13" data-dest-id="8" style="grid-column: 4; grid-row: 5;">
           <div class="tile-header-bar" style="background:var(--retro-gold);"></div>
           <div class="tile-num">08</div>
           <div class="tile-name">BAKPIAK</div>
         </div>
-        <div class="tile" style="grid-column: 3; grid-row: 5;">
+
+        <!-- Slot 14: [+] -->
+        <div class="tile" id="tile-slot-14" style="grid-column: 3; grid-row: 5;">
           <div class="tile-chance">+</div>
         </div>
-        <div class="tile" data-dest-id="9" style="grid-column: 2; grid-row: 5;">
+
+        <!-- Slot 15: 09 KERETA -->
+        <div class="tile" id="tile-slot-15" data-dest-id="9" style="grid-column: 2; grid-row: 5;">
           <div class="tile-header-bar" style="background:var(--retro-navy);"></div>
           <div class="tile-num">09</div>
           <div class="tile-name">KERETA</div>
         </div>
 
         <!-- ─── BOARD CENTER (STAGE & DICE) ─── -->
-        <div class="board-center" id="board-center-box">
+        <div class="board-center" id="board-center-box" title="Klik dadu untuk jalan!">
           <span class="center-day-tag" id="center-day-tag">HARI 01</span>
           <h2 class="center-theme-title" id="center-theme-title">Pusat</h2>
           <span class="center-theme-sub" id="center-theme-sub">kota</span>
@@ -682,7 +772,7 @@
       </div>
 
       <!-- Dialogue Bubble -->
-      <div class="dialogue-bar">
+      <div class="dialogue-bar" id="dialogue-bar">
         <span class="dialogue-speaker" id="dialogue-speaker">PEMANDU</span>
         <span class="dialogue-text" id="dialogue-text">Aku jemput di lobi hotel Snooze ya, Masdit!</span>
       </div>
@@ -721,11 +811,12 @@ const CHRONO_DESTINATIONS = {
     id: 1,
     day: 1,
     code: "01",
+    slotIndex: 1,
     dayTheme: { code: "HARI 01", main: "Pusat", sub: "kota", css: "" },
     time: "13.00 WIB",
     category: "HOTEL",
     title: "Ketemu di hotel",
-    desc: "Aku jemput di lobi hotel Snooze Banyuwangi. Titip koper, makan siang sego tempong, lalu check-in sekitar pukul 15.00.",
+    desc: "Aku jemput di lobi hotel Snooze Banyuwangi. Titip koper, makan siang sego tempong, lalu check-in santai sebelum eksplorasi sore.",
     img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80",
     speaker: "PEMANDU",
     speakerClass: "",
@@ -736,6 +827,7 @@ const CHRONO_DESTINATIONS = {
     id: 2,
     day: 1,
     code: "02",
+    slotIndex: 3,
     dayTheme: { code: "HARI 01", main: "Pusat", sub: "kota", css: "" },
     time: "15.00 WIB",
     category: "DE DJAWATAN",
@@ -751,6 +843,7 @@ const CHRONO_DESTINATIONS = {
     id: 3,
     day: 1,
     code: "03",
+    slotIndex: 5,
     dayTheme: { code: "HARI 01", main: "Pusat", sub: "kota", css: "" },
     time: "18.30 WIB",
     category: "KULINER",
@@ -766,6 +859,7 @@ const CHRONO_DESTINATIONS = {
     id: 4,
     day: 2,
     code: "04",
+    slotIndex: 6,
     dayTheme: { code: "HARI 02", main: "Kawah", sub: "& kaldera", css: "day-2" },
     time: "03.00 WIB",
     category: "KAWAH IJEN",
@@ -781,6 +875,7 @@ const CHRONO_DESTINATIONS = {
     id: 5,
     day: 2,
     code: "05",
+    slotIndex: 8,
     dayTheme: { code: "HARI 02", main: "Kawah", sub: "& kaldera", css: "day-2" },
     time: "08.00 WIB",
     category: "KAWAH WURUNG",
@@ -796,6 +891,7 @@ const CHRONO_DESTINATIONS = {
     id: 6,
     day: 2,
     code: "06",
+    slotIndex: 10,
     dayTheme: { code: "HARI 02", main: "Kawah", sub: "& kaldera", css: "day-2" },
     time: "11.30 WIB",
     category: "AIR TERJUN",
@@ -811,6 +907,7 @@ const CHRONO_DESTINATIONS = {
     id: 7,
     day: 3,
     code: "07",
+    slotIndex: 11,
     dayTheme: { code: "HARI 03", main: "Bekal", sub: "pulang", css: "day-3" },
     time: "08.30 WIB",
     category: "DESA ADAT",
@@ -826,6 +923,7 @@ const CHRONO_DESTINATIONS = {
     id: 8,
     day: 3,
     code: "08",
+    slotIndex: 13,
     dayTheme: { code: "HARI 03", main: "Bekal", sub: "pulang", css: "day-3" },
     time: "11.30 WIB",
     category: "OLEH-OLEH",
@@ -841,6 +939,7 @@ const CHRONO_DESTINATIONS = {
     id: 9,
     day: 3,
     code: "09",
+    slotIndex: 15,
     dayTheme: { code: "HARI 03", main: "Bekal", sub: "pulang", css: "day-3" },
     time: "14.00 WIB",
     category: "STASIUN",
@@ -856,12 +955,14 @@ const CHRONO_DESTINATIONS = {
 
 // ─── STATE MANAGEMENT ────────────────────────────────────────────────────────
 let currentDestId = 1;
-let isRolling = false;
+let currentSlotIndex = 1;
+let isAnimating = false;
 
 // ─── DOM REFS ────────────────────────────────────────────────────────────────
 const pawnToken = document.getElementById('pawn-token');
 const monopolyBoard = document.getElementById('monopoly-board');
-const tiles = document.querySelectorAll('.tile[data-dest-id]');
+const destColumn = document.getElementById('dest-column');
+const dialogueBar = document.getElementById('dialogue-bar');
 
 // Left Column Cards
 const cardIndexTag = document.getElementById('card-index-tag');
@@ -885,9 +986,9 @@ const dialogueText = document.getElementById('dialogue-text');
 const footerMapsLink = document.getElementById('footer-maps-link');
 const timelineTabs = document.querySelectorAll('.timeline-tab');
 
-// ─── POSITION PAWN TO TILE (SMOOTH GLIDE) ───────────────────────────────────
-function placePawn(destId) {
-  const targetTile = document.querySelector(`.tile[data-dest-id="${destId}"]`);
+// ─── POSITION PAWN TO SPECIFIC SLOT INDEX (SMOOTH GLIDE) ────────────────────
+function placePawnAtSlot(slotIdx) {
+  const targetTile = document.getElementById(`tile-slot-${slotIdx}`);
   if (!targetTile) return;
 
   const tileRect = targetTile.getBoundingClientRect();
@@ -900,103 +1001,174 @@ function placePawn(destId) {
   pawnToken.style.top = `${y}px`;
 }
 
-// ─── RENDER DESTINATION STEP ─────────────────────────────────────────────────
-function goToDestination(destId) {
-  currentDestId = destId;
+// ─── UPDATE CARD CONTENT WITH BUTTERY FADE TRANSITION ────────────────────────
+function updateCardContent(destId) {
   const data = CHRONO_DESTINATIONS[destId];
   if (!data) return;
 
-  // 1. Move Pawn
-  placePawn(destId);
+  // 1. Trigger micro-motion fade out
+  destColumn.classList.add('card-switching');
 
-  // 2. Update Left Column Card
-  cardIndexTag.textContent = `KARTU DESTINASI  /  ${data.code}`;
-  destCodeTag.textContent = `BWI / ${data.code}`;
-  destTime.textContent = data.time;
-  destCategory.textContent = data.category;
-  destTitle.textContent = data.title;
-  destDesc.textContent = data.desc;
-  destImg.src = data.img;
+  setTimeout(() => {
+    // 2. Update Content
+    cardIndexTag.textContent = `KARTU DESTINASI  /  ${data.code}`;
+    destCodeTag.textContent = `BWI / ${data.code}`;
+    destTime.textContent = data.time;
+    destCategory.textContent = data.category;
+    destTitle.textContent = data.title;
+    destDesc.textContent = data.desc;
+    destImg.src = data.img;
 
-  // 3. Update Dialogue
-  dialogueSpeaker.textContent = data.speaker;
-  if (data.speaker === 'MASDIT') {
-    dialogueSpeaker.classList.add('masdit');
-  } else {
-    dialogueSpeaker.classList.remove('masdit');
-  }
-  dialogueText.textContent = data.dialogue;
+    // Dialogue Pop
+    dialogueSpeaker.textContent = data.speaker;
+    if (data.speaker === 'MASDIT') {
+      dialogueSpeaker.classList.add('masdit');
+    } else {
+      dialogueSpeaker.classList.remove('masdit');
+    }
+    dialogueText.textContent = data.dialogue;
+    dialogueBar.classList.add('popping');
+    setTimeout(() => dialogueBar.classList.remove('popping'), 250);
 
-  // 4. Update Board Center (matching current day)
-  centerDayTag.textContent = data.dayTheme.code;
-  centerThemeTitle.textContent = data.dayTheme.main;
-  centerThemeSub.textContent = data.dayTheme.sub;
-  boardCenterBox.className = `board-center ${data.dayTheme.css}`;
+    // Board Center
+    centerDayTag.textContent = data.dayTheme.code;
+    centerThemeTitle.textContent = data.dayTheme.main;
+    centerThemeSub.textContent = data.dayTheme.sub;
+    boardCenterBox.className = `board-center ${data.dayTheme.css}`;
 
-  // 5. Update Timeline Footer Tabs
-  timelineTabs.forEach(tab => {
-    tab.classList.toggle('active', parseInt(tab.dataset.day) === data.day);
-  });
+    // Timeline Footer Tabs
+    timelineTabs.forEach(tab => {
+      tab.classList.toggle('active', parseInt(tab.dataset.day) === data.day);
+    });
 
-  // 6. Update Maps link
-  if (data.maps) {
-    footerMapsLink.href = data.maps;
-  }
+    // Maps link
+    if (data.maps) footerMapsLink.href = data.maps;
+
+    // Highlight Tile
+    document.querySelectorAll('.tile').forEach(t => t.classList.remove('active-dest'));
+    const activeTile = document.getElementById(`tile-slot-${data.slotIndex}`);
+    if (activeTile) activeTile.classList.add('active-dest');
+
+    // 3. Fade back in
+    destColumn.classList.remove('card-switching');
+  }, 140);
 }
 
-// ─── DICE ROLLING (ADVANCE 1 STEP CHRONOLOGICALLY) ───────────────────────────
+// ─── SEQUENTIAL HOPPING ANIMATION ALONG PERIMETER (60 FPS FLUID) ────────────
+function hopPawnStepByStep(targetDestId, onComplete) {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  const targetSlot = CHRONO_DESTINATIONS[targetDestId].slotIndex;
+  
+  // Hitung langkah-langkah petak perimeter yang harus dilewati searah jarum jam (0-15)
+  const path = [];
+  let stepSlot = currentSlotIndex;
+  while (stepSlot !== targetSlot) {
+    stepSlot = (stepSlot + 1) % 16;
+    path.push(stepSlot);
+  }
+
+  // Jika tujuan sama, langsung selesaikan
+  if (path.length === 0) {
+    isAnimating = false;
+    if (onComplete) onComplete();
+    return;
+  }
+
+  let i = 0;
+  function executeHop() {
+    if (i < path.length) {
+      const nextSlot = path[i];
+      currentSlotIndex = nextSlot;
+      
+      // Pindahkan koordinat bidak
+      placePawnAtSlot(nextSlot);
+
+      // Trigger animasi melompat vertikal
+      pawnToken.classList.remove('hopping');
+      void pawnToken.offsetWidth; // Force Reflow
+      pawnToken.classList.add('hopping');
+
+      i++;
+      setTimeout(executeHop, 180); // Durasi per lompatan
+    } else {
+      // Mendarat di petak tujuan
+      pawnToken.classList.remove('hopping');
+      pawnToken.classList.add('settle');
+      setTimeout(() => pawnToken.classList.remove('settle'), 360);
+
+      currentDestId = targetDestId;
+      updateCardContent(targetDestId);
+      isAnimating = false;
+      if (onComplete) onComplete();
+    }
+  }
+
+  executeHop();
+}
+
+// ─── DICE ROLLING (DENGAN EFEK WOBBLE 3D) ───────────────────────────────────
 function rollDice() {
-  if (isRolling) return;
-  isRolling = true;
+  if (isAnimating) return;
 
   const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-  let count = 0;
+  centerDiceBox.classList.add('rolling');
 
-  const timer = setInterval(() => {
-    const rand = Math.floor(Math.random() * 6);
-    centerDiceBox.textContent = diceFaces[rand];
-    count++;
+  let rolls = 0;
+  const rollInterval = setInterval(() => {
+    centerDiceBox.textContent = diceFaces[Math.floor(Math.random() * 6)];
+    rolls++;
 
-    if (count > 8) {
-      clearInterval(timer);
-      isRolling = false;
-      
-      // Advance by 1 step chronologically (or loop back from 9 to 1)
+    if (rolls > 7) {
+      clearInterval(rollInterval);
+      centerDiceBox.classList.remove('rolling');
+
+      // Tentukan destinasi berikutnya secara kronologis (1 -> 2 -> ... -> 9 -> 1)
       let nextDestId = currentDestId + 1;
       if (nextDestId > 9) nextDestId = 1;
 
       centerDiceBox.textContent = diceFaces[(nextDestId % 6)];
-      goToDestination(nextDestId);
+      hopPawnStepByStep(nextDestId);
     }
   }, 65);
 }
 
 // ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
-tiles.forEach(tile => {
+// Klik langsung pada petak nomor
+document.querySelectorAll('.tile[data-dest-id]').forEach(tile => {
   tile.addEventListener('click', () => {
     const destId = parseInt(tile.dataset.destId);
-    if (destId > 0) {
-      goToDestination(destId);
+    if (destId > 0 && destId !== currentDestId) {
+      hopPawnStepByStep(destId);
     }
   });
 });
 
+// Klik dadu / kotak tengah
 boardCenterBox.addEventListener('click', rollDice);
 
-// Timeline Footer Tabs (Jump to Day 1: 01, Day 2: 04, Day 3: 07)
+// Timeline Footer Tabs (Lompat ke Hari 1: 01, Hari 2: 04, Hari 3: 07)
 timelineTabs.forEach(tab => {
   tab.addEventListener('click', () => {
     const day = parseInt(tab.dataset.day);
-    if (day === 1) goToDestination(1);
-    else if (day === 2) goToDestination(4);
-    else if (day === 3) goToDestination(7);
+    let targetDest = 1;
+    if (day === 2) targetDest = 4;
+    else if (day === 3) targetDest = 7;
+
+    if (targetDest !== currentDestId) {
+      hopPawnStepByStep(targetDest);
+    }
   });
 });
 
-window.addEventListener('resize', () => placePawn(currentDestId));
+window.addEventListener('resize', () => placePawnAtSlot(currentSlotIndex));
 
-// Initial load: Start at 01 KOPER (HARI 01)
-setTimeout(() => goToDestination(1), 100);
+// Initial load: Letakkan bidak di petak 01 KOPER
+setTimeout(() => {
+  placePawnAtSlot(1);
+  updateCardContent(1);
+}, 120);
 </script>
 
 </body>
