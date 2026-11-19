@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro RPG Itinerary x Harvest Moon | WANDR Banyuwangi 3H2M v3</title>
+  <title>Retro RPG Itinerary x Harvest Moon | WANDR Banyuwangi 3H2M</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@600;700;800&family=Special+Elite&display=swap" rel="stylesheet">
@@ -317,7 +317,7 @@
       font-weight: 700;
     }
 
-    /* ─── 4. ALMANAK & DETAIL FIRESTORE CARD ─── */
+    /* ─── 4. ALMANAK & DETAIL PANDUAN CARD ─── */
     .almanac-panel {
       background: #180d06;
       border: 2px solid var(--gb-border);
@@ -353,60 +353,111 @@
       border-radius: 4px;
     }
 
-    /* ─── 5. ITEM TOOLBAR & ACTION STEPPER ─── */
-    .action-hud {
+    /* ─── 5. ERGONOMIC ITEM BACKPACK & DUAL ARCADE STEPPER ─── */
+    .backpack-section {
+      background: #180d06;
+      border: 2px solid var(--gb-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+    .backpack-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 2px;
+      font-family: var(--font-pixel);
+      font-size: 7.5px;
+      color: var(--gold);
+      letter-spacing: 0.05em;
     }
-    .item-backpack {
+    .item-slots-row {
       display: flex;
+      justify-content: space-between;
       gap: 8px;
     }
     .inv-slot {
-      width: 42px;
-      height: 42px;
-      background: #180d06;
+      flex: 1;
+      height: 48px;
+      background: #231309;
       border: 2px solid #52351f;
       border-radius: 8px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 19px;
+      gap: 2px;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
+      user-select: none;
     }
     .inv-slot:hover, .inv-slot:active {
       border-color: var(--gold);
+      background: #331c0e;
       transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(246, 200, 95, 0.25);
+    }
+    .inv-slot-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+    .inv-slot-label {
+      font-family: var(--font-pixel);
+      font-size: 5.5px;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
 
-    .step-nav {
+    /* Dedicated Dual Stepper Bar */
+    .stepper-bar {
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      width: 100%;
     }
     .nav-btn {
-      padding: 8px 14px;
-      background: #991b1b;
-      border: 2px solid #222;
-      border-radius: 8px;
+      flex: 1;
+      height: 48px;
+      background: #7f1d1d;
+      border: 2px solid #b91c1c;
+      border-radius: 10px;
       color: #fff;
       font-family: var(--font-pixel);
-      font-size: 9px;
+      font-size: 9.5px;
       cursor: pointer;
-      box-shadow: 0 4px 0 #5c1010;
+      box-shadow: 0 4px 0 #450a0a;
       display: flex;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: all 0.1s ease;
+      user-select: none;
+    }
+    .nav-btn:hover {
+      background: #991b1b;
+      border-color: #ef4444;
     }
     .nav-btn:active {
-      transform: translateY(2px);
-      box-shadow: 0 1px 0 #5c1010;
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #450a0a;
     }
     .nav-btn.next {
-      background: #1e40af;
-      box-shadow: 0 4px 0 #122567;
+      background: #b45309;
+      border: 2px solid var(--gold);
+      color: #fff;
+      box-shadow: 0 4px 0 #78350f;
+    }
+    .nav-btn.next:hover {
+      background: #d97706;
+      border-color: #fef08a;
+    }
+    .nav-btn.next:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #78350f;
     }
 
     /* ─── 6. BUKU JURNAL PETUALANG (EXPANDABLE QUEST LOG) ─── */
@@ -651,12 +702,12 @@
     </div>
   </div>
 
-  <!-- 4. ALMANAK & DETAIL FIRESTORE CARD -->
+  <!-- 4. ALMANAK & DETAIL PANDUAN CARD -->
   <div class="almanac-panel">
     <div class="almanac-header">
       <div class="almanac-title">
         <span>📖</span>
-        <span>CATATAN ALMANAK & ESTIMASI FIRESTORE:</span>
+        <span>CATATAN PANDUAN & ALMANAK:</span>
       </div>
       <span class="rating-badge" id="rating-badge">GAPEKA Resmi</span>
     </div>
@@ -665,21 +716,36 @@
     </div>
   </div>
 
-  <!-- 5. RANSEL ITEM & STEPPER NAVIGATION -->
-  <div class="action-hud">
-    <!-- Item Backpack Harvest Moon -->
-    <div class="item-backpack">
-      <div class="inv-slot" onclick="useItem('cawuk')" title="Sego Cawuk">🥣</div>
-      <div class="inv-slot" onclick="useItem('masker')" title="Masker Gas Ijen">🎭</div>
-      <div class="inv-slot" onclick="useItem('glamping')" title="Heated Blanket">♨️</div>
-      <div class="inv-slot" onclick="useItem('kamera')" title="Kamera Wisata">📷</div>
+  <!-- 5. ERGONOMIC ITEM BACKPACK & DUAL ARCADE STEPPER -->
+  <div class="backpack-section">
+    <div class="backpack-header">
+      <span>🎒 RANSEL PETUALANG (HARVEST MOON)</span>
+      <span style="font-size:6.5px;color:#94a3b8;">Ketuk item untuk pakai</span>
     </div>
+    <div class="item-slots-row">
+      <div class="inv-slot" onclick="useItem('cawuk')" title="Sego Cawuk">
+        <span class="inv-slot-icon">🥣</span>
+        <span class="inv-slot-label">Cawuk</span>
+      </div>
+      <div class="inv-slot" onclick="useItem('masker')" title="Masker Gas Ijen">
+        <span class="inv-slot-icon">🎭</span>
+        <span class="inv-slot-label">Masker</span>
+      </div>
+      <div class="inv-slot" onclick="useItem('glamping')" title="Heated Blanket">
+        <span class="inv-slot-icon">♨️</span>
+        <span class="inv-slot-label">Selimut</span>
+      </div>
+      <div class="inv-slot" onclick="useItem('kamera')" title="Kamera Wisata">
+        <span class="inv-slot-icon">📷</span>
+        <span class="inv-slot-label">Kamera</span>
+      </div>
+    </div>
+  </div>
 
-    <!-- Stepper Buttons -->
-    <div class="step-nav">
-      <button class="nav-btn" onclick="prevStep()">◀ Mundur</button>
-      <button class="nav-btn next" onclick="nextStep()">Lanjut ▶</button>
-    </div>
+  <!-- Dedicated Dual Stepper Bar (Full-Width Tactile Buttons) -->
+  <div class="stepper-bar">
+    <button class="nav-btn" onclick="prevStep()" aria-label="Langkah Mundur">◀ MUNDUR</button>
+    <button class="nav-btn next" onclick="nextStep()" aria-label="Langkah Selanjutnya">LANJUT ▶</button>
   </div>
 
   <!-- 6. BUKU JURNAL PETUALANG (QUEST LOG) -->
@@ -696,7 +762,7 @@
 </div>
 
 <script>
-// ─── 16 DESTINASI RESMI DARI ITINERARY WANDR BANYUWANGI 3H2M (v3 FIRESTORE) ───
+// ─── 16 DESTINASI RESMI DARI ITINERARY WANDR BANYUWANGI 3H2M ───
 const ITINERARY_v3 = {
   1: {
     day: 1,
@@ -718,12 +784,12 @@ const ITINERARY_v3 = {
     time: "06:00 - 07:30 WIB",
     weather: "☀️",
     name: "Sarapan: Sego Cawuk Kalimas",
-    category: "[Kuliner Baru] Sego Cawuk Dan Jajanan Pasar Kalimas",
+    category: "Sego Cawuk Dan Jajanan Pasar Kalimas",
     avatar: "👵",
     speaker: "PENJUAL SEGO CAWUK KALIMAS",
     dialogue: "Monggo sarapan Sego Cawuk kuah parutan kelapa muda & jagung manis pipil! Lauknya pindang gurih dan sambal serapah!",
     rating: "★ 4.4 (126 ulasan)",
-    almanac: "<b>[Kuliner Baru]:</b> Perjalanan 10 km dari stasiun. Kuliner khas sarapan pagi kuah parutan kelapa & jagung manis khas Banyuwangi.",
+    almanac: "<b>Rekomendasi Kuliner:</b> Perjalanan 10 km dari stasiun. Kuliner khas sarapan pagi kuah parutan kelapa & jagung manis khas Banyuwangi.",
     pos: { x: 325, y: 75 }
   },
   3: {
@@ -746,12 +812,12 @@ const ITINERARY_v3 = {
     time: "12:00 - 13:30 WIB",
     weather: "☀️",
     name: "Makan Siang: Warung Nasi Tempong Mak Ndut",
-    category: "[Kuliner Baru] Nasi Tempong Mak Ndut Kertosari",
+    category: "Nasi Tempong Mak Ndut Kertosari",
     avatar: "👩‍🍳",
     speaker: "MAK NDUT (KULINER KERTOSARI)",
     dialogue: "Ini sego tempong pedas segarnya! Sambal terasi dadak tomat ranti dengan sayuran rebus kubis bayam plus ikan asin renyah!",
     rating: "★ 4.4 (378 ulasan)",
-    almanac: "<b>[Kuliner Baru]:</b> Sego tempong pedas segar sayuran rebus & lauk komplit khas Kertosari. Pilihan makan siang yang bikin melek!",
+    almanac: "<b>Rekomendasi Kuliner:</b> Sego tempong pedas segar sayuran rebus & lauk komplit khas Kertosari. Pilihan makan siang yang bikin melek!",
     pos: { x: 290, y: 305 }
   },
   5: {
@@ -760,12 +826,12 @@ const ITINERARY_v3 = {
     time: "14:30 - 17:00 WIB",
     weather: "☕",
     name: "Santai & Ngopi: Srengenge Wetan",
-    category: "[Kuliner Baru] Srengenge Wetan Resto & Cafe",
+    category: "Srengenge Wetan Resto & Cafe",
     avatar: "👨‍🍳",
     speaker: "BARISTA SRENGENGE WETAN",
     dialogue: "Silakan santai sore di pusat kota! Nikmati seduhan Kopi Osing asli dan kudapan snack tradisional khas Banyuwangi!",
     rating: "★ 4.5 (3.265 ulasan)",
-    almanac: "<b>[Kuliner Baru]:</b> Pusat kota Banyuwangi. Istirahat santai sambil ngopi dan menikmati snack Osing di resto heritage.",
+    almanac: "<b>Rekomendasi Kuliner:</b> Pusat kota Banyuwangi. Istirahat santai sambil ngopi dan menikmati snack Osing di resto heritage.",
     pos: { x: 260, y: 215 }
   },
   6: {
@@ -774,12 +840,12 @@ const ITINERARY_v3 = {
     time: "17:30 - 19:30 WIB",
     weather: "🌙",
     name: "Check-in: Iglam Blue Fire Ijen",
-    category: "[Penginapan Baru] Iglam Blue Fire Ijen Glamping",
+    category: "Iglam Blue Fire Ijen Glamping",
     avatar: "🏕️",
     speaker: "HOST IGLAM GLAMPING",
     dialogue: "Selamat datang di kabin Iglam Paltuding! Hawa lereng gunung mulai dingin, nikmati kabin mewah dengan heated blanket ya!",
     rating: "★ 4.9 (113 ulasan)",
-    almanac: "<b>[Penginapan Baru]:</b> Paltuding Kawah Ijen. Check-in kabin mewah lereng gunung, menikmati heated blanket & hawa sejuk pegunungan.",
+    almanac: "<b>Akomodasi Pilihan:</b> Paltuding Kawah Ijen. Check-in kabin mewah lereng gunung, menikmati heated blanket & hawa sejuk pegunungan.",
     pos: { x: 85, y: 225 }
   },
   7: {
@@ -816,12 +882,12 @@ const ITINERARY_v3 = {
     time: "10:30 - 12:30 WIB",
     weather: "🎋",
     name: "Mata Air Sendang Seruni & Batu Ampar",
-    category: "[Wisata Baru] Sendang Seruni & Batu Ampar",
+    category: "Sendang Seruni & Batu Ampar",
     avatar: "💧",
     speaker: "PEMANDU SENDANG SERUNI",
     dialogue: "Ayo basuh wajah dan berendam! Air kolam mata air alami pegunungan ini sangat jernih dan dikelilingi rimbun rumpun bambu!",
     rating: "★ 4.6 & ★ 4.5",
-    almanac: "<b>[Wisata Baru]:</b> Kawasan Licin. Berendam di kolam mata air alami pegunungan yang jernih di rimbun bambu pedesaan.",
+    almanac: "<b>Wisata Alam Baru:</b> Kawasan Licin. Berendam di kolam mata air alami pegunungan yang jernih di rimbun bambu pedesaan.",
     pos: { x: 155, y: 155 }
   },
   10: {
@@ -830,12 +896,12 @@ const ITINERARY_v3 = {
     time: "13:00 - 14:30 WIB",
     weather: "🍲",
     name: "Makan Siang: Rujak Soto Mbok Mus Dadapan",
-    category: "[Kuliner Baru] Rujak Soto Mbok Mus",
+    category: "Rujak Soto Mbok Mus",
     avatar: "👩‍🍳",
     speaker: "MBOK MUS (KULINER DADAPAN)",
     dialogue: "Cicipi perpaduan unik rujak cingur petis khas Banyuwangi diguyur kuah soto babat daging sapi gurih panas!",
     rating: "★ 4.4 (182 ulasan)",
-    almanac: "<b>[Kuliner Baru]:</b> Kombinasi unik rujak cingur petis khas Banyuwangi diguyur kuah soto gurih hangat legendaris.",
+    almanac: "<b>Rekomendasi Kuliner:</b> Kombinasi unik rujak cingur petis khas Banyuwangi diguyur kuah soto gurih hangat legendaris.",
     pos: { x: 315, y: 245 }
   },
   11: {
@@ -886,12 +952,12 @@ const ITINERARY_v3 = {
     time: "10:00 - 11:30 WIB",
     weather: "🍜",
     name: "Makan Siang Awal: Rujak Soto Losari",
-    category: "[Kuliner Baru] Rujak Soto Losari No. 39",
+    category: "Rujak Soto Losari No. 39",
     avatar: "👨‍🍳",
     speaker: "PAK SOTO LOSARI",
     dialogue: "Makan siang awal sebelum pulang! Rujak Soto Losari No. 39 di Kepatihan ini kuliner legendaris wajib coba!",
     rating: "★ 4.4 (322 ulasan)",
-    almanac: "<b>[Kuliner Baru]:</b> Pusat kota Kepatihan. Kuliner legendaris wajib sebelum kepulangan ke kota asal.",
+    almanac: "<b>Rekomendasi Kuliner:</b> Pusat kota Kepatihan. Kuliner legendaris wajib sebelum kepulangan ke kota asal.",
     pos: { x: 275, y: 145 }
   },
   15: {
