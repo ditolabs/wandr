@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PAPAN WISATA | Banyuwangi — Tur Pribadi Masdit</title>
+  <title>PAPAN WISATA | Banyuwangi — Tur Pribadi</title>
   <meta name="description" content="Itinerary 3H2M Banyuwangi dalam format visual Gameboard Monopoli kronologis dengan animasi fisika bidak melompat halus (60 FPS).">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -486,7 +486,7 @@
       margin-top: 6px;
     }
 
-    /* ─── SPEECH BUBBLE PEMANDU / MASDIT ────────────────────────────────── */
+    /* ─── SPEECH BUBBLE PEMANDU / WISATAWAN ────────────────────────────────── */
     .dialogue-bar {
       border: var(--border-thick);
       border-radius: 30px;
@@ -514,7 +514,7 @@
       flex-shrink: 0;
       transition: background 0.3s ease;
     }
-    .dialogue-speaker.masdit {
+    .dialogue-speaker.wisatawan {
       background: var(--retro-red);
     }
     .dialogue-text {
@@ -616,7 +616,7 @@
       </div>
     </div>
     <div class="top-right">
-      <span>Tur Pribadi &nbsp;/&nbsp; <strong>Masdit</strong></span>
+      <span>Tur Pribadi &nbsp;/&nbsp; <strong id="traveler-name-display">Wisatawan</strong></span>
     </div>
   </div>
 
@@ -761,7 +761,7 @@
           <span class="center-theme-sub" id="center-theme-sub">kota</span>
           
           <div class="center-dice-box" id="center-dice-box">⚀</div>
-          <span class="center-turn-label" id="center-turn-label">GILIRAN MASDIT</span>
+          <span class="center-turn-label" id="center-turn-label">GILIRAN WISATAWAN</span>
         </div>
 
         <!-- Bidak Karakter Lucu (Pawn Couple) -->
@@ -774,7 +774,7 @@
       <!-- Dialogue Bubble -->
       <div class="dialogue-bar" id="dialogue-bar">
         <span class="dialogue-speaker" id="dialogue-speaker">PEMANDU</span>
-        <span class="dialogue-text" id="dialogue-text">Aku jemput di lobi hotel Snooze ya, Masdit!</span>
+        <span class="dialogue-text" id="dialogue-text">Aku jemput di lobi hotel Snooze ya!</span>
       </div>
     </div>
   </div>
@@ -820,7 +820,7 @@ const CHRONO_DESTINATIONS = {
     img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80",
     speaker: "PEMANDU",
     speakerClass: "",
-    dialogue: "Aku tunggu di lobi Snooze Hostel ya, Masdit!",
+    dialogue: "Aku tunggu di lobi Snooze Hostel ya!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2201,114.3688"
   },
   2: {
@@ -850,8 +850,8 @@ const CHRONO_DESTINATIONS = {
     title: "Sego Tempong Mbok Wah",
     desc: "Makan malam kuliner legendaris khas Banyuwangi dengan sambal dadak terasi tomat segar pedas menyengat plus lauk ikan asin dan sayur rebus.",
     img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
-    speaker: "MASDIT",
-    speakerClass: "masdit",
+    speaker: "WISATAWAN",
+    speakerClass: "wisatawan",
     dialogue: "Wah, sambal tempongnya beneran nagih pedasnya!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2163,114.3639"
   },
@@ -866,8 +866,8 @@ const CHRONO_DESTINATIONS = {
     title: "Mendaki Api Biru Ijen",
     desc: "Mendaki bibir kawah asam terbesar di dunia. Pemandangan api biru misterius berpadu danau toska saat matahari terbit di ufuk timur.",
     img: "https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=900&q=80",
-    speaker: "MASDIT",
-    speakerClass: "masdit",
+    speaker: "WISATAWAN",
+    speakerClass: "wisatawan",
     dialogue: "Wah, kawahnya megah banget seperti danau cermin raksasa!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.0584,114.2422"
   },
@@ -898,8 +898,8 @@ const CHRONO_DESTINATIONS = {
     title: "Segarnya Curug Jagir",
     desc: "Air terjun kembar dari mata air alami pegunungan di Kampung Anyar. Sangat menyegarkan untuk cuci muka dan istirahat santai.",
     img: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=900&q=80",
-    speaker: "MASDIT",
-    speakerClass: "masdit",
+    speaker: "WISATAWAN",
+    speakerClass: "wisatawan",
     dialogue: "Airnya dingin dan segar banget langsung dari sumber mata air!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2154,114.1872"
   },
@@ -930,8 +930,8 @@ const CHRONO_DESTINATIONS = {
     title: "Bagiak & Batik Osing",
     desc: "Borong buah tangan khas Banyuwangi: kue Bagiak renyah, Rengginang, Kopi Osing kemasan, dan kerajinan batik motif Gajah Oling.",
     img: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=900&q=80",
-    speaker: "MASDIT",
-    speakerClass: "masdit",
+    speaker: "WISATAWAN",
+    speakerClass: "wisatawan",
     dialogue: "Bagiak rasa pandan sama kopinya jangan sampai ketinggalan dibungkus!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.2014,114.3680"
   },
@@ -948,7 +948,7 @@ const CHRONO_DESTINATIONS = {
     img: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=900&q=80",
     speaker: "PEMANDU",
     speakerClass: "",
-    dialogue: "Sampai ketemu lagi di trip Banyuwangi berikutnya, Masdit!",
+    dialogue: "Sampai ketemu lagi di trip Banyuwangi berikutnya!",
     maps: "https://www.google.com/maps/dir/?api=1&destination=-8.1472,114.3980"
   }
 };
@@ -958,11 +958,16 @@ let currentDestId = 1;
 let currentSlotIndex = 1;
 let isAnimating = false;
 
+// Dynamic URL traveler name parameter (?name=...)
+const urlParams = new URLSearchParams(window.location.search);
+const travelerName = urlParams.get('name') || 'Wisatawan';
+
 // ─── DOM REFS ────────────────────────────────────────────────────────────────
 const pawnToken = document.getElementById('pawn-token');
 const monopolyBoard = document.getElementById('monopoly-board');
 const destColumn = document.getElementById('dest-column');
 const dialogueBar = document.getElementById('dialogue-bar');
+const travelerNameDisplay = document.getElementById('traveler-name-display');
 
 // Left Column Cards
 const cardIndexTag = document.getElementById('card-index-tag');
@@ -979,12 +984,17 @@ const centerDayTag = document.getElementById('center-day-tag');
 const centerThemeTitle = document.getElementById('center-theme-title');
 const centerThemeSub = document.getElementById('center-theme-sub');
 const centerDiceBox = document.getElementById('center-dice-box');
+const centerTurnLabel = document.getElementById('center-turn-label');
 
 // Dialogue
 const dialogueSpeaker = document.getElementById('dialogue-speaker');
 const dialogueText = document.getElementById('dialogue-text');
 const footerMapsLink = document.getElementById('footer-maps-link');
 const timelineTabs = document.querySelectorAll('.timeline-tab');
+
+// Set traveler name
+if (travelerNameDisplay) travelerNameDisplay.textContent = travelerName;
+if (centerTurnLabel) centerTurnLabel.textContent = `GILIRAN ${travelerName.toUpperCase()}`;
 
 // ─── POSITION PAWN TO SPECIFIC SLOT INDEX (SMOOTH GLIDE) ────────────────────
 function placePawnAtSlot(slotIdx) {
@@ -1021,10 +1031,10 @@ function updateCardContent(destId) {
 
     // Dialogue Pop
     dialogueSpeaker.textContent = data.speaker;
-    if (data.speaker === 'MASDIT') {
-      dialogueSpeaker.classList.add('masdit');
+    if (data.speaker === 'WISATAWAN') {
+      dialogueSpeaker.classList.add('wisatawan');
     } else {
-      dialogueSpeaker.classList.remove('masdit');
+      dialogueSpeaker.classList.remove('wisatawan');
     }
     dialogueText.textContent = data.dialogue;
     dialogueBar.classList.add('popping');
