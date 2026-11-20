@@ -1279,33 +1279,83 @@
 
 <!-- ── EXPORT MODAL ──────────────────────────────────────────────────────────── -->
 <div id="export-modal">
-  <div id="export-panel">
-    <div id="export-panel-title">
-      <span style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;font-style:italic">Export Itinerary</span>
+  <div id="export-panel" style="max-width:440px; border-radius:24px; box-shadow:0 25px 70px rgba(0,0,0,.35)">
+    <div id="export-panel-title" style="background:#0F3460; padding:16px 22px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">✨</span>
+        <span style="font-family:'Inter',sans-serif;font-size:15px;font-weight:800;letter-spacing:-0.3px">Pilih Format Itinerary</span>
+      </div>
       <button onclick="document.getElementById('export-modal').classList.remove('open')"
-        style="background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;
-        width:24px;height:24px;font-size:12px;cursor:pointer">✕</button>
+        style="background:rgba(255,255,255,.15);border:none;color:#fff;
+        width:28px;height:28px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
     </div>
-    <div style="padding:20px">
-      <p style="font-size:12px;color:#888;margin-bottom:16px;font-family:'Inter',sans-serif;line-height:1.6">
-        Pilih format export. File akan otomatis terunduh.
+    <div style="padding:22px; max-height:80vh; overflow-y:auto">
+      <p style="font-size:12px;color:#64748b;margin-bottom:18px;font-family:'Inter',sans-serif;line-height:1.5">
+        Pilih format perjalanan yang kamu suka. Dokumen cetak resmi PDF tetap tersedia, atau coba format interaktif & video kekinian:
       </p>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button id="btn-export-pdf" class="btn-pri" style="width:100%;justify-content:center;gap:10px">
-          <span>📄</span> Download PDF
+
+      <!-- Kategori 1: Dokumen Resmi -->
+      <div style="font-size:11px;font-weight:800;color:#0F3460;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+        📄 Dokumen & Cetak (Format Resmi)
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px">
+        <button id="btn-export-pdf" class="btn-pri" style="width:100%;justify-content:center;gap:8px;padding:12px 10px;font-size:12px;border-radius:12px;background:#0F3460">
+          <span>📄</span> Unduh PDF
         </button>
-        <button id="btn-export-jpg" class="btn-ghost" style="width:100%;justify-content:center;gap:10px">
-          <span>🖼️</span> Download JPG
+        <button id="btn-export-jpg" class="btn-ghost" style="width:100%;justify-content:center;gap:8px;padding:12px 10px;font-size:12px;border-radius:12px;border:1.5px solid #cbd5e1">
+          <span>🖼️</span> Unduh JPG
         </button>
       </div>
-      <div id="export-progress" style="display:none;margin-top:14px;text-align:center">
-        <div style="font-size:12px;color:#888;font-family:'Inter',sans-serif">
+
+      <!-- Kategori 2: Format Interaktif & Gameboard -->
+      <div style="font-size:11px;font-weight:800;color:#d97706;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+        🎮 Format Interaktif & Gameboard
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+        <a href="rpg.html" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;color:#78350f;transition:all .2s">
+          <span style="font-size:24px">🎒</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800">Retro 16-Bit RPG (Harvest Moon)</div>
+            <div style="font-size:11px;color:#92400e;line-height:1.3">Peta quest piksel, stamina, almanak & AI Tour Leader (AG-UI)</div>
+          </div>
+          <span style="font-size:12px;font-weight:800;color:#d97706">Buka ↗</span>
+        </a>
+        <a href="monopoli.html" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;color:#14532d;transition:all .2s">
+          <span style="font-size:24px">🎲</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800">Monopoli Board Game</div>
+            <div style="font-size:11px;color:#166534;line-height:1.3">Perjalanan keliling papan 01-09, kocok dadu & kartu tiket</div>
+          </div>
+          <span style="font-size:12px;font-weight:800;color:#16a34a">Buka ↗</span>
+        </a>
+      </div>
+
+      <!-- Kategori 3: Format Video Animasi Reels / TikTok (9:16) -->
+      <div style="font-size:11px;font-weight:800;color:#e11d48;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+        🎬 Format Video Animasi (Reels / TikTok 9:16)
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <a href="video.html" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff1f2;border:1.5px solid #fecdd3;border-radius:14px;color:#881337;transition:all .2s">
+          <span style="font-size:24px">🛵</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800">Pusat Video Animasi Wandr</div>
+            <div style="font-size:11px;color:#9f1239;line-height:1.3">TravelBoast 3D Route, 16-Bit Pixel Journey, & Cinematic Reel</div>
+          </div>
+          <span style="font-size:12px;font-weight:800;color:#e11d48">Pilih Video ↗</span>
+        </a>
+      </div>
+
+      <div id="export-progress" style="display:none;margin-top:16px;text-align:center">
+        <div style="font-size:12px;color:#64748b;font-family:'Inter',sans-serif">
           <span id="export-progress-text">Menyiapkan...</span>
         </div>
-        <div style="margin-top:8px;height:3px;background:#e0dbd4">
-          <div id="export-progress-bar" style="height:100%;background:#111;width:0%;transition:width .3s"></div>
+        <div style="margin-top:8px;height:4px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+          <div id="export-progress-bar" style="height:100%;background:#0F3460;width:0%;transition:width .3s"></div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 </div>

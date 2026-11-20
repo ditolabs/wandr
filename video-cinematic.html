@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Wandr Video - Cinematic Carousel Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #030712;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .video-viewport {
+      width: 100%;
+      max-width: 380px;
+      height: 675px;
+      background: #111827;
+      border: 4px solid #1f2937;
+      border-radius: 36px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+      display: flex;
+      flex-direction: column;
+    }
+    /* Ken Burns Photo Stage */
+    .photo-stage {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      animation: kenBurns 6s infinite alternate ease-in-out;
+      transition: background-image 0.8s ease-in-out;
+    }
+    @keyframes kenBurns {
+      0% { transform: scale(1) translate(0, 0); }
+      100% { transform: scale(1.15) translate(-10px, -15px); }
+    }
+    .vignette-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, 
+        rgba(3,7,18,0.7) 0%, 
+        rgba(3,7,18,0.1) 40%, 
+        rgba(3,7,18,0.6) 70%, 
+        rgba(3,7,18,0.95) 100%);
+      z-index: 5;
+    }
+    /* Top Story Progress Bars */
+    .story-bars {
+      position: absolute;
+      top: 16px; left: 16px; right: 16px;
+      display: flex;
+      gap: 6px;
+      z-index: 20;
+    }
+    .bar-segment {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #fff;
+      transition: width 0.1s linear;
+    }
+    /* Cinematic Typography & Labels */
+    .content-box {
+      position: absolute;
+      bottom: 40px;
+      left: 20px; right: 20px;
+      z-index: 20;
+    }
+    .tag-bubble {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    .hero-desc {
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      padding-top: 12px;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .stat-val {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div class="video-viewport">
+    <div class="story-bars">
+      <div class="bar-segment"><div class="bar-fill" id="bar0"></div></div>
+      <div class="bar-segment"><div class="bar-fill" id="bar1"></div></div>
+      <div class="bar-segment"><div class="bar-fill" id="bar2"></div></div>
+      <div class="bar-segment"><div class="bar-fill" id="bar3"></div></div>
+    </div>
+
+    <div class="photo-stage" id="bgPhoto" style="background-image: url('https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=800&q=80');"></div>
+    <div class="vignette-overlay"></div>
+
+    <div class="content-box">
+      <div class="tag-bubble" id="tagBubble">🌲 DAY 1 • HUTAN PURBA</div>
+      <div class="hero-title" id="heroTitle">De Djawatan</div>
+      <div class="hero-desc" id="heroDesc">
+        Hutan trembesi raksasa dengan sulur lumut alami yang menawan. Berasa masuk ke dunia Lord of The Rings.
+      </div>
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-label">Tiket Masuk</span>
+          <span class="stat-val" id="statTicket">Rp10.000</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Waktu Terbaik</span>
+          <span class="stat-val" id="statTime">08:00 WIB</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Rating Pengunjung</span>
+          <span class="stat-val" id="statRating">⭐ 4.8 / 5.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 16px;">
+    <a href="video.html" style="color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 700;">← Kembali ke Hub Video</a>
+  </div>
+
+  <script>
+    const slides = [
+      {
+        bg: 'https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=800&q=80',
+        tag: '🌲 DAY 1 • DESTINASI 03',
+        title: 'De Djawatan',
+        desc: 'Hutan trembesi raksasa dengan sulur lumut alami yang menawan. Berasa masuk ke dunia Lord of The Rings.',
+        ticket: 'Rp10.000',
+        time: '08:00 WIB',
+        rating: '⭐ 4.8 / 5.0'
+      },
+      {
+        bg: 'https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=800&q=80',
+        tag: '🌋 DAY 2 • DESTINASI 07',
+        title: 'Kawah Ijen',
+        desc: 'Saksikan kilau api biru langka dan mentari terbit di puncak kaldera belerang terbesar di Jawa.',
+        ticket: 'Rp5.000',
+        time: '01:30 WIB',
+        rating: '⭐ 4.9 / 5.0'
+      },
+      {
+        bg: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80',
+        tag: '☕ DAY 3 • DESTINASI 13',
+        title: 'Desa Kemiren',
+        desc: 'Mencicipi kopi seduh sangrai tangan dan keramahan warga Osing yang memikat hati.',
+        ticket: 'Rp15.000',
+        time: '07:30 WIB',
+        rating: '⭐ 4.8 / 5.0'
+      },
+      {
+        bg: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+        tag: '🌊 DAY 2 • DESTINASI 11',
+        title: 'Watudodol',
+        desc: 'Pesisir selat Bali dengan panorama gugusan pulau menawan serta kuliner ikan bakar segar.',
+        ticket: 'Rp5.000',
+        time: '15:30 WIB',
+        rating: '⭐ 4.7 / 5.0'
+      }
+    ];
+
+    let current = 0;
+    const duration = 3500; // ms per slide
+
+    function nextSlide() {
+      // fill previous bars
+      for (let i = 0; i < slides.length; i++) {
+        const bar = document.getElementById('bar' + i);
+        if (i < current) bar.style.width = '100%';
+        else if (i === current) bar.style.width = '100%';
+        else bar.style.width = '0%';
+      }
+
+      current = (current + 1) % slides.length;
+      const s = slides[current];
+
+      document.getElementById('bgPhoto').style.backgroundImage = `url('${s.bg}')`;
+      document.getElementById('tagBubble').textContent = s.tag;
+      document.getElementById('heroTitle').textContent = s.title;
+      document.getElementById('heroDesc').textContent = s.desc;
+      document.getElementById('statTicket').textContent = s.ticket;
+      document.getElementById('statTime').textContent = s.time;
+      document.getElementById('statRating').textContent = s.rating;
+
+      setTimeout(nextSlide, duration);
+    }
+
+    // start loop
+    document.getElementById('bar0').style.transition = 'width ' + duration + 'ms linear';
+    document.getElementById('bar0').style.width = '100%';
+    setTimeout(nextSlide, duration);
+  </script>
+</body>
+</html>
