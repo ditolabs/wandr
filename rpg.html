@@ -41,7 +41,6 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      transition: max-width 0.3s ease;
     }
 
     /* ─── 1. TOP HUD (HARVEST MOON CLOCK, DAY, WEATHER, STAMINA) ─── */
@@ -123,6 +122,15 @@
       box-shadow: 0 0 10px rgba(246, 200, 95, 0.5);
     }
 
+    /* ─── 2. ENLARGED OVERWORLD MAP (HEIGHT 480PX) ─── */
+    .screen-bezel {
+      background: #0d0a07;
+      border: 3px solid #22150c;
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: inset 0 0 16px rgba(0,0,0,0.9);
+    }
+    
     /* ─── PAN & ZOOM STYLING (60FPS ACCELERATED) ─── */
     .pixel-map-canvas {
       height: 480px;
@@ -202,6 +210,7 @@
       text-align: center;
       margin-top: 2px;
     }
+
 
     /* Golden Dotted Route SVG */
     .overworld-path {
@@ -537,7 +546,7 @@
       background: rgba(0,0,0,0.5);
       border-radius: 3px;
     }
-
+  
     /* ─── RESPONSIVE DESKTOP SITE LAYOUT (CHROME MOBILE DESKTOP / PC) ─── */
     .rpg-layout-grid {
       display: flex;
@@ -573,12 +582,184 @@
         max-height: 250px;
       }
     }
-  </style>
+
+  
+/* === AG-UI PROTOCOL COMPONENT STYLES === */
+.agui-copilot-trigger {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: 3px solid #047857;
+  border-radius: 9999px;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4), inset 0 2px 0 rgba(255,255,255,0.4);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  letter-spacing: 0.5px;
+}
+.agui-copilot-trigger:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.5);
+}
+.agui-copilot-trigger .badge-pulse {
+  width: 10px;
+  height: 10px;
+  background: #34d399;
+  border-radius: 50%;
+  animation: aguiPulse 1.5s infinite;
+}
+@keyframes aguiPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+.agui-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.agui-modal-overlay.active {
+  display: flex;
+}
+.agui-copilot-panel {
+  background: #fdf6e2;
+  border: 4px solid #4a3525;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+.agui-header {
+  background: #4a3525;
+  color: #fef3c7;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.agui-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agui-close-btn {
+  background: transparent;
+  border: none;
+  color: #fef3c7;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.agui-close-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+.agui-body {
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.agui-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.agui-chip {
+  background: #fff;
+  border: 2px solid #d97706;
+  border-radius: 9999px;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #78350f;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+.agui-chip:hover {
+  background: #fef3c7;
+  transform: translateY(-1px);
+}
+.agui-chip.reset {
+  border-color: #64748b;
+  color: #334155;
+}
+.agui-stream-console {
+  background: #0f172a;
+  color: #38bdf8;
+  border: 2px solid #1e293b;
+  border-radius: 12px;
+  padding: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  max-height: 160px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+.agui-stream-console .log-line {
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.agui-stream-console .log-action { color: #4ade80; }
+.agui-stream-console .log-event { color: #f59e0b; }
+.agui-input-row {
+  display: flex;
+  gap: 8px;
+}
+.agui-input {
+  flex: 1;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+}
+.agui-input:focus {
+  border-color: #d97706;
+}
+.agui-submit-btn {
+  background: #d97706;
+  color: #fff;
+  border: 2px solid #92400e;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.agui-submit-btn:hover {
+  background: #b45309;
+}
+
+</style>
 </head>
 <body>
 
 <div class="rpg-device">
-  
   <!-- 1. TOP HUD (HARVEST MOON) -->
   <div class="hm-hud">
     <div class="hud-left">
@@ -806,11 +987,10 @@
     </div> <!-- End col-story-zone -->
 
   </div> <!-- End rpg-layout-grid -->
-
 </div>
 
 <script>
-// ─── 16 DESTINASI RESMI DARI ITINERARY WANDR BANYUWANGI 3H2M ───
+// ─── 16 DESTINASI RESMI DARI ITINERARY WANDR BANYUWANGI 3H2M (v3 PANDUAN) ───
 const ITINERARY_v3 = {
   1: {
     day: 1,
@@ -1053,130 +1233,6 @@ const ratingBadge = document.getElementById('rating-badge');
 const heartsDisplay = document.getElementById('hearts-display');
 const questContainer = document.getElementById('quest-list-container');
 
-// ─── INTERACTIVE PAN & PINCH-TO-ZOOM ENGINE ───
-const mapCanvas = document.getElementById('map-canvas');
-const mapWorld = document.getElementById('map-world');
-const zoomBadge = document.getElementById('zoom-badge');
-
-let scale = 1.0;
-const minScale = 0.65;
-const maxScale = 2.5;
-
-let panX = 0;
-let panY = 0;
-let isDragging = false;
-let startX = 0;
-let startY = 0;
-
-let initialTouchDist = null;
-let initialTouchScale = 1.0;
-
-function updateTransform(smooth = false) {
-  if (smooth) {
-    mapWorld.classList.add('smooth-transition');
-    setTimeout(() => mapWorld.classList.remove('smooth-transition'), 380);
-  } else {
-    mapWorld.classList.remove('smooth-transition');
-  }
-  mapWorld.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
-  zoomBadge.textContent = Math.round(scale * 100) + '%';
-}
-
-function zoomIn() {
-  scale = Math.min(maxScale, Number((scale + 0.25).toFixed(2)));
-  centerOnHero(true);
-}
-
-function zoomOut() {
-  scale = Math.max(minScale, Number((scale - 0.25).toFixed(2)));
-  centerOnHero(true);
-}
-
-function centerOnHero(smooth = true) {
-  const d = ITINERARY_v3[currentStep];
-  const rect = mapCanvas.getBoundingClientRect();
-  const cWidth = rect.width || 460;
-  const cHeight = rect.height || 480;
-
-  // Center camera on hero position (d.pos.x, d.pos.y)
-  panX = Math.round((cWidth / 2) - (d.pos.x * scale));
-  panY = Math.round((cHeight / 2) - (d.pos.y * scale));
-  updateTransform(smooth);
-}
-
-// Mouse Drag Events
-mapCanvas.addEventListener('mousedown', (e) => {
-  if (e.target.closest('.map-floating-controls')) return;
-  isDragging = true;
-  startX = e.clientX - panX;
-  startY = e.clientY - panY;
-});
-
-window.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
-  panX = e.clientX - startX;
-  panY = e.clientY - startY;
-  updateTransform(false);
-});
-
-window.addEventListener('mouseup', () => {
-  isDragging = false;
-});
-
-// Mouse Wheel Zoom
-mapCanvas.addEventListener('wheel', (e) => {
-  e.preventDefault();
-  const delta = e.deltaY < 0 ? 0.15 : -0.15;
-  const oldScale = scale;
-  scale = Math.min(maxScale, Math.max(minScale, Number((scale + delta).toFixed(2))));
-  
-  const rect = mapCanvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
-  panX -= (mouseX - panX) * (scale / oldScale - 1);
-  panY -= (mouseY - panY) * (scale / oldScale - 1);
-  updateTransform(false);
-}, { passive: false });
-
-// Mobile Touch Events (1 Finger Pan & 2 Fingers Pinch Zoom)
-mapCanvas.addEventListener('touchstart', (e) => {
-  if (e.target.closest('.map-floating-controls')) return;
-  if (e.touches.length === 1) {
-    isDragging = true;
-    startX = e.touches[0].clientX - panX;
-    startY = e.touches[0].clientY - panY;
-    initialTouchDist = null;
-  } else if (e.touches.length === 2) {
-    isDragging = false;
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    initialTouchDist = Math.hypot(dx, dy);
-    initialTouchScale = scale;
-  }
-}, { passive: false });
-
-mapCanvas.addEventListener('touchmove', (e) => {
-  if (e.touches.length === 1 && isDragging) {
-    panX = e.touches[0].clientX - startX;
-    panY = e.touches[0].clientY - startY;
-    updateTransform(false);
-  } else if (e.touches.length === 2 && initialTouchDist) {
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    const currentDist = Math.hypot(dx, dy);
-    const distRatio = currentDist / initialTouchDist;
-    scale = Math.min(maxScale, Math.max(minScale, Number((initialTouchScale * distRatio).toFixed(2))));
-    updateTransform(false);
-  }
-}, { passive: false });
-
-mapCanvas.addEventListener('touchend', (e) => {
-  if (e.touches.length === 0) {
-    isDragging = false;
-    initialTouchDist = null;
-  }
-});
-
 // Render Quest Log List
 function renderQuestLog() {
   questContainer.innerHTML = '';
@@ -1295,10 +1351,442 @@ function useItem(type) {
   }
 }
 
+
+// ─── INTERACTIVE PAN & PINCH-TO-ZOOM ENGINE ───
+const mapCanvas = document.getElementById('map-canvas');
+const mapWorld = document.getElementById('map-world');
+const zoomBadge = document.getElementById('zoom-badge');
+
+let scale = 1.0;
+const minScale = 0.65;
+const maxScale = 2.5;
+
+let panX = 0;
+let panY = 0;
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+
+let initialTouchDist = null;
+let initialTouchScale = 1.0;
+
+function updateTransform(smooth = false) {
+  if (smooth) {
+    mapWorld.classList.add('smooth-transition');
+    setTimeout(() => mapWorld.classList.remove('smooth-transition'), 380);
+  } else {
+    mapWorld.classList.remove('smooth-transition');
+  }
+  mapWorld.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+  zoomBadge.textContent = Math.round(scale * 100) + '%';
+}
+
+function zoomIn() {
+  scale = Math.min(maxScale, Number((scale + 0.25).toFixed(2)));
+  centerOnHero(true);
+}
+
+function zoomOut() {
+  scale = Math.max(minScale, Number((scale - 0.25).toFixed(2)));
+  centerOnHero(true);
+}
+
+function centerOnHero(smooth = true) {
+  const d = ITINERARY_v3[currentStep];
+  const rect = mapCanvas.getBoundingClientRect();
+  const cWidth = rect.width || 460;
+  const cHeight = rect.height || 480;
+
+  // Center camera on hero position (d.pos.x, d.pos.y)
+  panX = Math.round((cWidth / 2) - (d.pos.x * scale));
+  panY = Math.round((cHeight / 2) - (d.pos.y * scale));
+  updateTransform(smooth);
+}
+
+// Mouse Drag Events
+mapCanvas.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.map-floating-controls')) return;
+  isDragging = true;
+  startX = e.clientX - panX;
+  startY = e.clientY - panY;
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  panX = e.clientX - startX;
+  panY = e.clientY - startY;
+  updateTransform(false);
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+// Mouse Wheel Zoom
+mapCanvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.15 : -0.15;
+  const oldScale = scale;
+  scale = Math.min(maxScale, Math.max(minScale, Number((scale + delta).toFixed(2))));
+  
+  // Zoom towards mouse pointer
+  const rect = mapCanvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  panX -= (mouseX - panX) * (scale / oldScale - 1);
+  panY -= (mouseY - panY) * (scale / oldScale - 1);
+  updateTransform(false);
+}, { passive: false });
+
+// Mobile Touch Events (1 Finger Pan & 2 Fingers Pinch Zoom)
+mapCanvas.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.map-floating-controls')) return;
+  if (e.touches.length === 1) {
+    isDragging = true;
+    startX = e.touches[0].clientX - panX;
+    startY = e.touches[0].clientY - panY;
+    initialTouchDist = null;
+  } else if (e.touches.length === 2) {
+    isDragging = false;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    initialTouchDist = Math.hypot(dx, dy);
+    initialTouchScale = scale;
+  }
+}, { passive: false });
+
+mapCanvas.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1 && isDragging) {
+    panX = e.touches[0].clientX - startX;
+    panY = e.touches[0].clientY - startY;
+    updateTransform(false);
+  } else if (e.touches.length === 2 && initialTouchDist) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const currentDist = Math.hypot(dx, dy);
+    const distRatio = currentDist / initialTouchDist;
+    scale = Math.min(maxScale, Math.max(minScale, Number((initialTouchScale * distRatio).toFixed(2))));
+    updateTransform(false);
+  }
+}, { passive: false });
+
+mapCanvas.addEventListener('touchend', (e) => {
+  if (e.touches.length === 0) {
+    isDragging = false;
+    initialTouchDist = null;
+  }
+});
+
 // Inisialisasi awal
 renderQuestLog();
 goToStep(1);
+
+// ==========================================
+// AG-UI PROTOCOL INTEGRATION ENGINE FOR WANDR
+// ==========================================
+
+const ORIGINAL_ITINERARY = JSON.parse(JSON.stringify(ITINERARY_v3));
+
+window.AGUI = {
+  log: function(type, msg, payload) {
+    const consoleBox = document.getElementById('agui-console');
+    if (!consoleBox) return;
+    const line = document.createElement('div');
+    line.className = 'log-line ' + (type === 'action' ? 'log-action' : 'log-event');
+    const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
+    line.textContent = `[${time}] [AG-UI ${type.toUpperCase()}] ${msg}` + (payload ? ' ' + JSON.stringify(payload) : '');
+    consoleBox.appendChild(line);
+    consoleBox.scrollTop = consoleBox.scrollHeight;
+  },
+
+  emit: function(eventName, data) {
+    this.log('event', eventName, data);
+  },
+
+  dispatch: function(action, payload) {
+    this.log('action', action, payload);
+    switch (action) {
+      case 'MUTATE_ROUTE':
+        this.handleMutateRoute(payload);
+        break;
+      case 'UPDATE_HUD':
+        this.handleUpdateHud(payload);
+        break;
+      case 'DISPATCH_DIALOGUE':
+        this.handleDispatchDialogue(payload);
+        break;
+      case 'FOCUS_NODE':
+        this.handleFocusNode(payload);
+        break;
+      default:
+        console.warn('Unknown AG-UI action:', action);
+    }
+  },
+
+  handleMutateRoute: function(payload) {
+    if (payload.action === 'replace') {
+      const idx = ITINERARY_v3.findIndex(item => item.step === payload.targetStep);
+      if (idx !== -1) {
+        ITINERARY_v3[idx] = Object.assign({}, ITINERARY_v3[idx], payload.newDestination);
+      }
+    } else if (payload.action === 'reset') {
+      ITINERARY_v3 = JSON.parse(JSON.stringify(ORIGINAL_ITINERARY));
+    }
+    
+    // Refresh visual layers
+    renderQuestLog();
+    goToStep(currentStep);
+    centerOnHero(true);
+  },
+
+  handleUpdateHud: function(payload) {
+    if (payload.stamina !== undefined) {
+      const heartsContainer = document.querySelector('.hud-hearts');
+      if (heartsContainer) {
+        let hHtml = '';
+        for (let i = 0; i < 5; i++) {
+          hHtml += i < payload.stamina ? '❤️' : '🤍';
+        }
+        heartsContainer.innerHTML = hHtml;
+      }
+    }
+    if (payload.gold !== undefined) {
+      const goldElem = document.querySelector('.hud-gold');
+      if (goldElem) {
+        goldElem.innerHTML = `🪙 Rp${Number(payload.gold).toLocaleString('id-ID')}`;
+      }
+    }
+    if (payload.weather !== undefined) {
+      const weatherElem = document.querySelector('.hud-weather');
+      if (weatherElem) {
+        weatherElem.innerHTML = payload.weather;
+      }
+    }
+  },
+
+  handleDispatchDialogue: function(payload) {
+    const nameElem = document.querySelector('.dialogue-speaker-name');
+    const roleElem = document.querySelector('.dialogue-speaker-role');
+    const avatarElem = document.querySelector('.dialogue-speaker-avatar');
+    const textElem = document.getElementById('dialogue-text');
+
+    if (nameElem && payload.speakerName) nameElem.textContent = payload.speakerName;
+    if (roleElem && payload.speakerRole) roleElem.textContent = payload.speakerRole;
+    if (avatarElem && payload.avatar) avatarElem.textContent = payload.avatar;
+    if (textElem && payload.text) {
+      textElem.innerHTML = payload.text;
+    }
+  },
+
+  handleFocusNode: function(payload) {
+    if (payload.step) {
+      goToStep(payload.step);
+      centerOnHero(true);
+    }
+  }
+};
+
+function toggleAguiModal(show) {
+  const modal = document.getElementById('agui-modal');
+  if (modal) {
+    modal.classList.toggle('active', show);
+    if (show) {
+      window.AGUI.emit('DRAWER_OPENED', { step: currentStep });
+    }
+  }
+}
+
+function simulateAguiAction(scenario) {
+  if (scenario === 'rain_reroute') {
+    window.AGUI.emit('USER_REQUEST_REROUTE', { reason: 'cuaca_ekstrem_ijen' });
+    
+    // Dispatch Action Stream: Mutate Route
+    window.AGUI.dispatch('MUTATE_ROUTE', {
+      action: 'replace',
+      targetStep: 7,
+      newDestination: {
+        step: 7,
+        day: 2,
+        time: "08:30 WIB",
+        name: "Pantai Bangsring Underwater",
+        cat: "Wisata Bahari",
+        rating: "4.8",
+        desc: "Alternatif aman: Snorkeling konservasi terumbu karang dan rumah apung Bangsring ramah cuaca.",
+        dialogue: "Karena Paltuding Ijen diguyur hujan deras, agen membelokkan rute ke Bangsring Underwater. Lautnya tenang dan aman!",
+        speaker: { name: "Tour Leader AI", role: "AG-UI Safety Agent", avatar: "🤖" },
+        pos: { x: 340, y: 150 }
+      }
+    });
+
+    // Dispatch Action: Update HUD (Weather & Energy)
+    window.AGUI.dispatch('UPDATE_HUD', {
+      weather: "🌧️ Hujan Deras di Ijen",
+      stamina: 5
+    });
+
+    // Dispatch Action: Speak to user
+    window.AGUI.dispatch('DISPATCH_DIALOGUE', {
+      speakerName: "Tour Leader AI",
+      speakerRole: "AG-UI Agent",
+      avatar: "🤖",
+      text: "⚠️ <strong>Peringatan Cuaca:</strong> Paltuding Ijen ditutup sementara akibat badai. AG-UI otomatis mengalihkan titik langkah #07 ke <em>Pantai Bangsring Underwater</em> demi keselamatan Masdit!"
+    });
+
+    window.AGUI.dispatch('FOCUS_NODE', { step: 7 });
+    toggleAguiModal(false);
+
+  } else if (scenario === 'stamina_boost') {
+    window.AGUI.emit('USER_REQUEST_REST', { reason: 'stamina_drop' });
+    
+    window.AGUI.dispatch('UPDATE_HUD', {
+      stamina: 5,
+      gold: 2450000
+    });
+
+    window.AGUI.dispatch('DISPATCH_DIALOGUE', {
+      speakerName: "Mbak Tiwi (Tour Leader)",
+      speakerRole: "AI Companion",
+      avatar: "☕",
+      text: "Capek kan habis keliling? Aku sudah reservasikan tempat santai di Sanggar Kopi Osing Kemiren. Stamina terisi penuh lagi, yuk ngopi dulu Masdit!"
+    });
+
+    window.AGUI.dispatch('FOCUS_NODE', { step: 13 });
+    toggleAguiModal(false);
+
+  } else if (scenario === 'budget_saver') {
+    window.AGUI.emit('USER_REQUEST_BUDGET_SAVER', { targetReduction: 150000 });
+
+    window.AGUI.dispatch('UPDATE_HUD', {
+      gold: 2850000
+    });
+
+    window.AGUI.dispatch('DISPATCH_DIALOGUE', {
+      speakerName: "Finance Agent",
+      speakerRole: "AG-UI Optimizer",
+      avatar: "💰",
+      text: "Rekomendasi hemat berhasil dipasang! Kamu dapat diskon rombongan kuliner lokal dan tiket promo terusan. Hemat <strong>Rp150.000</strong>!"
+    });
+
+    toggleAguiModal(false);
+
+  } else if (scenario === 'reset_original') {
+    window.AGUI.emit('USER_REQUEST_RESET', {});
+    window.AGUI.dispatch('MUTATE_ROUTE', { action: 'reset' });
+    window.AGUI.dispatch('UPDATE_HUD', {
+      weather: "🌤️ Cerah Berawan",
+      stamina: 5,
+      gold: 2500000
+    });
+    window.AGUI.dispatch('DISPATCH_DIALOGUE', {
+      speakerName: "DITA",
+      speakerRole: "Tour Leader AI",
+      avatar: "🎒",
+      text: "Rute telah dikembalikan ke jadwal resmi 16 destinasi Wandr Banyuwangi v3. Siap bertualang lagi!"
+    });
+    window.AGUI.dispatch('FOCUS_NODE', { step: 1 });
+    toggleAguiModal(false);
+  }
+}
+
+function dispatchCustomPrompt() {
+  const input = document.getElementById('agui-user-prompt');
+  if (!input || !input.value.trim()) return;
+  const prompt = input.value.trim();
+  input.value = '';
+
+  window.AGUI.emit('USER_NATURAL_PROMPT', { query: prompt });
+
+  // Intelligent reactive AG-UI dispatch based on query intent
+  if (prompt.toLowerCase().includes('lapar') || prompt.toLowerCase().includes('makan') || prompt.toLowerCase().includes('kuliner')) {
+    window.AGUI.dispatch('FOCUS_NODE', { step: 4 });
+    window.AGUI.dispatch('DISPATCH_DIALOGUE', {
+      speakerName: "Food Scout AI",
+      speakerRole: "AG-UI Culinary Agent",
+      avatar: "🍛",
+      text: `Rekomendasi kuliner terdekat dari posisimu: <strong>Warung Nasi Tempong Mak Ndut</strong>! Sambal segar dan lauk ikan laut siap mengisi tenaga.`
+    });
+  } else if (prompt.toLowerCase().includes('capek') || prompt.toLowerCase().includes('hotel') || prompt.toLowerCase().includes('tidur')) {
+    window.AGUI.dispatch('FOCUS_NODE', { step: 6 });
+    window.AGUI.dispatch('DISPATCH_DIALOGUE', {
+      speakerName: "Hotel Concierge AI",
+      speakerRole: "AG-UI Lodging Agent",
+      avatar: "🏕️",
+      text: `Saatnya istirahat di <strong>Iglam Blue Fire Ijen Paltuding</strong>. Suasana sejuk pegunungan pas buat tidur nyenyak.`
+    });
+  } else {
+    window.AGUI.dispatch('DISPATCH_DIALOGUE', {
+      speakerName: "Tour Leader AI",
+      speakerRole: "AG-UI Assistant",
+      avatar: "🤖",
+      text: `Aku mengerti permintaanmu: "${prompt}". Koordinat rute telah disesuaikan dengan ritme perjalananmu!`
+    });
+  }
+
+  toggleAguiModal(false);
+}
+
 </script>
+
+
+<!-- AG-UI Floating Action Trigger -->
+<button class="agui-copilot-trigger" id="btn-agui-copilot" onclick="toggleAguiModal(true)">
+  <span class="badge-pulse"></span>
+  <span>🤖 AG-UI Copilot</span>
+</button>
+
+<!-- AG-UI Modal Overlay & Copilot Panel -->
+<div class="agui-modal-overlay" id="agui-modal" onclick="if(event.target===this) toggleAguiModal(false)">
+  <div class="agui-copilot-panel">
+    <div class="agui-header">
+      <h3><span>🤖</span> AG-UI Tour Leader Agent</h3>
+      <button class="agui-close-btn" onclick="toggleAguiModal(false)">✕</button>
+    </div>
+    <div class="agui-body">
+      <div>
+        <div style="font-weight: 800; font-size: 0.82rem; color: #78350f; margin-bottom: 6px;">
+          ⚡ Aksi Cepat Generative UI (Simulasi Skenario Perjalanan):
+        </div>
+        <div class="agui-chip-group">
+          <button class="agui-chip" onclick="simulateAguiAction('rain_reroute')">
+            🌧️ Cuaca Buruk Ijen (Re-route ke Pantai Bangsring)
+          </button>
+          <button class="agui-chip" onclick="simulateAguiAction('stamina_boost')">
+            ☕ Stamina Drop (Rehat & Seduh Kopi Kemiren)
+          </button>
+          <button class="agui-chip" onclick="simulateAguiAction('budget_saver')">
+            💰 Mode Hemat (Diskon Rujak Soto & Transport)
+          </button>
+          <button class="agui-chip reset" onclick="simulateAguiAction('reset_original')">
+            🔄 Reset Rute Standar (16 Destinasi)
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-weight: 800; font-size: 0.82rem; color: #78350f; margin-bottom: 6px;">
+          💬 Beri Perintah ke Agen AI:
+        </div>
+        <div class="agui-input-row">
+          <input type="text" id="agui-user-prompt" class="agui-input" placeholder="Contoh: Saya lapar, carikan kuliner dekat sini..." onkeydown="if(event.key==='Enter') dispatchCustomPrompt()" />
+          <button class="agui-submit-btn" onclick="dispatchCustomPrompt()">Kirim</button>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-weight: 800; font-size: 0.78rem; color: #475569;">
+            📡 AG-UI Protocol Stream Inspector:
+          </span>
+          <span style="font-size: 0.7rem; color: #10b981; font-weight: 700;">● Active</span>
+        </div>
+        <div class="agui-stream-console" id="agui-console">
+          <div class="log-line log-event">[AG-UI Core] Initialized. Listening to frontend events...</div>
+          <div class="log-line">[Handshake] Connected to Wandr Retro Gameboard.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
