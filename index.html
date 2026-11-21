@@ -159,16 +159,25 @@
     /* ── NAV ───────────────────────────────────────────────────────────────── */
     #nav {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 24px;
-      border-bottom: 2px solid #111111;
-      border-top: none;
-      margin-top: 0;
-      margin-bottom: 12px;
-      background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0,0,0,.06);
+      padding: 12px 20px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: 0 -2px 8px rgba(0,0,0,.05);
       position: sticky;
-      top: 0;
-      z-index: 50;
+      bottom: 0;
+      z-index: 40;
+    }
+    @media (min-width: 768px) {
+      #content-wrap { flex: 0 1 auto !important; margin-bottom: 16px !important; }
+      #nav {
+        position: static !important;
+        margin-top: 24px !important;
+        margin-bottom: 40px !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-top: 1.5px solid var(--border) !important;
+        padding: 18px 0 !important;
+      }
     }
     .dest-count {
       font-size: 11px; color: var(--text-muted);
@@ -1570,16 +1579,16 @@
     </div>
   </div>
 
-  <!-- NAV (MOVED TO TOP ACROSS ALL STEPS) -->
+  <!-- CONTENT -->
+  <div id="content-wrap" style="padding:0 24px;flex:1;margin-top:16px">
+    <div id="content"></div>
+  </div>
+
+  <!-- NAV (DI BAWAH KONTEN/PILIHAN) -->
   <div id="nav">
     <button class="btn-ghost hidden" id="btn-back">← Kembali</button>
     <span class="dest-count" id="dest-count"></span>
     <button class="btn-pri" id="btn-next" disabled>Lanjut →</button>
-  </div>
-
-  <!-- CONTENT -->
-  <div id="content-wrap" style="padding:0 24px;flex:1;margin-top:12px">
-    <div id="content"></div>
   </div>
 
 </div>
@@ -5723,11 +5732,7 @@ function renderPlanningBoard() {
         <h2 class="step-title" style="margin-bottom:2px">Susun Perjalananmu</h2>
         <p class="step-sub" style="margin-bottom:0">Tahan lalu seret destinasi ke hari yang diinginkan</p>
       </div>
-      <!-- Tombol Aksi Cepat Atas (Navigasi Mudah di Desktop & Mobile) -->
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="btn-ghost" onclick="document.getElementById('btn-back').click()" style="padding:8px 14px;font-size:12px;font-weight:700">← Kembali</button>
-        <button class="btn-pri" onclick="document.getElementById('btn-next').click()" style="padding:10px 18px;font-size:13px;font-weight:900;background:#e8532f;box-shadow:3px 3px 0 #111">✨ Generate Itinerary →</button>
-      </div>
+
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;background:#f8fafc;padding:8px 12px;border-radius:10px;border:1px solid #e2e8f0">
       <div style="font-size:12px;color:#334155;font-weight:700">
