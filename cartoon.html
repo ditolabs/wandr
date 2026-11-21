@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>3D Cartoon Story Simulation (Three.js + 2D Billboards)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0f172a;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #fff;
+    }
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Top HUD */
+    .top-bar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      pointer-events: auto;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Bottom Control Bar */
+    .controls-panel {
+      position: absolute;
+      bottom: 24px;
+      left: 16px;
+      right: 16px;
+      max-width: 460px;
+      margin: 0 auto;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 24px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 20;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+    }
+    .cam-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .cam-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 10px 6px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cam-btn.active {
+      background: #f59e0b;
+      color: #0f172a;
+      border-color: #f59e0b;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+    .story-card {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+      background: rgba(2, 6, 23, 0.5);
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .story-card strong {
+      color: #38bdf8;
+    }
+  </style>
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="badge">
+      <span class="dot"></span>
+      <span>3D TOON SHORT • THREE.JS REPO FORMULA</span>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <div class="controls-panel">
+    <div class="cam-selector">
+      <button class="cam-btn active" id="btnDirector">🎬 DIRECTOR</button>
+      <button class="cam-btn" id="btnFollow">🚶 MARCH CAM</button>
+      <button class="cam-btn" id="btnDrone">🦅 DRONE</button>
+    </div>
+    <div class="story-card">
+      <strong>74 Soldiers Marching in Step</strong><br>
+      Karakter kartun 2D <em>"bean-head"</em> digambar murni via Canvas2D, diletakkan sebagai <em>billboard</em> di dunia 3D Three.js dengan garis tinta komik.
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // FORMULA VISUAL CLAUDE-ANIMATED-SHORTS (STYLE_BIBLE.md & toon.ts)
+    // -------------------------------------------------------------------------
+    const INK = "#241726";
+    const SKIN = "#ffe2c2";
+
+    // 1. Scene, Camera & Renderer
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#38bdf8');
+    scene.fog = new THREE.FogExp2('#38bdf8', 0.012);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+    camera.position.set(-18, 9, 22);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    // 2. Stylized Saturated Lighting
+    const hemiLight = new THREE.HemisphereLight('#fef08a', '#1e293b', 0.8);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight('#fffbeb', 1.8);
+    sunLight.position.set(25, 40, 20);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 120;
+    sunLight.shadow.camera.left = -30;
+    sunLight.shadow.camera.right = 30;
+    sunLight.shadow.camera.top = 30;
+    sunLight.shadow.camera.bottom = -30;
+    scene.add(sunLight);
+
+    // 3. Stylized 3D Environment (Suspension Bridge & River)
+    const bridgeGroup = new THREE.Group();
+    scene.add(bridgeGroup);
+
+    // River
+    const riverGeo = new THREE.PlaneGeometry(160, 160);
+    const riverMat = new THREE.MeshStandardMaterial({
+      color: '#0284c7',
+      roughness: 0.1,
+      metalness: 0.4
+    });
+    const river = new THREE.Mesh(riverGeo, riverMat);
+    river.rotation.x = -Math.PI / 2;
+    river.position.y = -4;
+    river.receiveShadow = true;
+    scene.add(river);
+
+    // River banks (Grass)
+    const bankMat = new THREE.MeshStandardMaterial({ color: '#22c55e', roughness: 0.8 });
+    const bank1 = new THREE.Mesh(new THREE.BoxGeometry(40, 6, 80), bankMat);
+    bank1.position.set(-36, -1, 0);
+    bank1.receiveShadow = true;
+    scene.add(bank1);
+
+    const bank2 = new THREE.Mesh(new THREE.BoxGeometry(40, 6, 80), bankMat);
+    bank2.position.set(36, -1, 0);
+    bank2.receiveShadow = true;
+    scene.add(bank2);
+
+    // Bridge Deck (Wood planks with ink lines)
+    const deckMat = new THREE.MeshStandardMaterial({ color: '#b45309', roughness: 0.7 });
+    const bridgeDeck = new THREE.Mesh(new THREE.BoxGeometry(36, 0.6, 5.5), deckMat);
+    bridgeDeck.position.set(0, 1.8, 0);
+    bridgeDeck.castShadow = true;
+    bridgeDeck.receiveShadow = true;
+    bridgeGroup.add(bridgeDeck);
+
+    // Stone Piers (Towers)
+    const stoneMat = new THREE.MeshStandardMaterial({ color: '#64748b', roughness: 0.9 });
+    function makeTower(x) {
+      const g = new THREE.Group();
+      const p1 = new THREE.Mesh(new THREE.BoxGeometry(1.4, 12, 1.4), stoneMat);
+      p1.position.set(0, 5, -2.6);
+      p1.castShadow = true;
+      const p2 = p1.clone();
+      p2.position.set(0, 5, 2.6);
+      const top = new THREE.Mesh(new THREE.BoxGeometry(2, 1.2, 7.2), stoneMat);
+      top.position.set(0, 10.6, 0);
+      top.castShadow = true;
+      g.add(p1, p2, top);
+      g.position.x = x;
+      return g;
+    }
+    bridgeGroup.add(makeTower(-16));
+    bridgeGroup.add(makeTower(16));
+
+    // Suspension Cables (Ink black)
+    const cableMat = new THREE.MeshBasicMaterial({ color: INK });
+    function makeCable(zSide) {
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(-16, 11, zSide),
+        new THREE.Vector3(0, 2.6, zSide),
+        new THREE.Vector3(16, 11, zSide)
+      );
+      const pts = curve.getPoints(30);
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      const line = new THREE.Line(geo, cableMat);
+      bridgeGroup.add(line);
+
+      // Vertical rods
+      for (let i = 1; i < pts.length - 1; i += 2) {
+        const pt = pts[i];
+        const rodGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(pt.x, pt.y, zSide),
+          new THREE.Vector3(pt.x, 2.1, zSide)
+        ]);
+        bridgeGroup.add(new THREE.Line(rodGeo, cableMat));
+      }
+    }
+    makeCable(2.6);
+    makeCable(-2.6);
+
+    // 4. Procedural 2D "Bean-Head" Soldiers on Canvas (Directly from toon.ts)
+    function generateToonSoldierCanvas(walkPhase, blink) {
+      const cv = document.createElement('canvas');
+      cv.width = 256;
+      cv.height = 400;
+      const ctx = cv.getContext('2d');
+
+      ctx.clearRect(0, 0, 256, 400);
+      ctx.save();
+      ctx.translate(128, 360);
+      ctx.scale(0.35, 0.35);
+
+      const legBob = Math.sin(walkPhase) * 35;
+      const armBob = Math.cos(walkPhase) * 45;
+      const headBob = Math.abs(Math.sin(walkPhase * 2)) * 12;
+
+      // Legs (Stick limbs with ink dots)
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = INK;
+      ctx.lineCap = 'round';
+
+      // Left Leg
+      ctx.beginPath();
+      ctx.moveTo(-30, -180);
+      ctx.lineTo(-30 - legBob * 0.7, 0);
+      ctx.stroke();
+
+      // Right Leg
+      ctx.beginPath();
+      ctx.moveTo(30, -180);
+      ctx.lineTo(30 + legBob * 0.7, 0);
+      ctx.stroke();
+
+      // Torso (Red Military Tunic)
+      ctx.fillStyle = '#dc2626';
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.roundRect(-65, -340, 130, 170, [25, 25, 10, 10]);
+      ctx.fill();
+      ctx.stroke();
+
+      // Crossbelt (White sash)
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 16;
+      ctx.beginPath();
+      ctx.moveTo(-50, -330);
+      ctx.lineTo(50, -180);
+      ctx.stroke();
+
+      // Gold buttons
+      ctx.fillStyle = '#fbbf24';
+      for (let y = -310; y <= -200; y += 35) {
+        ctx.beginPath();
+        ctx.arc(0, y, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Arms (Swinging with march)
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 12;
+      // Left Arm
+      ctx.beginPath();
+      ctx.moveTo(-60, -320);
+      ctx.lineTo(-75 - armBob * 0.8, -200);
+      ctx.stroke();
+      // Right Arm
+      ctx.beginPath();
+      ctx.moveTo(60, -320);
+      ctx.lineTo(75 + armBob * 0.8, -200);
+      ctx.stroke();
+
+      // Head (Bean shape + chin taper)
+      ctx.save();
+      ctx.translate(0, -350 - headBob);
+
+      ctx.fillStyle = SKIN;
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 9;
+
+      ctx.beginPath();
+      ctx.ellipse(0, -60, 65, 80, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Eyes (Deadpan lidded or blinking)
+      ctx.fillStyle = INK;
+      if (blink) {
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(15, -65); ctx.lineTo(38, -65);
+        ctx.moveTo(45, -65); ctx.lineTo(62, -65);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(28, -65, 7, 0, Math.PI * 2);
+        ctx.arc(52, -65, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Mustache
+      ctx.fillStyle = '#451a03';
+      ctx.beginPath();
+      ctx.ellipse(40, -42, 22, 9, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // British Shako Military Hat
+      ctx.fillStyle = '#1e1b4b';
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.rect(-50, -190, 105, 80);
+      ctx.fill();
+      ctx.stroke();
+
+      // Hat Feather Plume (Red)
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.ellipse(-30, -205, 12, 25, 0.1, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+      ctx.restore();
+
+      return cv;
+    }
+
+    // 5. Create Marching Battalion on the Bridge
+    const soldiers = [];
+    const soldierCount = 14;
+
+    for (let i = 0; i < soldierCount; i++) {
+      const canvas = generateToonSoldierCanvas(0, false);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+
+      const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(2.4, 3.8, 1);
+
+      // Two columns marching
+      const row = Math.floor(i / 2);
+      const col = (i % 2 === 0) ? -1.1 : 1.1;
+      const initialX = -14 + row * 3.8;
+
+      sprite.position.set(initialX, 3.8, col);
+      bridgeGroup.add(sprite);
+
+      soldiers.push({
+        sprite,
+        col,
+        x: initialX,
+        phaseOffset: row * 0.4
+      });
+    }
+
+    // 6. Camera Modes
+    let cameraMode = 'director';
+    document.getElementById('btnDirector').onclick = () => setCamMode('director');
+    document.getElementById('btnFollow').onclick = () => setCamMode('follow');
+    document.getElementById('btnDrone').onclick = () => setCamMode('drone');
+
+    function setCamMode(mode) {
+      cameraMode = mode;
+      document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+      if (mode === 'director') document.getElementById('btnDirector').classList.add('active');
+      if (mode === 'follow') document.getElementById('btnFollow').classList.add('active');
+      if (mode === 'drone') document.getElementById('btnDrone').classList.add('active');
+    }
+
+    // 7. 60 FPS Render Loop with Harmonic Bridge Resonance
+    let clock = new THREE.Clock();
+    let bridgeWobble = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const time = clock.getElapsedTime();
+
+      // Soldiers march in synchrony (resonance)
+      const marchStep = time * 6.5;
+      bridgeWobble = Math.sin(marchStep * 0.5) * 0.18;
+      bridgeDeck.position.y = 1.8 + bridgeWobble;
+
+      soldiers.forEach((s, idx) => {
+        // Forward progress along bridge
+        s.x += 0.04;
+        if (s.x > 18) s.x = -16;
+        s.sprite.position.x = s.x;
+        s.sprite.position.y = 3.8 + bridgeWobble;
+
+        // Animate canvas walk cycle every few frames
+        if (idx % 2 === 0 && Math.floor(time * 30) % 2 === 0) {
+          const blink = (Math.sin(time * 2 + idx) > 0.94);
+          const newCv = generateToonSoldierCanvas(marchStep + s.phaseOffset, blink);
+          s.sprite.material.map.image = newCv;
+          s.sprite.material.map.needsUpdate = true;
+        }
+      });
+
+      // Camera Animation based on Mode
+      if (cameraMode === 'director') {
+        // Gliding cinematic sweep along the bridge
+        const camX = Math.sin(time * 0.35) * 16;
+        const camZ = 16 + Math.cos(time * 0.25) * 8;
+        camera.position.set(camX, 7 + Math.sin(time * 0.5) * 2, camZ);
+        camera.lookAt(0, 2.5, 0);
+      } else if (cameraMode === 'follow') {
+        // Close tracking cam following the lead soldiers
+        const lead = soldiers[0];
+        camera.position.set(lead.x - 7, 4.2, lead.col + 5.5);
+        camera.lookAt(lead.x + 3, 3.2, 0);
+      } else if (cameraMode === 'drone') {
+        // High top-down drone angle
+        camera.position.set(0, 24, 28);
+        camera.lookAt(0, 1.8, 0);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // Window Resize Handler
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  </script>
+</body>
+</html>
