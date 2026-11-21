@@ -159,11 +159,16 @@
     /* ── NAV ───────────────────────────────────────────────────────────────── */
     #nav {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 20px 24px;
-      border-top: 1px solid var(--border);
-      margin-top: 8px;
-      background: var(--surface);
-      box-shadow: 0 -2px 8px rgba(0,0,0,.04);
+      padding: 10px 24px;
+      border-bottom: 2px solid #111111;
+      border-top: none;
+      margin-top: 0;
+      margin-bottom: 12px;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,.06);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
     .dest-count {
       font-size: 11px; color: var(--text-muted);
@@ -1565,16 +1570,16 @@
     </div>
   </div>
 
-  <!-- CONTENT -->
-  <div id="content-wrap" style="padding:0 24px;flex:1;margin-top:24px">
-    <div id="content"></div>
-  </div>
-
-  <!-- NAV -->
-  <div id="nav" style="position:sticky;bottom:0;z-index:40;background:#ffffff;box-shadow:0 -1px 0 #e4e8f0;">
+  <!-- NAV (MOVED TO TOP ACROSS ALL STEPS) -->
+  <div id="nav">
     <button class="btn-ghost hidden" id="btn-back">← Kembali</button>
     <span class="dest-count" id="dest-count"></span>
     <button class="btn-pri" id="btn-next" disabled>Lanjut →</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content-wrap" style="padding:0 24px;flex:1;margin-top:12px">
+    <div id="content"></div>
   </div>
 
 </div>
