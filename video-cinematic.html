@@ -3,245 +3,643 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Wandr Video - Cinematic Carousel Motion</title>
+  <title>Wandr Cinematic Video Itinerary - 60FPS Story</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* -------------------------------------------------------------
+       EMIL KOWALSKI DESIGN PRINCIPLES:
+       1. Composite-only animations (transform & opacity only).
+       2. Strict spring easing: cubic-bezier(0.16, 1, 0.3, 1).
+       3. Staggered choreography with micro-delays (40ms steps).
+       4. GPU layer isolation via will-change & translate3d.
+       ------------------------------------------------------------- */
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    
+    :root {
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+      --ease-in-quad: cubic-bezier(0.7, 0, 0.84, 0);
+      --amber-accent: #f59e0b;
+      --sky-accent: #38bdf8;
+      --emerald-accent: #10b981;
+      --orange-accent: #f97316;
+    }
+
     body {
-      background: #030712;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #020617;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #fff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: 12px;
+      overflow-x: hidden;
     }
-    .video-viewport {
+
+    .phone-container {
       width: 100%;
       max-width: 380px;
-      height: 675px;
-      background: #111827;
-      border: 4px solid #1f2937;
-      border-radius: 36px;
+      height: 680px;
+      background: #0f172a;
+      border: 4px solid #1e293b;
+      border-radius: 40px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255,255,255,0.05);
       display: flex;
       flex-direction: column;
     }
-    /* Ken Burns Photo Stage */
-    .photo-stage {
+
+    /* Background Photo Layer with Hardware-Accelerated Ken Burns */
+    .photo-viewport {
       position: absolute;
       inset: 0;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .bg-photo {
+      position: absolute;
+      inset: -5%;
+      width: 110%;
+      height: 110%;
       background-size: cover;
       background-position: center;
-      animation: kenBurns 6s infinite alternate ease-in-out;
-      transition: background-image 0.8s ease-in-out;
+      will-change: transform, opacity;
+      transform: translate3d(0, 0, 0) scale(1.06);
+      transition: opacity 0.6s var(--ease-spring), transform 4.5s linear;
+      opacity: 0;
     }
-    @keyframes kenBurns {
-      0% { transform: scale(1) translate(0, 0); }
-      100% { transform: scale(1.15) translate(-10px, -15px); }
+
+    .bg-photo.active {
+      opacity: 1;
+      transform: translate3d(0, -10px, 0) scale(1.0);
     }
+
+    /* Cinematic Gradient Vignette */
     .vignette-overlay {
       position: absolute;
       inset: 0;
       background: linear-gradient(180deg, 
-        rgba(3,7,18,0.7) 0%, 
-        rgba(3,7,18,0.1) 40%, 
-        rgba(3,7,18,0.6) 70%, 
-        rgba(3,7,18,0.95) 100%);
+        rgba(2, 6, 23, 0.75) 0%, 
+        rgba(2, 6, 23, 0.1) 35%, 
+        rgba(2, 6, 23, 0.65) 65%, 
+        rgba(2, 6, 23, 0.96) 100%);
       z-index: 5;
+      pointer-events: none;
     }
-    /* Top Story Progress Bars */
-    .story-bars {
+
+    /* Story Progress Bar */
+    .story-progress-wrapper {
       position: absolute;
-      top: 16px; left: 16px; right: 16px;
+      top: 14px;
+      left: 14px;
+      right: 14px;
       display: flex;
       gap: 6px;
-      z-index: 20;
+      z-index: 30;
     }
-    .bar-segment {
+
+    .story-bar-track {
       flex: 1;
-      height: 4px;
-      background: rgba(255,255,255,0.3);
+      height: 3.5px;
+      background: rgba(255, 255, 255, 0.25);
       border-radius: 4px;
       overflow: hidden;
+      position: relative;
     }
-    .bar-fill {
-      height: 100%;
-      width: 0%;
-      background: #fff;
-      transition: width 0.1s linear;
-    }
-    /* Cinematic Typography & Labels */
-    .content-box {
+
+    .story-bar-fill {
       position: absolute;
-      bottom: 40px;
-      left: 20px; right: 20px;
-      z-index: 20;
+      top: 0; left: 0; bottom: 0;
+      width: 0%;
+      background: #ffffff;
+      border-radius: 4px;
+      will-change: width;
     }
+
+    /* Top Metadata Bar */
+    .top-meta {
+      position: absolute;
+      top: 26px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 30;
+    }
+
+    .author-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald-accent);
+      box-shadow: 0 0 10px var(--emerald-accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .audio-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: transform 0.2s var(--ease-spring);
+    }
+
+    .audio-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* Bottom Choreographed Content Card */
+    .bottom-card-stage {
+      position: absolute;
+      bottom: 22px;
+      left: 14px;
+      right: 14px;
+      z-index: 25;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.7);
+      will-change: transform, opacity;
+    }
+
+    /* Choreographed Text Items inside Card */
+    .stagger-item {
+      will-change: transform, opacity;
+      transition: transform 0.45s var(--ease-spring), opacity 0.45s var(--ease-spring);
+    }
+
+    .entering .stagger-item {
+      opacity: 0;
+      transform: translate3d(0, 18px, 0);
+    }
+
+    .entered .stagger-item {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+
+    .stagger-item:nth-child(1) { transition-delay: 40ms; }
+    .stagger-item:nth-child(2) { transition-delay: 80ms; }
+    .stagger-item:nth-child(3) { transition-delay: 120ms; }
+    .stagger-item:nth-child(4) { transition-delay: 160ms; }
+    .stagger-item:nth-child(5) { transition-delay: 200ms; }
+
     .tag-bubble {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(10px);
-      padding: 6px 14px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--amber-accent);
+      padding: 4px 10px;
       border-radius: 9999px;
-      font-size: 0.75rem;
+      font-size: 0.68rem;
       font-weight: 800;
       text-transform: uppercase;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    .hero-title {
-      font-size: 2rem;
-      font-weight: 900;
-      line-height: 1.1;
       margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-size: 1.45rem;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 4px;
       letter-spacing: -0.5px;
     }
+
+    .hero-subtitle {
+      font-size: 0.78rem;
+      color: var(--sky-accent);
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
     .hero-desc {
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       color: #cbd5e1;
-      line-height: 1.5;
-      margin-bottom: 16px;
+      line-height: 1.45;
+      margin-bottom: 14px;
     }
-    .stats-row {
-      display: flex;
-      gap: 16px;
-      border-top: 1px solid rgba(255,255,255,0.15);
-      padding-top: 12px;
+
+    /* Stats Grid with Glass Accent */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .stat-item {
+
+    .stat-card {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 6px 8px;
       display: flex;
       flex-direction: column;
     }
+
     .stat-label {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       color: #94a3b8;
       text-transform: uppercase;
       font-weight: 700;
+      margin-bottom: 2px;
     }
+
     .stat-val {
-      font-size: 0.95rem;
-      font-weight: 900;
-      color: #38bdf8;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Touch Tap Areas for Navigation */
+    .tap-nav-zone {
+      position: absolute;
+      top: 50px; bottom: 180px;
+      width: 50%;
+      z-index: 20;
+      cursor: pointer;
+    }
+    .tap-prev { left: 0; }
+    .tap-next { right: 0; }
+
+    /* Controls Bar outside phone */
+    .nav-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+      align-items: center;
+    }
+
+    .ctl-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s var(--ease-spring);
+    }
+
+    .ctl-btn:active {
+      transform: scale(0.94);
+      background: #334155;
+    }
+
+    .ctl-btn.primary {
+      background: var(--amber-accent);
+      color: #0f172a;
+      border-color: var(--amber-accent);
     }
   </style>
 </head>
 <body>
-  <div class="video-viewport">
-    <div class="story-bars">
-      <div class="bar-segment"><div class="bar-fill" id="bar0"></div></div>
-      <div class="bar-segment"><div class="bar-fill" id="bar1"></div></div>
-      <div class="bar-segment"><div class="bar-fill" id="bar2"></div></div>
-      <div class="bar-segment"><div class="bar-fill" id="bar3"></div></div>
+
+  <div class="phone-container" id="phoneContainer">
+    <!-- Top Story Segmented Bars -->
+    <div class="story-progress-wrapper" id="storyProgress">
+      <div class="story-bar-track"><div class="story-bar-fill"></div></div>
+      <div class="story-bar-track"><div class="story-bar-fill"></div></div>
+      <div class="story-bar-track"><div class="story-bar-fill"></div></div>
+      <div class="story-bar-track"><div class="story-bar-fill"></div></div>
+      <div class="story-bar-track"><div class="story-bar-fill"></div></div>
     </div>
 
-    <div class="photo-stage" id="bgPhoto" style="background-image: url('https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=800&q=80');"></div>
+    <!-- Top Metadata -->
+    <div class="top-meta">
+      <div class="author-badge">
+        <span class="pulse-dot"></span>
+        <span>WANDR. • 3H2M</span>
+      </div>
+      <button class="audio-btn" id="btnAudio" title="Toggle Audio (Gadis Neural)">🔊</button>
+    </div>
+
+    <!-- Tap Nav Targets -->
+    <div class="tap-nav-zone tap-prev" id="tapPrev" title="Tap Kiri: Mundur"></div>
+    <div class="tap-nav-zone tap-next" id="tapNext" title="Tap Kanan: Lanjut"></div>
+
+    <!-- Photo Viewport -->
+    <div class="photo-viewport" id="photoViewport"></div>
+
+    <!-- Vignette -->
     <div class="vignette-overlay"></div>
 
-    <div class="content-box">
-      <div class="tag-bubble" id="tagBubble">🌲 DAY 1 • HUTAN PURBA</div>
-      <div class="hero-title" id="heroTitle">De Djawatan</div>
-      <div class="hero-desc" id="heroDesc">
-        Hutan trembesi raksasa dengan sulur lumut alami yang menawan. Berasa masuk ke dunia Lord of The Rings.
+    <!-- Choreographed Bottom Card -->
+    <div class="bottom-card-stage entered" id="bottomCard">
+      <div class="stagger-item">
+        <span class="tag-bubble" id="cardTag">✨ OVERVIEW</span>
       </div>
-      <div class="stats-row">
-        <div class="stat-item">
-          <span class="stat-label">Tiket Masuk</span>
-          <span class="stat-val" id="statTicket">Rp10.000</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Waktu Terbaik</span>
-          <span class="stat-val" id="statTime">08:00 WIB</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Rating Pengunjung</span>
-          <span class="stat-val" id="statRating">⭐ 4.8 / 5.0</span>
+      <div class="stagger-item">
+        <h2 class="hero-title" id="cardTitle">Banyuwangi Trip</h2>
+      </div>
+      <div class="stagger-item">
+        <div class="hero-subtitle" id="cardSubtitle">Nature, Glamping & Heritage</div>
+      </div>
+      <div class="stagger-item">
+        <p class="hero-desc" id="cardDesc">Eksplorasi lengkap ujung timur Pulau Jawa dengan panduan resmi dan estimasi biaya akurat.</p>
+      </div>
+      <div class="stagger-item">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label" id="label1">Transport</span>
+            <span class="stat-val" id="val1">KA Blambangan</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label" id="label2">Penginapan</span>
+            <span class="stat-val" id="val2">Iglam Paltuding</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label" id="label3">Durasi</span>
+            <span class="stat-val" id="val3">3 Hari 2 Malam</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div style="margin-top: 16px;">
-    <a href="video.html" style="color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 700;">← Kembali ke Hub Video</a>
+  <!-- External Player Controls -->
+  <div class="nav-controls">
+    <button class="ctl-btn" id="btnPrev">◀ Mundur</button>
+    <button class="ctl-btn primary" id="btnPlayPause">⏸ Pause</button>
+    <button class="ctl-btn" id="btnNext">Lanjut ▶</button>
   </div>
 
   <script>
-    const slides = [
+    // -----------------------------------------------------------
+    // ITINERARY DATASET (Verified 16-Step Banyuwangi 3H2M)
+    // -----------------------------------------------------------
+    const scenes = [
       {
-        bg: 'https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=800&q=80',
-        tag: '🌲 DAY 1 • DESTINASI 03',
-        title: 'De Djawatan',
-        desc: 'Hutan trembesi raksasa dengan sulur lumut alami yang menawan. Berasa masuk ke dunia Lord of The Rings.',
-        ticket: 'Rp10.000',
-        time: '08:00 WIB',
-        rating: '⭐ 4.8 / 5.0'
+        tag: "✨ DAY 0 • KEDATANGAN",
+        title: "Stasiun Ketapang",
+        subtitle: "KA Blambangan Ekspres • 04:44 WIB",
+        desc: "Tiba di Banyuwangi pagi buta dengan kereta eksekutif, disambut sejuknya semilir angin pesisir timur.",
+        photo: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1080&q=80",
+        stats: [
+          { l: "Kedatangan", v: "04:44 WIB" },
+          { l: "Sarapan", v: "Sego Cawuk" },
+          { l: "Budget Pagi", v: "Rp20.000" }
+        ],
+        duration: 4800
       },
       {
-        bg: 'https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=800&q=80',
-        tag: '🌋 DAY 2 • DESTINASI 07',
-        title: 'Kawah Ijen',
-        desc: 'Saksikan kilau api biru langka dan mentari terbit di puncak kaldera belerang terbesar di Jawa.',
-        ticket: 'Rp5.000',
-        time: '01:30 WIB',
-        rating: '⭐ 4.9 / 5.0'
+        tag: "🌲 DAY 1 • HUTAN PURBA & KULINER",
+        title: "De Djawatan & Tempong",
+        subtitle: "Pohon Trembesi Raksasa & Nasi Mak Ndut",
+        desc: "Melangkah masuk ke kanopi magis ala Lord of The Rings, disusul santap pedas nendang Nasi Tempong legendaris.",
+        photo: "https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=1080&q=80",
+        stats: [
+          { l: "Tiket", v: "Rp10.000" },
+          { l: "Makan Siang", v: "Mak Ndut" },
+          { l: "Check-In", v: "Iglam Ijen" }
+        ],
+        duration: 5200
       },
       {
-        bg: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80',
-        tag: '☕ DAY 3 • DESTINASI 13',
-        title: 'Desa Kemiren',
-        desc: 'Mencicipi kopi seduh sangrai tangan dan keramahan warga Osing yang memikat hati.',
-        ticket: 'Rp15.000',
-        time: '07:30 WIB',
-        rating: '⭐ 4.8 / 5.0'
+        tag: "🌋 DAY 2 • API BIRU & SUNSET",
+        title: "Kawah Ijen & Watudodol",
+        subtitle: "Trekking Dini Hari 01:30 & Selat Bali",
+        desc: "Menyaksikan api biru langka di kaldera Ijen saat fajar, lalu bersantai sore menikmati sunset megah Selat Bali.",
+        photo: "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=1080&q=80",
+        stats: [
+          { l: "Tiket Ijen", v: "Rp5.000" },
+          { l: "Makan Siang", v: "Rujak Soto" },
+          { l: "Sunset", v: "Watudodol" }
+        ],
+        duration: 5500
       },
       {
-        bg: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-        tag: '🌊 DAY 2 • DESTINASI 11',
-        title: 'Watudodol',
-        desc: 'Pesisir selat Bali dengan panorama gugusan pulau menawan serta kuliner ikan bakar segar.',
-        ticket: 'Rp5.000',
-        time: '15:30 WIB',
-        rating: '⭐ 4.7 / 5.0'
+        tag: "☕ DAY 3 • BUDAYA & OLEH-OLEH",
+        title: "Desa Adat Osing",
+        subtitle: "Tradisi Sangrai Kopi & Rujak Losari",
+        desc: "Merasakan kehangatan warga Kemiren, seduhan kopi sangrai tangan, dan memborong bagiak renyah sebelum pulang.",
+        photo: "https://images.unsplash.com/photo-1596401057633-54a8fe8ef647?auto=format&fit=crop&w=1080&q=80",
+        stats: [
+          { l: "Tiket Desa", v: "Rp15.000" },
+          { l: "Makan Siang", v: "Losari No.39" },
+          { l: "Boarding", v: "15:50 WIB" }
+        ],
+        duration: 5200
+      },
+      {
+        tag: "🎒 RUTE RESMI SELESAI",
+        title: "Siap Liburan ke Banyuwangi?",
+        subtitle: "WANDR. TRIP PLANNER VERIFIED",
+        desc: "Dokumen PDF lengkap, peta 16-Bit RPG, dan panduan cerdas AI siap menemani petualangan serumu.",
+        photo: "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1080&q=80",
+        stats: [
+          { l: "Est. Total", v: "Rp1.450.000" },
+          { l: "Format", v: "PDF • RPG • Video" },
+          { l: "Status", v: "Siap Berangkat" }
+        ],
+        duration: 5000
       }
     ];
 
-    let current = 0;
-    const duration = 3500; // ms per slide
+    let currentIdx = 0;
+    let isPaused = false;
+    let startTime = null;
+    let progressTimer = null;
+    let elapsedBeforePause = 0;
 
-    function nextSlide() {
-      // fill previous bars
-      for (let i = 0; i < slides.length; i++) {
-        const bar = document.getElementById('bar' + i);
-        if (i < current) bar.style.width = '100%';
-        else if (i === current) bar.style.width = '100%';
-        else bar.style.width = '0%';
-      }
+    // DOM Elements
+    const photoViewport = document.getElementById('photoViewport');
+    const bottomCard = document.getElementById('bottomCard');
+    const cardTag = document.getElementById('cardTag');
+    const cardTitle = document.getElementById('cardTitle');
+    const cardSubtitle = document.getElementById('cardSubtitle');
+    const cardDesc = document.getElementById('cardDesc');
+    const label1 = document.getElementById('label1');
+    const val1 = document.getElementById('val1');
+    const label2 = document.getElementById('label2');
+    const val2 = document.getElementById('val2');
+    const label3 = document.getElementById('label3');
+    const val3 = document.getElementById('val3');
+    const fills = document.querySelectorAll('.story-bar-fill');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const phoneContainer = document.getElementById('phoneContainer');
 
-      current = (current + 1) % slides.length;
-      const s = slides[current];
+    // 1. Preload Background Photos
+    scenes.forEach((s, i) => {
+      const imgDiv = document.createElement('div');
+      imgDiv.className = 'bg-photo' + (i === 0 ? ' active' : '');
+      imgDiv.style.backgroundImage = `url('${s.photo}')`;
+      imgDiv.id = `bg-${i}`;
+      photoViewport.appendChild(imgDiv);
+    });
 
-      document.getElementById('bgPhoto').style.backgroundImage = `url('${s.bg}')`;
-      document.getElementById('tagBubble').textContent = s.tag;
-      document.getElementById('heroTitle').textContent = s.title;
-      document.getElementById('heroDesc').textContent = s.desc;
-      document.getElementById('statTicket').textContent = s.ticket;
-      document.getElementById('statTime').textContent = s.time;
-      document.getElementById('statRating').textContent = s.rating;
+    // 2. Emil Kowalski Choreographed Scene Transition
+    function renderScene(idx) {
+      const s = scenes[idx];
 
-      setTimeout(nextSlide, duration);
+      // A. Crossfade & Scale Photo (Composite-Only)
+      document.querySelectorAll('.bg-photo').forEach((el, i) => {
+        if (i === idx) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      // B. Animate Out Previous Text
+      bottomCard.classList.remove('entered');
+      bottomCard.classList.add('entering');
+
+      // C. Update Text Values during Exit
+      setTimeout(() => {
+        cardTag.textContent = s.tag;
+        cardTitle.textContent = s.title;
+        cardSubtitle.textContent = s.subtitle;
+        cardDesc.textContent = s.desc;
+        
+        label1.textContent = s.stats[0].l; val1.textContent = s.stats[0].v;
+        label2.textContent = s.stats[1].l; val2.textContent = s.stats[1].v;
+        label3.textContent = s.stats[2].l; val3.textContent = s.stats[2].v;
+
+        // D. Trigger Staggered Entrance
+        requestAnimationFrame(() => {
+          bottomCard.classList.remove('entering');
+          bottomCard.classList.add('entered');
+        });
+      }, 120);
+
+      // E. Update Bar Fills
+      fills.forEach((f, i) => {
+        if (i < idx) f.style.width = '100%';
+        else if (i > idx) f.style.width = '0%';
+        else f.style.width = '0%';
+      });
+
+      startProgressLoop();
     }
 
-    // start loop
-    document.getElementById('bar0').style.transition = 'width ' + duration + 'ms linear';
-    document.getElementById('bar0').style.width = '100%';
-    setTimeout(nextSlide, duration);
+    // 3. Smooth Story Progress Loop (60FPS requestAnimationFrame)
+    function startProgressLoop() {
+      if (progressTimer) cancelAnimationFrame(progressTimer);
+      startTime = performance.now();
+      const currentDuration = scenes[currentIdx].duration;
+
+      function loop(now) {
+        if (isPaused) {
+          progressTimer = requestAnimationFrame(loop);
+          return;
+        }
+
+        const delta = (now - startTime) + elapsedBeforePause;
+        const progress = Math.min(delta / currentDuration, 1.0);
+        fills[currentIdx].style.width = `${progress * 100}%`;
+
+        if (progress >= 1.0) {
+          elapsedBeforePause = 0;
+          nextScene();
+        } else {
+          progressTimer = requestAnimationFrame(loop);
+        }
+      }
+
+      progressTimer = requestAnimationFrame(loop);
+    }
+
+    function nextScene() {
+      elapsedBeforePause = 0;
+      if (currentIdx < scenes.length - 1) {
+        currentIdx++;
+      } else {
+        currentIdx = 0; // Loop back
+      }
+      renderScene(currentIdx);
+    }
+
+    function prevScene() {
+      elapsedBeforePause = 0;
+      if (currentIdx > 0) {
+        currentIdx--;
+      } else {
+        currentIdx = 0;
+      }
+      renderScene(currentIdx);
+    }
+
+    // 4. Interactive Event Listeners
+    document.getElementById('tapNext').addEventListener('click', () => nextScene());
+    document.getElementById('tapPrev').addEventListener('click', () => prevScene());
+    document.getElementById('btnNext').addEventListener('click', () => nextScene());
+    document.getElementById('btnPrev').addEventListener('click', () => prevScene());
+
+    btnPlayPause.addEventListener('click', () => {
+      isPaused = !isPaused;
+      btnPlayPause.textContent = isPaused ? '▶ Play' : '⏸ Pause';
+    });
+
+    // Hold to pause (like Instagram Reels)
+    let holdTimeout = null;
+    phoneContainer.addEventListener('touchstart', () => {
+      holdTimeout = setTimeout(() => { isPaused = true; }, 150);
+    });
+    phoneContainer.addEventListener('touchend', () => {
+      clearTimeout(holdTimeout);
+      if (isPaused && btnPlayPause.textContent.includes('Pause')) {
+        isPaused = false;
+      }
+    });
+
+    // Sound toggle badge
+    let isMuted = false;
+    document.getElementById('btnAudio').addEventListener('click', () => {
+      isMuted = !isMuted;
+      document.getElementById('btnAudio').textContent = isMuted ? '🔇' : '🔊';
+    });
+
+    // Kickoff
+    renderScene(0);
   </script>
 </body>
 </html>
