@@ -279,83 +279,94 @@
     }
 
     /* ── Milestone Arrival Modal Card ─────────────────────────────── */
+    /* ── Milestone Arrival Floating Toast (Top Right, Compact, Not in Center) ── */
     .milestone-popup {
       position: fixed;
-      top: 42%;
+      top: 14px;
       left: 50%;
-      transform: translate(-50%, -50%) scale(0.9);
-      background: rgba(15, 23, 42, 0.96);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(245, 158, 11, 0.45);
-      border-radius: 24px;
-      padding: 20px;
-      width: calc(100vw - 44px);
-      max-width: 360px;
-      z-index: 40;
+      transform: translateX(-50%) translateY(-25px);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      border-radius: 18px;
+      padding: 10px 14px;
+      width: calc(100vw - 28px);
+      max-width: 440px;
+      z-index: 42;
       opacity: 0;
       pointer-events: none;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      text-align: center;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 0 0 35px var(--amber-glow);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px var(--amber-glow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .milestone-popup.active {
       opacity: 1;
       pointer-events: auto;
-      transform: translate(-50%, -50%) scale(1);
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .milestone-info {
+      flex: 1;
+      text-align: left;
+      overflow: hidden;
     }
 
     .milestone-badge {
       display: inline-block;
-      padding: 3px 10px;
-      background: rgba(245, 158, 11, 0.15);
+      padding: 2px 8px;
+      background: rgba(245, 158, 11, 0.2);
       border: 1px solid var(--amber);
       color: var(--amber);
-      border-radius: 20px;
-      font-size: 0.68rem;
+      border-radius: 12px;
+      font-size: 0.62rem;
       font-weight: 800;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 2px;
     }
 
     .milestone-title {
-      font-size: 1.15rem;
+      font-size: 0.95rem;
       font-weight: 800;
       color: #fff;
-      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .milestone-desc {
-      font-size: 0.8rem;
+    .milestone-sub {
+      font-size: 0.72rem;
       color: var(--text-muted);
-      line-height: 1.4;
-      margin-bottom: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      gap: 8px;
     }
-
-    .milestone-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 8px 10px;
-      margin-bottom: 14px;
-    }
-    .m-stat-val { font-size: 0.85rem; font-weight: 800; color: #fff; }
-    .m-stat-lbl { font-size: 0.62rem; color: var(--text-muted); }
 
     .btn-resume {
-      width: 100%;
-      height: 44px;
+      flex-shrink: 0;
+      padding: 8px 14px;
+      height: 38px;
       background: linear-gradient(135deg, #f59e0b, #d97706);
       color: #0f172a;
       border: none;
-      border-radius: 12px;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      font-size: 0.78rem;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+      transition: transform 0.15s;
+    }
+    .btn-resume:active {
+      transform: scale(0.95);
     }
 
     /* ── Bottom Telemetry Dashboard ───────────────────────────────── */
@@ -549,32 +560,76 @@
       border-color: #fff;
     }
 
-    /* Responsive Rules for Desktop vs Mobile */
-    @media (min-width: 900px) {
-      .btn-toggle-sidebar { display: none; }
-      .btn-close-sidebar { display: none; }
-      #sidebar { transform: translateX(0) !important; }
-      .hud-dashboard, .hud-controls {
-        left: 400px;
-        max-width: 500px;
-      }
-      .milestone-popup {
-        left: calc(50% + 190px);
-      }
+    /* ── Collapsible Sidebar (Desktop & Mobile) ─────────────── */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 380px;
+      max-width: 85vw;
+      height: 100%;
+      background: rgba(9, 13, 22, 0.96);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 15px 0 35px rgba(0,0,0,0.6);
+    }
+    #sidebar.open {
+      transform: translateX(0);
     }
 
-    @media (max-width: 899px) {
-      #sidebar {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        max-width: 380px;
-        transform: translateX(-100%);
+    .btn-toggle-sidebar {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 45;
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 9px 15px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-toggle-sidebar:active {
+      transform: scale(0.95);
+    }
+
+    .btn-close-sidebar {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-close-sidebar:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    @media (min-width: 900px) {
+      .hud-dashboard, .hud-controls {
+        left: 20px;
+        max-width: 460px;
       }
-      #sidebar.open {
-        transform: translateX(0);
-      }
-      .btn-close-sidebar { display: block; }
     }
   </style>
 </head>
@@ -621,26 +676,18 @@
         </svg>
       </div>
 
-      <!-- Milestone Arrival Modal -->
+      <!-- Milestone Arrival Toast (Compact Top Banner) -->
       <div class="milestone-popup" id="milestone-modal">
-        <span class="milestone-badge" id="m-badge">DESTINASI #1</span>
-        <h3 class="milestone-title" id="m-title">Stasiun Ketapang</h3>
-        <p class="milestone-desc" id="m-desc">Pintu gerbang kedatangan kereta api di Banyuwangi timur.</p>
-        <div class="milestone-grid">
-          <div>
-            <div class="m-stat-val" id="m-time">04:44</div>
-            <div class="m-stat-lbl">Jadwal Tiba</div>
-          </div>
-          <div>
-            <div class="m-stat-val" id="m-cost">Gratis</div>
-            <div class="m-stat-lbl">Estimasi Tiket</div>
-          </div>
-          <div>
-            <div class="m-stat-val" id="m-ele">12 m</div>
-            <div class="m-stat-lbl">Elevasi</div>
+        <div class="milestone-info">
+          <span class="milestone-badge" id="m-badge">TIBA DI DESTINASI #1</span>
+          <div class="milestone-title" id="m-title">Stasiun Ketapang</div>
+          <div class="milestone-sub">
+            <span id="m-time">⏰ 04:44 WIB</span>
+            <span id="m-cost">🎟️ Gratis</span>
+            <span id="m-ele">🏔️ 12 m</span>
           </div>
         </div>
-        <button class="btn-resume" id="btn-continue-trip">Lanjut Perjalanan ▶</button>
+        <button class="btn-resume" id="btn-continue-trip">Lanjut ▶</button>
       </div>
 
       <!-- Bottom Telemetry Dashboard -->
@@ -875,12 +922,11 @@
       isMilestonePaused = true;
       const wp = waypoints[wpIdx];
 
-      document.getElementById('m-badge').innerText = `DESTINASI #${wpIdx + 1} • HARI ${wp.day}`;
+      document.getElementById('m-badge').innerText = `TIBA DI DESTINASI #${wpIdx + 1} (${wp.time} WIB)`;
       document.getElementById('m-title').innerText = wp.name;
-      document.getElementById('m-desc').innerText = wp.desc;
-      document.getElementById('m-time').innerText = `${wp.time} WIB`;
-      document.getElementById('m-cost').innerText = wp.cost;
-      document.getElementById('m-ele').innerText = `${wp.ele} m dpl`;
+      document.getElementById('m-time').innerText = `⏰ ${wp.time} WIB`;
+      document.getElementById('m-cost').innerText = `🎟️ ${wp.cost}`;
+      document.getElementById('m-ele').innerText = `🏔️ ${wp.ele} m`;
 
       document.getElementById('milestone-modal').classList.add('active');
 
@@ -901,8 +947,35 @@
 
     function jumpToWaypoint(wpIdx) {
       const wp = waypoints[wpIdx];
-      curRoadIdx = wp.road_index;
-      visitedWaypoints.add(wpIdx);
+
+      // Jika klik nomor 1 (Stasiun Ketapang / Awal), reset total dari awal tanpa melompat liar
+      if (wpIdx === 0) {
+        curRoadFloat = 0.0;
+        visitedWaypoints.clear();
+        isMilestonePaused = false;
+        isPlaying = true;
+        document.getElementById('milestone-modal').classList.remove('active');
+        document.getElementById('btn-play').innerText = "⏸ Pause";
+        document.getElementById('btn-play').classList.add('active');
+
+        map.flyTo({
+          center: [wp.lon, wp.lat],
+          zoom: 15.2,
+          speed: 1.2
+        });
+
+        // Reset jejak
+        if (map.getSource('road-travelled')) {
+          map.getSource('road-travelled').setData({
+            type: 'Feature', geometry: { type: 'LineString', coordinates: [roadPoints[0]] }
+          });
+        }
+        return;
+      }
+
+      // Jika klik destinasi lain: posisikan mobil di titik itu dan bersihkan waypoint berikutnya
+      curRoadFloat = wp.road_index;
+      visitedWaypoints = new Set(Array.from({length: wpIdx + 1}, (_, i) => i));
 
       map.flyTo({
         center: [wp.lon, wp.lat],
@@ -947,75 +1020,82 @@
       dot.setAttribute('cy', y.toFixed(1));
     }
 
-    /* ── 8. Winding Road Animation Loop (Slower & Smoother) ───────── */
-    let curRoadIdx = 0;
+    /* ── 8. Winding Road Animation Loop (Ultra-Smooth & Scenic Slow) ── */
+    let curRoadFloat = 0.0; // Float index for silky sub-point gliding
     let isPlaying = true;
-    let speedMult = 0.65; // Lebih santai dan pelan sesuai request
+    let speedMult = 0.25; // Default: Sangat santai dan pelan (nikmati pemandangan)
     let lastTime = performance.now();
     const totalKm = 226.8;
+
+    function interpolateCoord(c1, c2, t) {
+      return [c1[0] + (c2[0] - c1[0]) * t, c1[1] + (c2[1] - c1[1]) * t];
+    }
 
     function renderLoop(now) {
       requestAnimationFrame(renderLoop);
 
-      const dt = (now - lastTime) / 1000;
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
       if (isPlaying && !isMilestonePaused && roadPoints.length > 1) {
-        // Advance along road points
-        const step = Math.max(1, Math.round(14 * speedMult * dt * 2.2));
-        curRoadIdx = (curRoadIdx + step);
+        // Kecepatan santai: ~2.5 - 4 titik per detik di speed 1x
+        const advance = 14 * speedMult * dt;
+        curRoadFloat += advance;
 
-        if (curRoadIdx >= roadPoints.length - 1) {
-          curRoadIdx = 0;
+        if (curRoadFloat >= roadPoints.length - 1) {
+          curRoadFloat = 0;
           visitedWaypoints.clear();
         }
 
-        const cur = roadPoints[curRoadIdx];
-        const next = roadPoints[Math.min(curRoadIdx + 1, roadPoints.length - 1)];
+        const baseIdx = Math.floor(curRoadFloat);
+        const nextIdx = Math.min(baseIdx + 1, roadPoints.length - 1);
+        const frac = curRoadFloat - baseIdx;
 
-        // Move car marker
-        vehicleMarker.setLngLat(cur);
+        const curPt = interpolateCoord(roadPoints[baseIdx], roadPoints[nextIdx], frac);
+        const lookAheadIdx = Math.min(baseIdx + 3, roadPoints.length - 1);
+        const lookAheadPt = roadPoints[lookAheadIdx];
 
-        // Compute Bearing along road curves
-        const bearing = calcBearing(cur[1], cur[0], next[1], next[0]);
+        // Posisi & rotasi mobil
+        vehicleMarker.setLngLat(curPt);
+        const bearing = calcBearing(curPt[1], curPt[0], lookAheadPt[1], lookAheadPt[0]);
         vehicleMarker.setRotation(bearing);
 
-        // Camera follow smoothly
+        // Kamera mengikuti mobil dengan halus
         map.jumpTo({
-          center: cur,
+          center: curPt,
           pitch: 42,
           bearing: bearing
         });
 
-        // Draw travelled road line
+        // Gambar jejak rute yang sudah dilewati
         if (map.getSource('road-travelled')) {
-          const travelled = roadPoints.slice(0, curRoadIdx + 1);
+          const travelled = roadPoints.slice(0, baseIdx + 1);
+          travelled.push(curPt);
           map.getSource('road-travelled').setData({
             type: 'Feature', geometry: { type: 'LineString', coordinates: travelled }
           });
         }
 
-        setMinimapDot(cur);
+        setMinimapDot(curPt);
 
-        // Check waypoint arrival
+        // Cek ketibaan destinasi (hanya trigger sekali per waypoint)
         for (let i = 0; i < waypoints.length; i++) {
           const wp = waypoints[i];
-          if (Math.abs(curRoadIdx - wp.road_index) <= 2 && !visitedWaypoints.has(i)) {
+          if (Math.abs(curRoadFloat - wp.road_index) <= 1.2 && !visitedWaypoints.has(i)) {
             visitedWaypoints.add(i);
             triggerMilestone(i);
             break;
           }
         }
 
-        // Telemetry calculation
-        const progress = curRoadIdx / (roadPoints.length - 1);
+        // Hitung telemetri
+        const progress = curRoadFloat / (roadPoints.length - 1);
         const curKm = (progress * totalKm).toFixed(1);
 
-        // Find current and next waypoint
         let activeWp = waypoints[0];
         let nextWp = waypoints[1];
         for (let i = 0; i < waypoints.length; i++) {
-          if (curRoadIdx >= waypoints[i].road_index) {
+          if (curRoadFloat >= waypoints[i].road_index) {
             activeWp = waypoints[i];
             nextWp = waypoints[Math.min(i + 1, waypoints.length - 1)];
           }
@@ -1026,7 +1106,6 @@
         document.getElementById('stat-progress').style.width = `${(progress * 100).toFixed(1)}%`;
         document.getElementById('stat-ele').innerText = `${activeWp.ele} m dpl`;
         document.getElementById('stat-stop').innerText = `Stop ${activeWp.id}/${waypoints.length}`;
-
         document.getElementById('stat-next-dest').innerHTML = `MENUJU: <b>${nextWp.name} (${nextWp.time} WIB)</b>`;
       }
     }
@@ -1040,11 +1119,11 @@
     });
 
     const speedBtn = document.getElementById('btn-speed');
-    const speeds = [0.5, 1.0, 2.0];
+    const speeds = [0.5, 1.0, 1.5, 2.0];
     let sIdx = 1;
     speedBtn.addEventListener('click', () => {
       sIdx = (sIdx + 1) % speeds.length;
-      speedMult = speeds[sIdx] * 0.65;
+      speedMult = speeds[sIdx] * 0.25;
       speedBtn.innerText = `⚡ ${speeds[sIdx]}x`;
     });
 
