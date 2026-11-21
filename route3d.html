@@ -372,10 +372,12 @@
     /* ── Bottom Telemetry Dashboard ───────────────────────────────── */
     .hud-dashboard {
       position: fixed;
-      bottom: 74px;
-      left: 14px;
+      bottom: 80px;
       right: 14px;
-      z-index: 20;
+      left: auto;
+      width: calc(100vw - 28px);
+      max-width: 390px;
+      z-index: 40;
       background: var(--card-bg);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
@@ -394,22 +396,22 @@
     }
 
     .dash-dist {
-      font-size: 1.55rem;
+      font-size: 1.85rem;
       font-weight: 900;
       color: #fff;
       font-variant-numeric: tabular-nums;
       display: flex;
       align-items: baseline;
-      gap: 4px;
+      gap: 5px;
     }
     .dash-dist-target {
-      font-size: 0.85rem;
-      font-weight: 700;
+      font-size: 0.95rem;
+      font-weight: 800;
       color: var(--amber);
     }
 
     .dash-time {
-      font-size: 1.05rem;
+      font-size: 1.2rem;
       font-weight: 800;
       color: #cbd5e1;
       font-variant-numeric: tabular-nums;
@@ -438,24 +440,24 @@
     }
 
     .metric-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 10px 12px;
       text-align: left;
     }
 
     .metric-card .m-lbl {
-      font-size: 0.62rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      margin-bottom: 2px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
     }
 
     .metric-card .m-val {
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       color: #fff;
@@ -470,10 +472,10 @@
     .dash-sub-row {
       display: flex;
       justify-content: space-between;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding-top: 8px;
-      font-size: 0.72rem;
-      color: #cbd5e1;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 10px;
+      font-size: 0.82rem;
+      color: #e2e8f0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -483,29 +485,33 @@
     .hud-controls {
       position: fixed;
       bottom: 16px;
-      left: 14px;
       right: 14px;
-      z-index: 20;
+      left: auto;
+      width: calc(100vw - 28px);
+      max-width: 390px;
+      z-index: 40;
       display: flex;
       gap: 6px;
     }
 
     .ctrl-btn {
       flex: 1;
-      height: 44px;
+      height: 50px;
       background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 16px;
       color: #fff;
-      font-size: 0.75rem;
-      font-weight: 700;
+      font-size: 0.85rem;
+      font-weight: 800;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 6px;
       cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      transition: transform 0.15s, background 0.2s;
     }
     .ctrl-btn:active { transform: scale(0.96); }
     .ctrl-btn.active {
@@ -627,8 +633,9 @@
 
     @media (min-width: 900px) {
       .hud-dashboard, .hud-controls {
-        left: 20px;
-        max-width: 460px;
+        right: 20px;
+        left: auto;
+        max-width: 420px;
       }
     }
   </style>
