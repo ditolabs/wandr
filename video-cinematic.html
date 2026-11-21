@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Wandr Cinematic Video Itinerary - 60FPS Story</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
        2. Strict spring easing: cubic-bezier(0.16, 1, 0.3, 1).
        3. Staggered choreography with micro-delays (40ms steps).
        4. GPU layer isolation via will-change & translate3d.
+       5. Mobile-first true fullscreen (edge-to-edge Reels experience).
        ------------------------------------------------------------- */
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
     
@@ -26,31 +27,47 @@
       --orange-accent: #f97316;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
       background: #020617;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #fff;
-      min-height: 100vh;
+      overflow: hidden;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 12px;
-      overflow-x: hidden;
     }
 
+    /* Mobile: True Fullscreen Reels Experience (Edge-to-Edge) */
     .phone-container {
-      width: 100%;
-      max-width: 380px;
-      height: 680px;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      max-width: 100%;
       background: #0f172a;
-      border: 4px solid #1e293b;
-      border-radius: 40px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255,255,255,0.05);
       display: flex;
       flex-direction: column;
+    }
+
+    /* Desktop / Tablet: Elegant Device Mockup */
+    @media (min-width: 600px) {
+      body {
+        padding: 24px;
+        overflow-y: auto;
+      }
+      .phone-container {
+        max-width: 410px;
+        height: 820px;
+        border: 4px solid #1e293b;
+        border-radius: 44px;
+        box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255,255,255,0.08);
+      }
+      .desktop-controls {
+        display: flex !important;
+      }
     }
 
     /* Background Photo Layer with Hardware-Accelerated Ken Burns */
@@ -69,14 +86,14 @@
       background-size: cover;
       background-position: center;
       will-change: transform, opacity;
-      transform: translate3d(0, 0, 0) scale(1.06);
-      transition: opacity 0.6s var(--ease-spring), transform 4.5s linear;
+      transform: translate3d(0, 0, 0) scale(1.08);
+      transition: opacity 0.6s var(--ease-spring), transform 5s linear;
       opacity: 0;
     }
 
     .bg-photo.active {
       opacity: 1;
-      transform: translate3d(0, -10px, 0) scale(1.0);
+      transform: translate3d(0, -12px, 0) scale(1.0);
     }
 
     /* Cinematic Gradient Vignette */
@@ -84,10 +101,10 @@
       position: absolute;
       inset: 0;
       background: linear-gradient(180deg, 
-        rgba(2, 6, 23, 0.75) 0%, 
-        rgba(2, 6, 23, 0.1) 35%, 
-        rgba(2, 6, 23, 0.65) 65%, 
-        rgba(2, 6, 23, 0.96) 100%);
+        rgba(2, 6, 23, 0.8) 0%, 
+        rgba(2, 6, 23, 0.15) 30%, 
+        rgba(2, 6, 23, 0.6) 65%, 
+        rgba(2, 6, 23, 0.98) 100%);
       z-index: 5;
       pointer-events: none;
     }
@@ -95,9 +112,9 @@
     /* Story Progress Bar */
     .story-progress-wrapper {
       position: absolute;
-      top: 14px;
-      left: 14px;
-      right: 14px;
+      top: max(16px, env(safe-area-inset-top, 16px));
+      left: 16px;
+      right: 16px;
       display: flex;
       gap: 6px;
       z-index: 30;
@@ -106,7 +123,7 @@
     .story-bar-track {
       flex: 1;
       height: 3.5px;
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.3);
       border-radius: 4px;
       overflow: hidden;
       position: relative;
@@ -124,7 +141,7 @@
     /* Top Metadata Bar */
     .top-meta {
       position: absolute;
-      top: 26px;
+      top: max(30px, calc(env(safe-area-inset-top, 16px) + 16px));
       left: 16px;
       right: 16px;
       display: flex;
@@ -141,9 +158,9 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      padding: 5px 12px;
+      padding: 6px 14px;
       border-radius: 9999px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 0.3px;
     }
@@ -163,18 +180,19 @@
     }
 
     .audio-btn {
-      width: 34px;
-      height: 34px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       transition: transform 0.2s var(--ease-spring);
     }
 
@@ -185,17 +203,17 @@
     /* Bottom Choreographed Content Card */
     .bottom-card-stage {
       position: absolute;
-      bottom: 22px;
-      left: 14px;
-      right: 14px;
+      bottom: max(24px, env(safe-area-inset-bottom, 24px));
+      left: 16px;
+      right: 16px;
       z-index: 25;
-      background: rgba(15, 23, 42, 0.82);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(15, 23, 42, 0.84);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 24px;
-      padding: 18px;
-      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.7);
+      border-radius: 26px;
+      padding: 20px;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
       will-change: transform, opacity;
     }
 
@@ -207,7 +225,7 @@
 
     .entering .stagger-item {
       opacity: 0;
-      transform: translate3d(0, 18px, 0);
+      transform: translate3d(0, 20px, 0);
     }
 
     .entered .stagger-item {
@@ -228,16 +246,16 @@
       background: rgba(245, 158, 11, 0.15);
       border: 1px solid rgba(245, 158, 11, 0.4);
       color: var(--amber-accent);
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 9999px;
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       font-weight: 800;
       text-transform: uppercase;
       margin-bottom: 8px;
     }
 
     .hero-title {
-      font-size: 1.45rem;
+      font-size: 1.6rem;
       font-weight: 900;
       line-height: 1.15;
       margin-bottom: 4px;
@@ -245,7 +263,7 @@
     }
 
     .hero-subtitle {
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       color: var(--sky-accent);
       font-weight: 700;
       margin-bottom: 10px;
@@ -254,9 +272,9 @@
     }
 
     .hero-desc {
-      font-size: 0.82rem;
+      font-size: 0.88rem;
       color: #cbd5e1;
-      line-height: 1.45;
+      line-height: 1.5;
       margin-bottom: 14px;
     }
 
@@ -265,21 +283,21 @@
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
-      padding-top: 10px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .stat-card {
       background: rgba(30, 41, 59, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 6px 8px;
+      border-radius: 14px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
     }
 
     .stat-label {
-      font-size: 0.6rem;
+      font-size: 0.65rem;
       color: #94a3b8;
       text-transform: uppercase;
       font-weight: 700;
@@ -287,7 +305,7 @@
     }
 
     .stat-val {
-      font-size: 0.82rem;
+      font-size: 0.88rem;
       font-weight: 800;
       color: #f8fafc;
       white-space: nowrap;
@@ -295,10 +313,10 @@
       text-overflow: ellipsis;
     }
 
-    /* Touch Tap Areas for Navigation */
+    /* Full Touch Tap Areas for Navigation */
     .tap-nav-zone {
       position: absolute;
-      top: 50px; bottom: 180px;
+      top: 60px; bottom: 220px;
       width: 50%;
       z-index: 20;
       cursor: pointer;
@@ -306,11 +324,13 @@
     .tap-prev { left: 0; }
     .tap-next { right: 0; }
 
-    /* Controls Bar outside phone */
-    .nav-controls {
-      display: flex;
+    /* Desktop Optional Controls */
+    .desktop-controls {
+      display: none;
+      position: fixed;
+      bottom: 24px;
       gap: 12px;
-      margin-top: 14px;
+      z-index: 50;
       align-items: center;
     }
 
@@ -318,14 +338,15 @@
       background: #1e293b;
       border: 1px solid #334155;
       color: #f8fafc;
-      padding: 8px 18px;
+      padding: 10px 20px;
       border-radius: 9999px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       transition: all 0.2s var(--ease-spring);
     }
 
@@ -362,7 +383,7 @@
       <button class="audio-btn" id="btnAudio" title="Toggle Audio (Gadis Neural)">🔊</button>
     </div>
 
-    <!-- Tap Nav Targets -->
+    <!-- Tap Nav Targets (Left: Prev, Right: Next) -->
     <div class="tap-nav-zone tap-prev" id="tapPrev" title="Tap Kiri: Mundur"></div>
     <div class="tap-nav-zone tap-next" id="tapNext" title="Tap Kanan: Lanjut"></div>
 
@@ -375,16 +396,16 @@
     <!-- Choreographed Bottom Card -->
     <div class="bottom-card-stage entered" id="bottomCard">
       <div class="stagger-item">
-        <span class="tag-bubble" id="cardTag">✨ OVERVIEW</span>
+        <span class="tag-bubble" id="cardTag">✨ KEDATANGAN</span>
       </div>
       <div class="stagger-item">
-        <h2 class="hero-title" id="cardTitle">Banyuwangi Trip</h2>
+        <h2 class="hero-title" id="cardTitle">Stasiun Ketapang</h2>
       </div>
       <div class="stagger-item">
-        <div class="hero-subtitle" id="cardSubtitle">Nature, Glamping & Heritage</div>
+        <div class="hero-subtitle" id="cardSubtitle">KA Blambangan Ekspres • 04:44 WIB</div>
       </div>
       <div class="stagger-item">
-        <p class="hero-desc" id="cardDesc">Eksplorasi lengkap ujung timur Pulau Jawa dengan panduan resmi dan estimasi biaya akurat.</p>
+        <p class="hero-desc" id="cardDesc">Tiba di Stasiun Ketapang menyongsong fajar pesisir Selat Bali, memulai petualangan 3H2M di Banyuwangi.</p>
       </div>
       <div class="stagger-item">
         <div class="stats-grid">
@@ -393,20 +414,20 @@
             <span class="stat-val" id="val1">KA Blambangan</span>
           </div>
           <div class="stat-card">
-            <span class="stat-label" id="label2">Penginapan</span>
-            <span class="stat-val" id="val2">Iglam Paltuding</span>
+            <span class="stat-label" id="label2">Sarapan</span>
+            <span class="stat-val" id="val2">Sego Cawuk</span>
           </div>
           <div class="stat-card">
-            <span class="stat-label" id="label3">Durasi</span>
-            <span class="stat-val" id="val3">3 Hari 2 Malam</span>
+            <span class="stat-label" id="label3">Meeting Point</span>
+            <span class="stat-val" id="val3">Ketapang BWI</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- External Player Controls -->
-  <div class="nav-controls">
+  <!-- Desktop Optional Controls -->
+  <div class="desktop-controls">
     <button class="ctl-btn" id="btnPrev">◀ Mundur</button>
     <button class="ctl-btn primary" id="btnPlayPause">⏸ Pause</button>
     <button class="ctl-btn" id="btnNext">Lanjut ▶</button>
@@ -414,73 +435,73 @@
 
   <script>
     // -----------------------------------------------------------
-    // ITINERARY DATASET (Verified 16-Step Banyuwangi 3H2M)
+    // AUTHENTIC BANYUWANGI WIKIMEDIA COMMONS DATASET
     // -----------------------------------------------------------
     const scenes = [
       {
         tag: "✨ DAY 0 • KEDATANGAN",
         title: "Stasiun Ketapang",
         subtitle: "KA Blambangan Ekspres • 04:44 WIB",
-        desc: "Tiba di Banyuwangi pagi buta dengan kereta eksekutif, disambut sejuknya semilir angin pesisir timur.",
-        photo: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1080&q=80",
+        desc: "Tiba di Stasiun Ketapang menyongsong fajar pesisir Selat Bali, bersiap sarapan Sego Cawuk Kalimas.",
+        photo: "https://upload.wikimedia.org/wikipedia/commons/6/66/Stasiun_Banyuwangi_Baru.jpg",
         stats: [
-          { l: "Kedatangan", v: "04:44 WIB" },
+          { l: "Tiba", v: "04:44 WIB" },
           { l: "Sarapan", v: "Sego Cawuk" },
-          { l: "Budget Pagi", v: "Rp20.000" }
+          { l: "Lokasi", v: "Ketapang" }
         ],
         duration: 4800
       },
       {
-        tag: "🌲 DAY 1 • HUTAN PURBA & KULINER",
-        title: "De Djawatan & Tempong",
-        subtitle: "Pohon Trembesi Raksasa & Nasi Mak Ndut",
-        desc: "Melangkah masuk ke kanopi magis ala Lord of The Rings, disusul santap pedas nendang Nasi Tempong legendaris.",
-        photo: "https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=1080&q=80",
+        tag: "🌲 DAY 1 • HUTAN TREMBESI PURBA",
+        title: "De Djawatan Benculuk",
+        subtitle: "Kanopi Raksasa Berlumut Alami",
+        desc: "Menyusuri magisnya hutan trembesi purba Benculuk yang teduh, disusul santap pedas Nasi Tempong Mak Ndut.",
+        photo: "https://upload.wikimedia.org/wikipedia/commons/0/08/De_Djawatan_Benculuk_Forest%2C_Banyuwangi.jpg",
         stats: [
           { l: "Tiket", v: "Rp10.000" },
           { l: "Makan Siang", v: "Mak Ndut" },
-          { l: "Check-In", v: "Iglam Ijen" }
+          { l: "Check-in", v: "Iglam Paltuding" }
         ],
         duration: 5200
       },
       {
         tag: "🌋 DAY 2 • API BIRU & SUNSET",
-        title: "Kawah Ijen & Watudodol",
-        subtitle: "Trekking Dini Hari 01:30 & Selat Bali",
-        desc: "Menyaksikan api biru langka di kaldera Ijen saat fajar, lalu bersantai sore menikmati sunset megah Selat Bali.",
-        photo: "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=1080&q=80",
+        title: "Kawah Ijen & Blue Fire",
+        subtitle: "Trekking Dini Hari 01:30 & Kaldera Belerang",
+        desc: "Mendaki kawah Ijen menyaksikan api biru langka dan danau kawah toska, dilanjut santai di kabin Iglam.",
+        photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Kawah_Ijen_%2827432832286%29.jpg/1280px-Kawah_Ijen_%2827432832286%29.jpg",
         stats: [
           { l: "Tiket Ijen", v: "Rp5.000" },
-          { l: "Makan Siang", v: "Rujak Soto" },
-          { l: "Sunset", v: "Watudodol" }
+          { l: "Mata Air", v: "Sendang Seruni" },
+          { l: "Kuliner", v: "Mbok Mus" }
         ],
         duration: 5500
       },
       {
+        tag: "🌊 DAY 2 SORE • SELAT BALI",
+        title: "Pantai Grand Watudodol",
+        subtitle: "Menatap Laut Selat Bali & Sunset",
+        desc: "Duduk santai di pesisir Grand Watudodol menikmati deburan ombak dan siluet pulau dewata di seberang.",
+        photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Watu_dodol.jpg/1280px-Watu_dodol.jpg",
+        stats: [
+          { l: "Zona", v: "Pesisir Utara" },
+          { l: "Malam", v: "Avrila Cafe" },
+          { l: "View", v: "Selat Bali" }
+        ],
+        duration: 5000
+      },
+      {
         tag: "☕ DAY 3 • BUDAYA & OLEH-OLEH",
-        title: "Desa Adat Osing",
+        title: "Desa Adat Osing Kemiren",
         subtitle: "Tradisi Sangrai Kopi & Rujak Losari",
-        desc: "Merasakan kehangatan warga Kemiren, seduhan kopi sangrai tangan, dan memborong bagiak renyah sebelum pulang.",
-        photo: "https://images.unsplash.com/photo-1596401057633-54a8fe8ef647?auto=format&fit=crop&w=1080&q=80",
+        desc: "Menyesap seduhan kopi Osing asli, berburu oleh-oleh bagiak, dan bersiap naik kereta pulang di Ketapang.",
+        photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Desa_Kemiren.jpg/1280px-Desa_Kemiren.jpg",
         stats: [
           { l: "Tiket Desa", v: "Rp15.000" },
-          { l: "Makan Siang", v: "Losari No.39" },
+          { l: "Kuliner", v: "Losari No.39" },
           { l: "Boarding", v: "15:50 WIB" }
         ],
         duration: 5200
-      },
-      {
-        tag: "🎒 RUTE RESMI SELESAI",
-        title: "Siap Liburan ke Banyuwangi?",
-        subtitle: "WANDR. TRIP PLANNER VERIFIED",
-        desc: "Dokumen PDF lengkap, peta 16-Bit RPG, dan panduan cerdas AI siap menemani petualangan serumu.",
-        photo: "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1080&q=80",
-        stats: [
-          { l: "Est. Total", v: "Rp1.450.000" },
-          { l: "Format", v: "PDF • RPG • Video" },
-          { l: "Status", v: "Siap Berangkat" }
-        ],
-        duration: 5000
       }
     ];
 
@@ -611,13 +632,17 @@
     // 4. Interactive Event Listeners
     document.getElementById('tapNext').addEventListener('click', () => nextScene());
     document.getElementById('tapPrev').addEventListener('click', () => prevScene());
-    document.getElementById('btnNext').addEventListener('click', () => nextScene());
-    document.getElementById('btnPrev').addEventListener('click', () => prevScene());
+    if (document.getElementById('btnNext')) {
+      document.getElementById('btnNext').addEventListener('click', () => nextScene());
+      document.getElementById('btnPrev').addEventListener('click', () => prevScene());
+    }
 
-    btnPlayPause.addEventListener('click', () => {
-      isPaused = !isPaused;
-      btnPlayPause.textContent = isPaused ? '▶ Play' : '⏸ Pause';
-    });
+    if (btnPlayPause) {
+      btnPlayPause.addEventListener('click', () => {
+        isPaused = !isPaused;
+        btnPlayPause.textContent = isPaused ? '▶ Play' : '⏸ Pause';
+      });
+    }
 
     // Hold to pause (like Instagram Reels)
     let holdTimeout = null;
@@ -626,8 +651,9 @@
     });
     phoneContainer.addEventListener('touchend', () => {
       clearTimeout(holdTimeout);
-      if (isPaused && btnPlayPause.textContent.includes('Pause')) {
+      if (isPaused) {
         isPaused = false;
+        if (btnPlayPause) btnPlayPause.textContent = '⏸ Pause';
       }
     });
 
