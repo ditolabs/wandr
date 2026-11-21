@@ -66,7 +66,9 @@
     }
 
     /* ── LAYOUT ────────────────────────────────────────────────────────────── */
-    #app { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
+    body:has(.bento-hero-wrap) #app { max-width: 1140px !important; }
+
+    #app { max-width: 640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
 
     /* ── HEADER ────────────────────────────────────────────────────────────── */
     #header {
@@ -1088,7 +1090,149 @@
       font-family:'Inter',sans-serif;
       font-size:17px; font-weight:700;  color:#111;
     }
-  </style>
+  
+    /* ── BENTO GRID HERO (Opsi 2 - Desktop & Mobile Friendly) ─────────────── */
+    .bento-hero-wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+      width: 100%;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .bento-grid {
+        grid-template-columns: repeat(12, 1fr);
+        gap: 18px;
+      }
+      .bento-col-8 { grid-column: span 8; }
+      .bento-col-4 { grid-column: span 4; }
+      .bento-col-6 { grid-column: span 6; }
+      .bento-col-12 { grid-column: span 12; }
+    }
+
+    .bento-card {
+      background: #ffffff;
+      border: 2.5px solid #111;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 5px 5px 0 #111;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .bento-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 7px 7px 0 #111;
+    }
+
+    .bento-card-hero {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 40%, #fed7aa 100%);
+      min-height: 280px;
+    }
+
+    .bento-badge {
+      display: inline-block;
+      align-self: flex-start;
+      background: #111;
+      color: #fef08a;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    .bento-title {
+      font-family: 'Arial Black', Arial, sans-serif;
+      font-size: 26px;
+      line-height: 1.15;
+      color: #111;
+      text-transform: uppercase;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+    @media (min-width: 768px) {
+      .bento-title { font-size: 34px; }
+    }
+
+    .bento-desc {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #334155;
+      margin-bottom: 24px;
+      max-width: 540px;
+    }
+
+    .bento-cta-btn {
+      background: #e8532f;
+      color: #fff;
+      border: 3px solid #111;
+      box-shadow: 5px 5px 0 #111;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      align-self: flex-start;
+      transition: transform 0.15s;
+    }
+    .bento-cta-btn:active {
+      transform: scale(0.97);
+      box-shadow: 2px 2px 0 #111;
+    }
+
+    .bento-formats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .bento-format-item {
+      text-decoration: none;
+      background: #f8fafc;
+      border: 2px solid #111;
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 3px 3px 0 #111;
+      color: #111;
+      transition: all 0.2s;
+    }
+    .bento-format-item:hover {
+      background: #fff;
+      transform: translateY(-2px);
+    }
+    .bento-format-title {
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bento-format-sub {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+</style>
   <!-- Export libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2247,14 +2391,79 @@ const DEST_CAT_COLOR = { alam:'rgba(74,144,74,.8)', pantai:'rgba(57,157,224,.8)'
 
 function renderStepHero() {
   return `
-    <div class="hero-wrap">
-      <div class="hero-eyebrow">Wandr · Banyuwangi</div>
-      <h1 class="hero-title">Petualangan berikutnya,<br><em>mau kemana aja?</em></h1>
-      <p class="hero-sub">Dari blue fire Ijen sampai pasir hitam Pulau Merah — Wandr bantu susun rutenya, kamu tinggal jalan.</p>
-      <div class="hero-cta-wrap">
-        <button id="btn-hero-start" class="hero-cta">Yuk, Mulai Jalan-jalan →</button>
+    <div class="bento-hero-wrap">
+      <div class="bento-grid">
+        <!-- Box 1: Hero Action (Lebar 8 Kolom di Desktop) -->
+        <div class="bento-card bento-card-hero bento-col-8">
+          <div>
+            <span class="bento-badge">🗺️ AI ITINERARY GENERATOR • BANYUWANGI</span>
+            <h1 class="bento-title">Petualangan berikutnya,<br>mau kemana aja?</h1>
+            <p class="bento-desc">Dari blue fire Kawah Ijen sampai kanopi Lord of the Rings De Djawatan. Wandr menyusun rute jalan aspal nyata, estimasi biaya tiket transparan, dan jadwal hari-per-hari secara otomatis.</p>
+          </div>
+          <div>
+            <button id="btn-hero-start" class="bento-cta-btn">Yuk, Mulai Jalan-Jalan →</button>
+            <div style="font-size:11px;font-weight:700;color:#64748b;margin-top:10px;text-transform:uppercase">Gratis · 5 Langkah Mudah · Selesai dalam 2 Menit</div>
+          </div>
+        </div>
+
+        <!-- Box 2: Visual Spotlight (Lebar 4 Kolom di Desktop) -->
+        <div class="bento-card bento-col-4" style="background:#0F3460;color:#fff;justify-content:center;text-align:center;border-color:#111">
+          <div style="font-size:42px;margin-bottom:8px">🌋</div>
+          <div style="font-size:16px;font-weight:900;text-transform:uppercase;margin-bottom:6px">Kawah Ijen & Blue Fire</div>
+          <p style="font-size:12px;color:#94a3b8;line-height:1.4">Trekking dini hari 2.386 mdpl dan danau kawah asam toska terbesar di dunia.</p>
+          <div style="margin-top:14px;display:inline-flex;gap:6px;justify-content:center">
+            <span style="background:rgba(255,255,255,0.15);padding:3px 8px;border-radius:12px;font-size:10px;font-weight:800">🏔️ 2.386 mdpl</span>
+            <span style="background:rgba(255,255,255,0.15);padding:3px 8px;border-radius:12px;font-size:10px;font-weight:800">🔥 Blue Fire</span>
+          </div>
+        </div>
+
+        <!-- Box 3: Format Eksplorasi (Lebar 8 Kolom di Desktop) -->
+        <div class="bento-card bento-col-8" style="background:#fefefe">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:12px;font-weight:800;color:#0F3460;text-transform:uppercase;letter-spacing:0.5px">🎮 Format Hasil Generate Yang Tersedia</span>
+              <span style="font-size:11px;font-weight:700;color:#64748b">Pilih Sesuai Gayamu</span>
+            </div>
+            <div class="bento-formats-grid">
+              <a href="route3d.html" target="_blank" class="bento-format-item">
+                <span class="bento-format-title">🚙 3D Route Map</span>
+                <span class="bento-format-sub">Peta animasi jalan aspal nyata, Safari Jeep & live GPS HP.</span>
+              </a>
+              <a href="rpg.html" target="_blank" class="bento-format-item">
+                <span class="bento-format-title">🎒 Retro 16-Bit RPG</span>
+                <span class="bento-format-sub">Gaya Harvest Moon, stamina, almanak & AI Copilot.</span>
+              </a>
+              <a href="monopoli.html" target="_blank" class="bento-format-item">
+                <span class="bento-format-title">🎲 Monopoli Board</span>
+                <span class="bento-format-sub">Format keliling petak destinasi 01-09 & kocok dadu.</span>
+              </a>
+              <a href="video-cinematic.html" target="_blank" class="bento-format-item">
+                <span class="bento-format-title">🎬 Cinematic Video</span>
+                <span class="bento-format-sub">Video vertikal 9:16 Reels dengan narator suara Gadis Neural.</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Box 4: Keunggulan (Lebar 4 Kolom di Desktop) -->
+        <div class="bento-card bento-col-4" style="background:#f8fafc">
+          <div style="font-size:12px;font-weight:800;color:#111;text-transform:uppercase;margin-bottom:12px">⚡ Kenapa Pakai Wandr?</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;align-items:flex-start">
+              <span style="font-size:18px">🛣️</span>
+              <div style="font-size:12px;color:#334155;line-height:1.3"><b>Jalur Nyata OSRM:</b> Mengikuti kontur jalan aspal asli, bukan garis lurus.</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start">
+              <span style="font-size:18px">💰</span>
+              <div style="font-size:12px;color:#334155;line-height:1.3"><b>Estimasi Transparan:</b> Rincian tiket masuk & konsumsi riil.</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start">
+              <span style="font-size:18px">📄</span>
+              <div style="font-size:12px;color:#334155;line-height:1.3"><b>Offline Ready:</b> Cetak PDF resmi kapan pun tanpa internet.</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="hero-hint">Gratis · 5 langkah singkat · ~2 menit</div>
     </div>`;
 }
 
