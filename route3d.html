@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>JejakLari 3D • Video Animasi Rute Lari & GPX Player</title>
+  <title>Wandr 3D Travel Route • Animasi Itinerary Banyuwangi</title>
 
   <!-- MapLibre GL JS CDN -->
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
@@ -11,13 +11,14 @@
 
   <style>
     :root {
-      --cyan: #06b6d4;
-      --cyan-glow: rgba(6, 182, 212, 0.45);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.45);
+      --cyan: #0284c7;
       --green: #10b981;
-      --yellow: #facc15;
-      --pink: #f43f5e;
       --card-bg: rgba(15, 23, 42, 0.90);
-      --border: rgba(255, 255, 255, 0.12);
+      --border: rgba(255, 255, 255, 0.14);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
     }
 
     * {
@@ -32,9 +33,9 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #f1f5f9;
+      background: #e2e8f0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #fff;
+      color: var(--text-main);
     }
 
     #map {
@@ -45,20 +46,20 @@
       z-index: 1;
     }
 
-    /* ── Top Left Activity Info Card ──────────────────────────────── */
+    /* ── Top Left: Wandr Active Itinerary Card ────────────────────── */
     .hud-header {
       position: fixed;
       top: 14px;
       left: 14px;
       z-index: 10;
       background: var(--card-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 10px 14px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      max-width: 250px;
+      max-width: 260px;
       pointer-events: auto;
     }
 
@@ -68,7 +69,7 @@
       gap: 5px;
       font-size: 0.65rem;
       font-weight: 800;
-      color: #38bdf8;
+      color: var(--amber);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 3px;
@@ -82,35 +83,35 @@
     }
 
     .hud-title {
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       font-weight: 800;
-      color: #f8fafc;
+      color: #fff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .hud-meta {
-      font-size: 0.7rem;
-      color: #94a3b8;
+      font-size: 0.72rem;
+      color: var(--text-muted);
       margin-top: 2px;
       line-height: 1.35;
     }
 
-    /* ── Top Right Mini GPS Overview ──────────────────────────────── */
+    /* ── Top Right: Mini Route Circuit Map ────────────────────────── */
     .hud-minimap {
       position: fixed;
       top: 14px;
       right: 14px;
       z-index: 10;
       background: var(--card-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 8px;
-      width: 84px;
-      height: 84px;
+      width: 86px;
+      height: 86px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -125,7 +126,7 @@
       left: 8px;
       font-size: 0.55rem;
       font-weight: 800;
-      color: #64748b;
+      color: var(--text-muted);
       letter-spacing: 0.5px;
     }
 
@@ -135,7 +136,86 @@
       overflow: visible;
     }
 
-    /* ── Bottom Telemetry Dashboard ───────────────────────────────── */
+    /* ── Floating Milestone Modal Card ────────────────────────────── */
+    .milestone-popup {
+      position: fixed;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      border-radius: 22px;
+      padding: 18px 20px;
+      width: calc(100vw - 44px);
+      max-width: 350px;
+      z-index: 25;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.75), 0 0 35px var(--amber-glow);
+    }
+
+    .milestone-popup.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .milestone-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .milestone-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .milestone-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    .milestone-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 8px 10px;
+      margin-bottom: 14px;
+    }
+    .m-stat-val { font-size: 0.85rem; font-weight: 800; color: #fff; }
+    .m-stat-lbl { font-size: 0.62rem; color: var(--text-muted); }
+
+    .btn-resume {
+      width: 100%;
+      height: 42px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0f172a;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* ── Bottom: Travel Telemetry Dashboard ───────────────────────── */
     .hud-dashboard {
       position: fixed;
       bottom: 74px;
@@ -171,7 +251,7 @@
     .dash-dist-target {
       font-size: 0.85rem;
       font-weight: 700;
-      color: var(--cyan);
+      color: var(--amber);
     }
 
     .dash-time {
@@ -181,23 +261,21 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Progress bar */
     .dash-progress-track {
       width: 100%;
-      height: 4px;
+      height: 5px;
       background: rgba(255, 255, 255, 0.15);
-      border-radius: 2px;
+      border-radius: 3px;
       overflow: hidden;
       margin-bottom: 12px;
     }
     .dash-progress-fill {
       height: 100%;
       width: 5%;
-      background: linear-gradient(90deg, var(--cyan), var(--green));
+      background: linear-gradient(90deg, #10b981, #f59e0b);
       transition: width 0.1s linear;
     }
 
-    /* 3 Main Stat Cards (Pace, HR, Cadence) */
     .dash-metrics-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -215,7 +293,7 @@
 
     .metric-card .m-lbl {
       font-size: 0.62rem;
-      color: #94a3b8;
+      color: var(--text-muted);
       text-transform: uppercase;
       font-weight: 700;
       letter-spacing: 0.4px;
@@ -223,16 +301,15 @@
     }
 
     .metric-card .m-val {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
+      color: #fff;
     }
+    .m-val.amber { color: var(--amber); }
+    .m-val.green { color: var(--green); }
+    .m-val.cyan { color: #38bdf8; }
 
-    .m-val.pace { color: var(--yellow); }
-    .m-val.hr { color: var(--pink); }
-    .m-val.cadence { color: #a855f7; }
-
-    /* Sub Stats Row */
     .dash-sub-row {
       display: flex;
       justify-content: space-between;
@@ -240,13 +317,9 @@
       padding-top: 8px;
       font-size: 0.72rem;
       color: #cbd5e1;
-      font-variant-numeric: tabular-nums;
-    }
-    .dash-sub-row span b {
-      color: #fff;
-    }
-    .dash-sub-row .elev-val {
-      color: var(--green);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* ── Bottom Controls Dock ─────────────────────────────────────── */
@@ -276,18 +349,14 @@
       justify-content: center;
       gap: 4px;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
 
-    .ctrl-btn:active {
-      transform: scale(0.96);
-    }
-
+    .ctrl-btn:active { transform: scale(0.96); }
     .ctrl-btn.active {
-      background: var(--cyan);
+      background: var(--amber);
       color: #0f172a;
       font-weight: 800;
-      border-color: var(--cyan);
+      border-color: var(--amber);
     }
 
     .ctrl-btn.rec-btn {
@@ -295,53 +364,18 @@
       border-color: #ef4444;
       color: #fff;
     }
-    .ctrl-btn.rec-btn.recording {
-      animation: pulse-rec 1s infinite;
-    }
-    @keyframes pulse-rec {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.75; }
-    }
+    .ctrl-btn.rec-btn.recording { animation: pulse-rec 1s infinite; }
+    @keyframes pulse-rec { 0%, 100% { opacity: 1; } 50% { opacity: 0.75; } }
 
-    /* ── Chibi 3D Runner Avatar with Drop Shadow ──────────────────── */
-    .runner-marker {
-      width: 48px;
-      height: 48px;
+    /* ── Safari Travel Jeep Vehicle Marker ────────────────────────── */
+    .vehicle-marker {
+      width: 44px;
+      height: 68px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
       pointer-events: none;
-    }
-
-    /* Ground Shadow on the road */
-    .runner-shadow {
-      position: absolute;
-      bottom: 2px;
-      width: 26px;
-      height: 10px;
-      background: rgba(15, 23, 42, 0.45);
-      border-radius: 50%;
-      filter: blur(2px);
-      transform: skewX(-20deg);
-      z-index: 1;
-    }
-
-    /* Animated Chibi Character Body */
-    .chibi-body {
-      position: relative;
-      z-index: 2;
-      width: 34px;
-      height: 38px;
-      animation: chibi-run 0.55s infinite ease-in-out;
-      transform-origin: bottom center;
-    }
-
-    @keyframes chibi-run {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      25% { transform: translateY(-4px) rotate(3deg); }
-      50% { transform: translateY(0) rotate(0deg); }
-      75% { transform: translateY(-4px) rotate(-3deg); }
     }
 
     .watermark-pill {
@@ -359,47 +393,85 @@
       pointer-events: none;
     }
 
+    /* Landmark Point Pins */
+    .pin-circle {
+      width: 22px;
+      height: 22px;
+      background: #0f172a;
+      border: 2px solid var(--amber);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
     #gpx-file-input { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- MapLibre GL 3D Map Container -->
+  <!-- MapLibre Flat Clean Map Container -->
   <div id="map"></div>
 
-  <!-- Top-Left Activity HUD -->
+  <!-- Top-Left Activity HUD (Wandr Itinerary) -->
   <div class="hud-header">
     <div class="hud-tag">
       <div class="hud-tag-dot"></div>
-      <span id="act-tag">LARI PAGI • PAGI</span>
+      <span id="act-tag">WANDR ITINERARY • HARI 1</span>
     </div>
-    <div class="hud-title" id="act-title">Run 2026 • #OM5126</div>
+    <div class="hud-title" id="act-title">Stasiun Ketapang</div>
     <div class="hud-meta" id="act-meta">
-      HAVEFANRUN • 27 Sep 2026 • 05.15 WIB<br>
-      <span style="color:#64748b">Malang Raya, Jawa Timur (-7.978°, 112.635°)</span>
+      04:44 WIB • Titik Kedatangan Kereta Api<br>
+      <span style="color:#64748b">Banyuwangi Timur (-8.145°, 114.397°)</span>
     </div>
   </div>
 
   <!-- Top-Right Mini GPS Minimap -->
   <div class="hud-minimap">
-    <span class="minimap-lbl">GPS</span>
+    <span class="minimap-lbl">BANYUWANGI</span>
     <svg id="minimap-svg" viewBox="0 0 100 100">
-      <polyline id="minimap-track" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <circle id="minimap-dot" r="5" fill="#10b981" stroke="#fff" stroke-width="2" />
+      <polyline id="minimap-track" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <circle id="minimap-dot" r="5" fill="#f59e0b" stroke="#fff" stroke-width="2" />
     </svg>
   </div>
 
   <!-- Discreet Watermark -->
-  <div class="watermark-pill">• jejaklari.id</div>
+  <div class="watermark-pill">• wandr.id</div>
+
+  <!-- Floating Destination Milestone Card -->
+  <div class="milestone-popup" id="milestone-modal">
+    <span class="milestone-badge" id="m-badge">DESTINASI #3</span>
+    <h3 class="milestone-title" id="m-title">Hutan De Djawatan</h3>
+    <p class="milestone-desc" id="m-desc">Hutan pohon trembesi kanopi raksasa ala Lord of the Rings di Benculuk.</p>
+    <div class="milestone-grid">
+      <div>
+        <div class="m-stat-val" id="m-time">08:00</div>
+        <div class="m-stat-lbl">Jadwal Tiba</div>
+      </div>
+      <div>
+        <div class="m-stat-val" id="m-dist">28.4 km</div>
+        <div class="m-stat-lbl">Jarak</div>
+      </div>
+      <div>
+        <div class="m-stat-val" id="m-ele">48 m</div>
+        <div class="m-stat-lbl">Elevasi</div>
+      </div>
+    </div>
+    <button class="btn-resume" id="btn-continue-trip">Lanjut Perjalanan ▶</button>
+  </div>
 
   <!-- Bottom Telemetry Dashboard -->
   <div class="hud-dashboard">
     <div class="dash-top">
       <div class="dash-dist">
-        <span id="stat-dist">0.26</span>
-        <span class="dash-dist-target">/ <span id="stat-target">5.03</span> KM</span>
+        <span id="stat-dist">0.0</span>
+        <span class="dash-dist-target">/ <span id="stat-target">88.5</span> KM</span>
       </div>
-      <div class="dash-time" id="stat-time">01:42</div>
+      <div class="dash-time" id="stat-time">04:44 WIB</div>
     </div>
 
     <div class="dash-progress-track">
@@ -408,23 +480,21 @@
 
     <div class="dash-metrics-grid">
       <div class="metric-card">
-        <div class="m-lbl">Pace (/km)</div>
-        <div class="m-val pace" id="stat-pace">5'57"</div>
+        <div class="m-lbl">Kendaraan</div>
+        <div class="m-val amber" id="stat-vehicle">🚙 Jeep 4x4</div>
       </div>
       <div class="metric-card">
-        <div class="m-lbl">Heart Rate</div>
-        <div class="m-val hr" id="stat-hr">165 <span style="font-size:0.65rem">bpm</span></div>
+        <div class="m-lbl">Elevasi</div>
+        <div class="m-val green" id="stat-ele">12 m dpl</div>
       </div>
       <div class="metric-card">
-        <div class="m-lbl">Cadence</div>
-        <div class="m-val cadence" id="stat-cadence">189 <span style="font-size:0.65rem">spm</span></div>
+        <div class="m-lbl">Progress Tour</div>
+        <div class="m-val cyan" id="stat-stop">Stop 1/15</div>
       </div>
     </div>
 
-    <div class="dash-sub-row">
-      <span>DISTANCE: <b id="stat-sub-dist">0.26 km</b></span>
-      <span>ELEV GAIN: <b class="elev-val" id="stat-sub-elev">+3 m</b></span>
-      <span>TIME: <b id="stat-sub-time">01:42</b></span>
+    <div class="dash-sub-row" id="stat-next-dest">
+      MENUJU: <b>Sego Cawuk Kalimas (06:00 WIB)</b>
     </div>
   </div>
 
@@ -432,7 +502,7 @@
   <div class="hud-controls">
     <button class="ctrl-btn active" id="btn-play">⏸ Pause</button>
     <button class="ctrl-btn" id="btn-speed">⚡ 1x</button>
-    <button class="ctrl-btn" id="btn-route">🔄 Malang 5K</button>
+    <button class="ctrl-btn" id="btn-vehicle-toggle">🚗 Mobil</button>
     <button class="ctrl-btn rec-btn" id="btn-record">🔴 Rekam</button>
     <button class="ctrl-btn" id="btn-upload">📂 GPX</button>
   </div>
@@ -440,46 +510,28 @@
   <input type="file" id="gpx-file-input" accept=".gpx,.fit,.xml" />
 
   <script>
-    /* ── 1. Realistic Route Datasets ──────────────────────────────── */
-    // Preset 1: Lapangan Rampal / Rindam V Brawijaya Malang 5K Loop (persis di screenshot!)
-    function generateMalangLoop() {
-      const center_lat = -7.9780, center_lon = 112.6350;
-      const pts = [];
-      const count = 90;
-      for (let i = 0; i < count; i++) {
-        const a = (i / count) * Math.PI * 2;
-        const lat = center_lat + 0.0065 * (Math.sin(a) + 0.25 * Math.sin(3 * a));
-        const lon = center_lon + 0.0075 * (Math.cos(a) + 0.15 * Math.cos(2 * a));
-        const elev = 442 + Math.round(4 * Math.sin(a * 2));
-        const paceSec = 350 + Math.round(15 * Math.sin(a * 4));
-        const hr = 162 + Math.round(7 * Math.sin(a));
-        const cad = 188 + Math.round(3 * Math.cos(a * 2));
-        pts.push({
-          lat, lon, ele: elev,
-          pace: `${Math.floor(paceSec/60)}'${String(paceSec%60).padStart(2,'0')}"`,
-          hr, cad
-        });
-      }
-      return pts;
-    }
-
-    // Preset 2: Wandr Banyuwangi Trail (Ketapang -> De Djawatan -> Ijen)
-    const banyuwangiTrail = [
-      { lat: -8.1456, lon: 114.3975, ele: 12, pace: "5'40\"", hr: 155, cad: 182 },
-      { lat: -8.2120, lon: 114.3680, ele: 35, pace: "5'30\"", hr: 160, cad: 185 },
-      { lat: -8.2550, lon: 114.3450, ele: 85, pace: "5'45\"", hr: 165, cad: 188 },
-      { lat: -8.3850, lon: 114.2800, ele: 60, pace: "5'25\"", hr: 168, cad: 190 },
-      { lat: -8.4230, lon: 114.2050, ele: 48, pace: "5'50\"", hr: 163, cad: 186 },
-      { lat: -8.1850, lon: 114.2850, ele: 420, pace: "6'40\"", hr: 175, cad: 178 },
-      { lat: -8.0750, lon: 114.2420, ele: 1850, pace: "8'15\"", hr: 180, cad: 165 },
-      { lat: -8.0580, lon: 114.2420, ele: 2386, pace: "8'50\"", hr: 182, cad: 160 }
+    /* ── 1. Itinerary Wandr Banyuwangi (Data Nyata 15 Stop) ─────────── */
+    const itineraryPoints = [
+      { name: "Stasiun Ketapang", lat: -8.1456, lon: 114.3975, ele: 12, time: "04:44", day: 1, desc: "Pintu gerbang kedatangan kereta api di Banyuwangi timur." },
+      { name: "Sego Cawuk Kalimas", lat: -8.2120, lon: 114.3680, ele: 35, time: "06:00", day: 1, desc: "Sarapan kuliner khas Osing kuah parutan kelapa pedas gurih." },
+      { name: "Hutan De Djawatan", lat: -8.4230, lon: 114.2050, ele: 48, time: "08:00", day: 1, desc: "Hutan trembesi kanopi raksasa ala Lord of the Rings Benculuk." },
+      { name: "Nasi Tempong Mak Ndut", lat: -8.3850, lon: 114.2800, ele: 60, time: "12:00", day: 1, desc: "Makan siang sambal tempong tomat ranti super pedas khas Rogojampi." },
+      { name: "Srengenge Wetan Resto", lat: -8.2150, lon: 114.3650, ele: 40, time: "14:30", day: 1, desc: "Santai sore & ngopi di resto heritage pusat kota Banyuwangi." },
+      { name: "Iglam Blue Fire Paltuding", lat: -8.0750, lon: 114.2420, ele: 1850, time: "17:30", day: 1, desc: "Check-in glamping sejuk di lereng pos pendakian Paltuding Ijen." },
+      { name: "Kawah Ijen Blue Fire", lat: -8.0580, lon: 114.2420, ele: 2386, time: "01:30", day: 2, desc: "Trekking api biru abadi dan kawah danau toska terluas dunia." },
+      { name: "Sendang Seruni Tamansari", lat: -8.1850, lon: 114.2850, ele: 420, time: "10:30", day: 2, desc: "Mata air alami sejuk berlatar tebing rimbun di lereng Ijen." },
+      { name: "Rujak Soto Mbok Mus", lat: -8.2550, lon: 114.3450, ele: 85, time: "13:00", day: 2, desc: "Kuliner legendaris perpaduan rujak petis disiram kuah soto babat." },
+      { name: "Pantai Grand Watudodol", lat: -8.1050, lon: 114.4120, ele: 5, time: "15:30", day: 2, desc: "Pantai panorama Selat Bali dengan deretan pohon kelapa eksotis." },
+      { name: "Avrila Cafe Tamansari", lat: -8.1950, lon: 114.2800, ele: 350, time: "19:00", day: 2, desc: "Makan malam santai kopi arabika Ijen dengan pemandangan pegunungan." },
+      { name: "Desa Adat Kemiren", lat: -8.2050, lon: 114.3200, ele: 210, time: "07:30", day: 3, desc: "Kampung budaya suku Osing, sanggar kopi jaran goyang & rumah adat." },
+      { name: "Rujak Soto Losari No. 39", lat: -8.2190, lon: 114.3680, ele: 25, time: "10:00", day: 3, desc: "Makan siang kuliner ikonik Losari sebelum pulang." },
+      { name: "Pusat Oleh-Oleh Osing", lat: -8.2250, lon: 114.3600, ele: 30, time: "11:30", day: 3, desc: "Belanja kue bagiak kelapa, kopi osing, dan batik gajah oling." },
+      { name: "Stasiun Ketapang (Drop-Off)", lat: -8.1456, lon: 114.3975, ele: 12, time: "14:00", day: 3, desc: "Selesai tour & boarding Kereta Api Blambangan Ekspres." }
     ];
 
-    let currentTrack = generateMalangLoop();
-    let isMalangPreset = true;
+    let currentWaypoints = [...itineraryPoints];
 
-    // Interpolate high-density smooth points for buttery 60 FPS movement
-    function getDensePath(waypoints, steps = 30) {
+    function getDensePath(waypoints, steps = 45) {
       const res = [];
       for (let i = 0; i < waypoints.length - 1; i++) {
         const p1 = waypoints[i];
@@ -490,17 +542,16 @@
             lat: p1.lat + (p2.lat - p1.lat) * t,
             lon: p1.lon + (p2.lon - p1.lon) * t,
             ele: p1.ele + (p2.ele - p1.ele) * t,
-            pace: p1.pace,
-            hr: Math.round(p1.hr + (p2.hr - p1.hr) * t),
-            cad: Math.round(p1.cad + (p2.cad - p1.cad) * t)
+            legIdx: i,
+            tInLeg: t
           });
         }
       }
-      res.push(waypoints[waypoints.length - 1]);
+      res.push({ ...waypoints[waypoints.length - 1], legIdx: waypoints.length - 2, tInLeg: 1 });
       return res;
     }
 
-    let densePoints = getDensePath(currentTrack);
+    let densePoints = getDensePath(currentWaypoints);
 
     function calcBearing(lat1, lon1, lat2, lon2) {
       const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -510,19 +561,19 @@
       return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
     }
 
-    /* ── 2. Initialize Ultra-Lightweight Vector Map ────────────────── */
-    // OpenFreeMap Liberty Vector Style (Sangat ringan di HP, 0 MB kuota satelit berat!)
+    /* ── 2. Peta Vektor Bersih 2D (Tanpa Gedung 3D Extrusion) ───────── */
     const map = new maplibregl.Map({
       container: 'map',
       style: 'https://tiles.openfreemap.org/styles/liberty',
       center: [densePoints[0].lon, densePoints[0].lat],
-      zoom: 16.8,
-      pitch: 58, // 3D Isometric Tilt Angle
-      bearing: 30,
+      zoom: 14.5,
+      pitch: 45,
+      bearing: 195,
       antialias: true
     });
 
-    /* ── 3. Map Layers & Extrusion ─────────────────────────────────── */
+    let landmarkMarkers = [];
+
     function setupRouteLayers() {
       const fullCoords = densePoints.map(p => [p.lon, p.lat]);
 
@@ -537,26 +588,6 @@
         return;
       }
 
-      // Add 3D Extruded Buildings (Pastel Peach / Coral persis di screenshot!)
-      try {
-        if (!map.getLayer('3d-buildings')) {
-          map.addLayer({
-            'id': '3d-buildings',
-            'source': 'openmaptiles',
-            'source-layer': 'building',
-            'type': 'fill-extrusion',
-            'minzoom': 14,
-            'paint': {
-              'fill-extrusion-color': '#fce7e1', // Soft pastel peach
-              'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 14, 0, 16, ['get', 'render_height']],
-              'fill-extrusion-base': ['get', 'render_min_height'],
-              'fill-extrusion-opacity': 0.88
-            }
-          });
-        }
-      } catch (e) {}
-
-      // Add Route Line Sources
       map.addSource('track-full', {
         type: 'geojson',
         data: { type: 'Feature', geometry: { type: 'LineString', coordinates: fullCoords } }
@@ -567,79 +598,107 @@
         data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [fullCoords[0]] } }
       });
 
-      // Background Soft Shadow
       map.addLayer({
         id: 'track-bg',
         type: 'line',
         source: 'track-full',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': '#cbd5e1',
+          'line-color': '#94a3b8',
           'line-width': 6,
-          'line-opacity': 0.5
+          'line-opacity': 0.55
         }
       });
 
-      // Glowing Blue Ribbon Path (Persis warna biru elektrik di screenshot!)
       map.addLayer({
         id: 'track-fg',
         type: 'line',
         source: 'track-travelled',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': '#0284c7', // Cyan / Electric Blue
+          'line-color': '#f59e0b',
           'line-width': 7,
           'line-opacity': 0.95
         }
       });
 
+      landmarkMarkers.forEach(m => m.remove());
+      landmarkMarkers = [];
+
+      currentWaypoints.forEach((wp, idx) => {
+        const el = document.createElement('div');
+        el.className = 'pin-circle';
+        el.innerText = `${idx + 1}`;
+
+        const marker = new maplibregl.Marker({ element: el })
+          .setLngLat([wp.lon, wp.lat])
+          .addTo(map);
+
+        landmarkMarkers.push(marker);
+      });
+
       updateMinimap();
     }
 
-    /* ── 4. Chibi 3D Runner SVG Character ──────────────────────────── */
-    let runnerMarker = null;
+    /* ── 3. Safari Travel Car / Jeep Top-Down SVG ──────────────────── */
+    let carMarker = null;
+    let isJeep = true;
 
-    function createRunnerAvatar() {
-      const el = document.createElement('div');
-      el.className = 'runner-marker';
-      el.innerHTML = `
-        <div class="runner-shadow"></div>
-        <div class="chibi-body">
-          <svg viewBox="0 0 64 74" width="100%" height="100%">
-            <!-- Head & Cap (Black cap) -->
-            <ellipse cx="32" cy="22" rx="14" ry="12" fill="#0f172a" />
-            <path d="M 18 20 Q 32 10 46 20 Q 52 26 42 26 Z" fill="#1e293b" />
-            <!-- Face -->
-            <ellipse cx="32" cy="24" rx="11" ry="9" fill="#fed7aa" />
-            <!-- Turquoise T-shirt -->
-            <path d="M 22 34 L 42 34 L 39 52 L 25 52 Z" fill="#06b6d4" />
-            <!-- Shorts -->
-            <rect x="25" y="52" width="14" height="8" rx="2" fill="#0f172a" />
-            <!-- Running Legs & White Shoes -->
-            <rect x="26" y="60" width="4" height="10" fill="#fed7aa" />
-            <rect x="34" y="60" width="4" height="10" fill="#fed7aa" />
-            <ellipse cx="28" cy="71" rx="5" ry="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
-            <ellipse cx="36" cy="71" rx="5" ry="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+    function getCarSVG(isJeepType) {
+      if (isJeepType) {
+        return `
+          <svg viewBox="0 0 40 70" width="34" height="60" style="filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4));">
+            <polygon points="12,14 4,0 36,0 28,14" fill="rgba(254, 240, 138, 0.35)" />
+            <rect x="3" y="14" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="32" y="14" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="3" y="44" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="32" y="44" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="7" y="12" width="26" height="48" rx="7" fill="#f59e0b" stroke="#ffffff" stroke-width="2" />
+            <rect x="10" y="24" width="20" height="9" rx="2" fill="#0f172a" />
+            <rect x="11" y="37" width="18" height="16" rx="3" fill="#b45309" stroke="#fed7aa" stroke-width="1.5" />
+            <circle cx="11" cy="13" r="2.5" fill="#fef08a" />
+            <circle cx="29" cy="13" r="2.5" fill="#fef08a" />
           </svg>
-        </div>
-      `;
+        `;
+      } else {
+        return `
+          <svg viewBox="0 0 40 74" width="34" height="64" style="filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4));">
+            <polygon points="12,12 5,0 35,0 28,12" fill="rgba(254, 240, 138, 0.35)" />
+            <rect x="3" y="14" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="32" y="14" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="3" y="48" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="32" y="48" width="5" height="12" rx="2" fill="#0f172a" />
+            <rect x="7" y="10" width="26" height="54" rx="7" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+            <rect x="10" y="20" width="20" height="9" rx="2" fill="#1e293b" />
+            <rect x="10" y="33" width="20" height="24" rx="3" fill="#0284c7" opacity="0.15" />
+            <circle cx="11" cy="11" r="2.5" fill="#fef08a" />
+            <circle cx="29" cy="11" r="2.5" fill="#fef08a" />
+          </svg>
+        `;
+      }
+    }
+
+    function createCarElement() {
+      const el = document.createElement('div');
+      el.className = 'vehicle-marker';
+      el.id = 'vehicle-svg-container';
+      el.innerHTML = getCarSVG(isJeep);
       return el;
     }
 
     map.on('load', () => {
       setupRouteLayers();
 
-      const runnerEl = createRunnerAvatar();
-      runnerMarker = new maplibregl.Marker({ element: runnerEl, rotationAlignment: 'map' })
+      const carEl = createCarElement();
+      carMarker = new maplibregl.Marker({ element: carEl, rotationAlignment: 'map' })
         .setLngLat([densePoints[0].lon, densePoints[0].lat])
         .addTo(map);
 
       requestAnimationFrame(animationLoop);
     });
 
-    /* ── 5. Mini GPS Overview SVG Renderer ─────────────────────────── */
+    /* ── 4. Mini GPS Track ─────────────────────────────────────────── */
     function updateMinimap() {
-      const svg = document.getElementById('minimap-svg');
       const polyline = document.getElementById('minimap-track');
 
       const lats = densePoints.map(p => p.lat);
@@ -650,7 +709,7 @@
       const dLat = maxLat - minLat || 0.001;
       const dLon = maxLon - minLon || 0.001;
 
-      const ptsStr = densePoints.filter((_, i) => i % 4 === 0).map(p => {
+      const ptsStr = densePoints.filter((_, i) => i % 5 === 0).map(p => {
         const x = 12 + ((p.lon - minLon) / dLon) * 76;
         const y = 88 - ((p.lat - minLat) / dLat) * 76;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
@@ -673,12 +732,40 @@
       dot.setAttribute('cy', y.toFixed(1));
     }
 
-    /* ── 6. 60 FPS Animation & Telemetry Engine ───────────────────── */
+    /* ── 5. Milestone Destination Modal ───────────────────────────── */
+    let isMilestonePaused = false;
+    let visitedLegs = new Set();
+
+    function triggerMilestone(legIdx) {
+      isMilestonePaused = true;
+      const dest = currentWaypoints[legIdx];
+
+      document.getElementById('m-badge').innerText = `DESTINASI #${legIdx + 1} • HARI ${dest.day}`;
+      document.getElementById('m-title').innerText = dest.name;
+      document.getElementById('m-desc').innerText = dest.desc;
+      document.getElementById('m-time').innerText = `${dest.time} WIB`;
+      document.getElementById('m-dist').innerText = `${((legIdx / (currentWaypoints.length - 1)) * 88.5).toFixed(1)} km`;
+      document.getElementById('m-ele').innerText = `${dest.ele} m dpl`;
+
+      document.getElementById('milestone-modal').classList.add('active');
+
+      setTimeout(() => {
+        resumeTrip();
+      }, 3600);
+    }
+
+    function resumeTrip() {
+      document.getElementById('milestone-modal').classList.remove('active');
+      isMilestonePaused = false;
+    }
+    document.getElementById('btn-continue-trip').addEventListener('click', resumeTrip);
+
+    /* ── 6. 60 FPS Camera Follow & Telemetry Loop ─────────────────── */
     let curIdx = 0;
     let isPlaying = true;
     let speedMult = 1.0;
     let lastTime = performance.now();
-    let totalTargetKm = 5.03;
+    const totalKm = 88.5;
 
     function animationLoop(now) {
       requestAnimationFrame(animationLoop);
@@ -686,31 +773,29 @@
       const dt = (now - lastTime) / 1000;
       lastTime = now;
 
-      if (isPlaying && densePoints.length > 1) {
-        const step = Math.max(1, Math.round(20 * speedMult * dt * 2.2));
+      if (isPlaying && !isMilestonePaused && densePoints.length > 1) {
+        const step = Math.max(1, Math.round(18 * speedMult * dt * 2.2));
         curIdx = (curIdx + step);
 
         if (curIdx >= densePoints.length - 1) {
           curIdx = 0;
+          visitedLegs.clear();
         }
 
         const cur = densePoints[curIdx];
         const next = densePoints[Math.min(curIdx + 1, densePoints.length - 1)];
 
-        // Update runner position
-        runnerMarker.setLngLat([cur.lon, cur.lat]);
+        carMarker.setLngLat([cur.lon, cur.lat]);
 
-        // Compute Bearing to rotate camera along road curve
         const bearing = calcBearing(cur.lat, cur.lon, next.lat, next.lon);
+        carMarker.setRotation(bearing);
 
-        // Smooth Camera Follow
         map.jumpTo({
           center: [cur.lon, cur.lat],
-          pitch: 58,
+          pitch: 45,
           bearing: bearing
         });
 
-        // Update Blue Travelled Ribbon
         if (map.getSource('track-travelled')) {
           const travelled = densePoints.slice(0, curIdx + 1).map(p => [p.lon, p.lat]);
           map.getSource('track-travelled').setData({
@@ -718,28 +803,29 @@
           });
         }
 
-        // Update Mini GPS Dot
         setMinimapDot(cur);
 
-        // Update Garmin/Strava Telemetry
         const progress = curIdx / (densePoints.length - 1);
-        const curKm = (progress * totalTargetKm).toFixed(2);
-        const elapsedSec = Math.round(progress * 102); // 01:42
-        const m = Math.floor(elapsedSec / 60);
-        const s = elapsedSec % 60;
-        const timeStr = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const curKm = (progress * totalKm).toFixed(1);
+        const curDest = currentWaypoints[cur.legIdx] || currentWaypoints[0];
+        const nextDest = currentWaypoints[Math.min(cur.legIdx + 1, currentWaypoints.length - 1)];
 
         document.getElementById('stat-dist').innerText = curKm;
-        document.getElementById('stat-time').innerText = timeStr;
+        document.getElementById('stat-time').innerText = `${curDest.time} WIB`;
         document.getElementById('stat-progress').style.width = `${(progress * 100).toFixed(1)}%`;
+        document.getElementById('stat-ele').innerText = `${Math.round(cur.ele)} m dpl`;
+        document.getElementById('stat-stop').innerText = `Stop ${cur.legIdx + 1}/${currentWaypoints.length}`;
 
-        document.getElementById('stat-pace').innerText = cur.pace || "5'57\"";
-        document.getElementById('stat-hr').innerHTML = `${cur.hr || 165} <span style="font-size:0.65rem">bpm</span>`;
-        document.getElementById('stat-cadence').innerHTML = `${cur.cad || 189} <span style="font-size:0.65rem">spm</span>`;
+        document.getElementById('act-tag').innerText = `WANDR ITINERARY • HARI ${curDest.day}`;
+        document.getElementById('act-title').innerText = curDest.name;
+        document.getElementById('act-meta').innerHTML = `${curDest.time} WIB • ${curDest.desc.slice(0, 42)}...`;
 
-        document.getElementById('stat-sub-dist').innerText = `${curKm} km`;
-        document.getElementById('stat-sub-elev').innerText = `+${Math.round(cur.ele - densePoints[0].ele + 3)} m`;
-        document.getElementById('stat-sub-time').innerText = timeStr;
+        document.getElementById('stat-next-dest').innerHTML = `MENUJU: <b>${nextDest.name} (${nextDest.time} WIB)</b>`;
+
+        if (cur.tInLeg < 0.05 && !visitedLegs.has(cur.legIdx)) {
+          visitedLegs.add(cur.legIdx);
+          triggerMilestone(cur.legIdx);
+        }
       }
     }
 
@@ -760,33 +846,14 @@
       speedBtn.innerText = `⚡ ${speedMult}x`;
     });
 
-    // Preset Switcher (Malang 5K vs Banyuwangi)
-    const routeBtn = document.getElementById('btn-route');
-    routeBtn.addEventListener('click', () => {
-      isMalangPreset = !isMalangPreset;
-      if (isMalangPreset) {
-        currentTrack = generateMalangLoop();
-        totalTargetKm = 5.03;
-        routeBtn.innerText = "🔄 Malang 5K";
-        document.getElementById('act-tag').innerText = "LARI PAGI • PAGI";
-        document.getElementById('act-title').innerText = "Run 2026 • #OM5126";
-        document.getElementById('act-meta').innerHTML = "HAVEFANRUN • 27 Sep 2026 • 05.15 WIB<br><span style='color:#64748b'>Malang Raya, Jawa Timur (-7.978°, 112.635°)</span>";
-        document.getElementById('stat-target').innerText = "5.03";
-      } else {
-        currentTrack = banyuwangiTrail;
-        totalTargetKm = 88.5;
-        routeBtn.innerText = "🔄 Wandr BWI";
-        document.getElementById('act-tag').innerText = "EXPEDITION • TRAIL";
-        document.getElementById('act-title').innerText = "Wandr Banyuwangi 3H2M";
-        document.getElementById('act-meta').innerHTML = "Banyuwangi Tour • 2026 • 04.44 WIB<br><span style='color:#64748b'>Stasiun Ketapang ➔ Kawah Ijen</span>";
-        document.getElementById('stat-target').innerText = "88.5";
-      }
-      densePoints = getDensePath(currentTrack, isMalangPreset ? 30 : 60);
-      curIdx = 0;
-      setupRouteLayers();
+    const vehBtn = document.getElementById('btn-vehicle-toggle');
+    vehBtn.addEventListener('click', () => {
+      isJeep = !isJeep;
+      document.getElementById('vehicle-svg-container').innerHTML = getCarSVG(isJeep);
+      vehBtn.innerText = isJeep ? "🚙 Jeep" : "🚐 Travel";
+      document.getElementById('stat-vehicle').innerText = isJeep ? "🚙 Jeep 4x4" : "🚐 Van Travel";
     });
 
-    // 9:16 Video Recording
     const recBtn = document.getElementById('btn-record');
     let recorder = null;
     let chunks = [];
@@ -805,7 +872,7 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `jejaklari_${Date.now()}.webm`;
+          a.download = `wandr_itinerary_route_${Date.now()}.webm`;
           a.click();
           recBtn.innerText = "🔴 Rekam";
           recBtn.classList.remove('recording');
@@ -819,7 +886,6 @@
       }
     });
 
-    // Upload Custom GPX / FIT File
     const uploadBtn = document.getElementById('btn-upload');
     const fileInput = document.getElementById('gpx-file-input');
     uploadBtn.addEventListener('click', () => fileInput.click());
@@ -849,21 +915,18 @@
           const eleNode = node.querySelector("ele");
           const ele = eleNode ? parseFloat(eleNode.textContent) : 20;
           pts.push({
+            name: `Titik GPS #${pts.length + 1}`,
             lat, lon, ele,
-            pace: "5'45\"",
-            hr: 165,
-            cad: 188
+            time: `Km ${(pts.length * 1.2).toFixed(1)}`,
+            day: 1,
+            desc: "Titik rute perjalanan kustom dari unggahan GPX pengguna."
           });
         }
 
-        currentTrack = pts;
-        totalTargetKm = (pts.length * 0.08).toFixed(2);
-        densePoints = getDensePath(currentTrack, 30);
+        currentWaypoints = pts;
+        densePoints = getDensePath(currentWaypoints, 35);
         curIdx = 0;
-
-        document.getElementById('act-title').innerText = file.name.replace(/\.[^/.]+$/, "");
-        document.getElementById('stat-target').innerText = totalTargetKm;
-
+        visitedLegs.clear();
         setupRouteLayers();
         alert(`Berhasil memuat ${pts.length} titik GPS dari berkas GPX!`);
       };
