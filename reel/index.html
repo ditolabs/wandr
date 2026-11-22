@@ -3,114 +3,147 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Wandr Reel • Motlab Engine</title>
+  <title>Wandr Reel • 9:16 Visual Itinerary</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #020617;
-      --card: #0f172a;
-      --amber: #f59e0b;
-      --text: #f8fafc;
-    }
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      overflow-x: hidden;
-    }
-    .reel-wrapper {
-      position: relative;
-      width: 100%;
-      max-width: 390px;
-      aspect-ratio: 9 / 16;
-      border-radius: 24px;
-      overflow: hidden;
-      background: #000;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
-      display: flex;
-      flex-direction: column;
-    }
-    iframe {
+    html, body {
       width: 100%;
       height: 100%;
-      border: none;
-      pointer-events: none;
+      background: #000;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
     }
+
+    /* Master 100% Full-bleed Viewport */
+    #stage {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+
+    #reelCanvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Top Segment Story Bars */
     .hud-top {
       position: absolute;
-      top: 14px;
-      left: 14px;
-      right: 14px;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: env(safe-area-inset-top, 16px) 16px 12px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%);
+      z-index: 20;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 10;
+      flex-direction: column;
+      gap: 10px;
     }
-    .badge {
-      display: inline-flex;
+
+    .story-bars {
+      display: flex;
+      gap: 5px;
+      width: 100%;
+    }
+    .bar-segment {
+      flex: 1;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      background: #f59e0b;
+    }
+
+    .top-meta {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      justify-content: space-between;
+    }
+    .badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-pill {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
       border-radius: 99px;
-      padding: 5px 12px;
       font-size: 0.75rem;
       font-weight: 800;
       color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.5px;
     }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-    .close-btn {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #cbd5e1;
-      padding: 5px 12px;
-      border-radius: 8px;
+    .brand-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 10px #f59e0b;
+    }
+    .btn-exit {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      color: #f8fafc;
+      text-decoration: none;
       font-size: 0.8rem;
       font-weight: 700;
-      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 99px;
     }
-    .timeline-bar {
+
+    /* Touch Tap Zones for Story Navigation */
+    .tap-zone {
       position: absolute;
-      top: 6px;
-      left: 12px;
-      right: 12px;
-      height: 3px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
-      overflow: hidden;
-      z-index: 10;
+      top: 60px;
+      bottom: 120px;
+      z-index: 15;
     }
-    .timeline-fill {
-      width: 0%;
-      height: 100%;
-      background: var(--amber);
-      transition: width 0.05s linear;
-    }
-    .controls {
-      margin-top: 12px;
+    .tap-left { left: 0; width: 35%; }
+    .tap-center { left: 35%; width: 30%; }
+    .tap-right { right: 0; width: 35%; }
+
+    /* Bottom Floating Action Bar */
+    .hud-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px calc(env(safe-area-inset-bottom, 16px) + 12px);
+      background: linear-gradient(0deg, rgba(2,6,23,0.95) 0%, rgba(2,6,23,0.7) 60%, rgba(2,6,23,0) 100%);
+      z-index: 20;
       display: flex;
-      gap: 10px;
-      width: 100%;
-      max-width: 390px;
+      align-items: center;
+      gap: 12px;
     }
-    .btn {
+    .btn-action {
       flex: 1;
-      height: 48px;
+      height: 50px;
       border-radius: 14px;
       border: none;
       font-family: inherit;
+      font-size: 0.92rem;
       font-weight: 800;
-      font-size: 0.9rem;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -118,114 +151,296 @@
       gap: 8px;
       transition: transform 0.15s ease;
     }
-    .btn:active { transform: scale(0.96); }
-    .btn-play { background: var(--amber); color: #0f172a; }
-    .btn-next { background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    .btn-action:active { transform: scale(0.96); }
+    .btn-play {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #0f172a;
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+    }
+    .btn-skip {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
 
-  <div class="reel-wrapper">
-    <div class="timeline-bar">
-      <div class="timeline-fill" id="timeFill"></div>
-    </div>
+  <div id="stage">
+    <canvas id="reelCanvas" width="1080" height="1920"></canvas>
+
+    <!-- Top HUD: Segmented Story Bar -->
     <div class="hud-top">
-      <div class="badge"><span class="dot"></span> MOTLAB • 9:16 CANVAS</div>
-      <a href="../index.html" class="close-btn">✕ Keluar</a>
+      <div class="story-bars" id="storyBars"></div>
+      <div class="top-meta">
+        <div class="badge-wrap">
+          <div class="brand-pill">
+            <span class="brand-dot"></span>
+            <span id="badgeText">WANDR REELS • BANYUWANGI</span>
+          </div>
+        </div>
+        <a href="../index.html" class="btn-exit">✕ Keluar</a>
+      </div>
     </div>
 
-    <iframe id="sceneFrame" src="scenes/01-arrival.html?scale=0.5"></iframe>
-  </div>
+    <!-- Tap Navigation Zones (like IG Stories) -->
+    <div class="tap-zone tap-left" id="tapPrev"></div>
+    <div class="tap-zone tap-center" id="tapPause"></div>
+    <div class="tap-zone tap-right" id="tapNext"></div>
 
-  <div class="controls">
-    <button class="btn btn-play" id="btnPlay">▶ Putar Video</button>
-    <button class="btn btn-next" id="btnNext">Adegan Berikut ⏭</button>
+    <!-- Bottom Controls -->
+    <div class="hud-bottom">
+      <button class="btn-action btn-play" id="btnPlay">⏸ Jeda Video</button>
+      <button class="btn-action btn-skip" id="btnNext">Lanjut ⏭</button>
+    </div>
   </div>
 
   <script>
+    // ══════════════════════════════════════════════════════════
+    // DATA DESTINASI DENGAN FOTO ASLI BERKUALITAS TINGGI
+    // ══════════════════════════════════════════════════════════
     const SCENES = [
-      { file: "scenes/01-arrival.html", duration: 3.5 },
-      { file: "scenes/02-djawatan.html", duration: 3.5 },
-      { file: "scenes/03-ijen.html", duration: 3.5 },
-      { file: "scenes/04-selesai.html", duration: 3.5 }
+      {
+        tag: "HARI 1 • 04:44 WIB • KEDATANGAN",
+        title: "Stasiun Ketapang",
+        desc: "Pintu masuk timur Pulau Jawa menyambut dengan hembusan angin Selat Bali dan pemandangan fajar.",
+        duration: 4.5,
+        imgUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1080&q=85",
+        accent: "#f59e0b"
+      },
+      {
+        tag: "HARI 1 • 08:30 WIB • HUTAN PURBA",
+        title: "De Djawatan Benculuk",
+        desc: "Menembus lorong magis pohon trembesi raksasa berlumut seperti hutan purba Fangorn di Lord of the Rings.",
+        duration: 4.8,
+        imgUrl: "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1080&q=85",
+        accent: "#10b981"
+      },
+      {
+        tag: "HARI 2 • 00:30 WIB • BLUE FIRE",
+        title: "Kawah Ijen Blue Fire",
+        desc: "Pendakian dini hari menyaksikan fenomena api biru abadi dan danau kawah toska tercantik dunia di 2.386 mdpl.",
+        duration: 5.0,
+        imgUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1080&q=85",
+        accent: "#38bdf8"
+      },
+      {
+        tag: "HARI 2 • 16:00 WIB • GOLDEN SUNSET",
+        title: "Pantai Pulau Merah",
+        desc: "Menikmati matahari terbenam emas di tepi bukit karang merah yang menjulang eksotis di pesisir selatan.",
+        duration: 4.5,
+        imgUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1080&q=85",
+        accent: "#f97316"
+      },
+      {
+        tag: "HARI 3 • 09:00 WIB • BUDAYA OSING",
+        title: "Desa Adat Kemiren",
+        desc: "Menyeruput kopi sangrai khas suku Osing dan menikmati alunan musik tradisi lesung sebelum pulang.",
+        duration: 4.5,
+        imgUrl: "https://images.unsplash.com/photo-1596401057633-54a8fe8ef647?auto=format&fit=crop&w=1080&q=85",
+        accent: "#a855f7"
+      }
     ];
-    const TOTAL_TIME = SCENES.reduce((a, s) => a + s.duration, 0);
 
-    let curSceneIdx = 0;
-    let isPlaying = false;
-    let sceneStartTime = 0;
-    let animId = null;
-
-    const frame = document.getElementById('sceneFrame');
-    const timeFill = document.getElementById('timeFill');
+    const W = 1080, H = 1920;
+    const canvas = document.getElementById('reelCanvas');
+    const ctx = canvas.getContext('2d');
+    const storyBars = document.getElementById('storyBars');
     const btnPlay = document.getElementById('btnPlay');
     const btnNext = document.getElementById('btnNext');
 
-    function loadScene(idx) {
-      curSceneIdx = idx;
-      frame.src = SCENES[idx].file + "?scale=0.5&t=0";
+    // Preload semua gambar asli
+    const loadedImages = {};
+    SCENES.forEach(s => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = s.imgUrl;
+      loadedImages[s.imgUrl] = img;
+    });
+
+    // Buat segmented story bar
+    storyBars.innerHTML = SCENES.map((_, i) => `
+      <div class="bar-segment">
+        <div class="bar-fill" id="fill_${i}"></div>
+      </div>
+    `).join('');
+
+    let currentSceneIdx = 0;
+    let isPlaying = true;
+    let sceneStartTime = performance.now();
+    let animId = null;
+
+    const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+    const easeOutCubic = x => 1 - Math.pow(1 - clamp(x), 3);
+    const prog = (t, a, b) => clamp((t - a) / (b - a));
+
+    function renderFrame(t) {
+      const s = SCENES[currentSceneIdx];
+      const img = loadedImages[s.imgUrl];
+
+      ctx.clearRect(0, 0, W, H);
+
+      // 1. Gambar Foto Asli dengan Efek Ken Burns (Zoom Pelan Deterministik)
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.save();
+        const zoom = 1 + 0.08 * (t / s.duration);
+        ctx.translate(W / 2, H / 2);
+        ctx.scale(zoom, zoom);
+        ctx.translate(-W / 2, -H / 2);
+
+        // Aspect ratio cover fill
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const canvasRatio = W / H;
+        let dw, dh, dx, dy;
+        if (imgRatio > canvasRatio) {
+          dh = H;
+          dw = H * imgRatio;
+          dx = (W - dw) / 2;
+          dy = 0;
+        } else {
+          dw = W;
+          dh = W / imgRatio;
+          dx = 0;
+          dy = (H - dh) / 2;
+        }
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.restore();
+      } else {
+        // Fallback gradient jika gambar masih loading
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+        bgGrad.addColorStop(0, '#0f172a');
+        bgGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // 2. Cinematic Vignette & Bottom Gradient Overlay
+      const grad = ctx.createLinearGradient(0, H * 0.4, 0, H);
+      grad.addColorStop(0, 'rgba(2, 6, 23, 0)');
+      grad.addColorStop(0.35, 'rgba(2, 6, 23, 0.6)');
+      grad.addColorStop(0.7, 'rgba(2, 6, 23, 0.92)');
+      grad.addColorStop(1, 'rgba(2, 6, 23, 0.98)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // 3. Kinetic Typography (Title, Tag, Description)
+      const FONT = '"Plus Jakarta Sans", sans-serif';
+
+      // Tagline Hari & Waktu
+      const tagP = easeOutCubic(prog(t, 0.15, 0.6));
+      ctx.globalAlpha = tagP;
+      ctx.fillStyle = s.accent;
+      ctx.font = `800 32px ${FONT}`;
+      ctx.textAlign = 'left';
+      ctx.fillText(s.tag, 60, H - 380 - (1 - tagP) * 20);
+
+      // Judul Destinasi Utama
+      const titleP = easeOutCubic(prog(t, 0.3, 0.8));
+      ctx.globalAlpha = titleP;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `900 76px ${FONT}`;
+      ctx.fillText(s.title, 60, H - 280 - (1 - titleP) * 30);
+
+      // Deskripsi Menarik
+      const descP = easeOutCubic(prog(t, 0.5, 1.0));
+      ctx.globalAlpha = descP;
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = `500 34px ${FONT}`;
+
+      // Word wrapping sederhana untuk deskripsi (maksimal lebar 940px)
+      const maxW = 960;
+      const words = s.desc.split(' ');
+      let line = '';
+      let lineY = H - 200 - (1 - descP) * 20;
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxW && n > 0) {
+          ctx.fillText(line, 60, lineY);
+          line = words[n] + ' ';
+          lineY += 50;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, 60, lineY);
+
+      ctx.globalAlpha = 1.0;
     }
 
-    function startPlayback() {
+    function tick() {
+      if (!isPlaying) return;
+      const now = performance.now();
+      const elapsed = (now - sceneStartTime) / 1000;
+      const curScene = SCENES[currentSceneIdx];
+
+      renderFrame(elapsed);
+
+      // Update progress bar
+      SCENES.forEach((_, i) => {
+        const fill = document.getElementById(`fill_${i}`);
+        if (i < currentSceneIdx) fill.style.width = '100%';
+        else if (i > currentSceneIdx) fill.style.width = '0%';
+        else fill.style.width = Math.min(100, (elapsed / curScene.duration) * 100) + '%';
+      });
+
+      if (elapsed >= curScene.duration) {
+        if (currentSceneIdx < SCENES.length - 1) {
+          currentSceneIdx++;
+          sceneStartTime = performance.now();
+        } else {
+          // Putar ulang dari awal (loop)
+          currentSceneIdx = 0;
+          sceneStartTime = performance.now();
+        }
+      }
+
+      animId = requestAnimationFrame(tick);
+    }
+
+    function play() {
       isPlaying = true;
-      btnPlay.innerHTML = '⏸ Jeda';
+      btnPlay.innerHTML = '⏸ Jeda Video';
       sceneStartTime = performance.now();
-      loop();
+      animId = requestAnimationFrame(tick);
     }
 
-    function pausePlayback() {
+    function pause() {
       isPlaying = false;
       btnPlay.innerHTML = '▶ Putar Video';
       cancelAnimationFrame(animId);
     }
 
-    function loop() {
-      if (!isPlaying) return;
-      const now = performance.now();
-      const elapsedScene = (now - sceneStartTime) / 1000;
-      const curScene = SCENES[curSceneIdx];
+    function nextScene() {
+      currentSceneIdx = (currentSceneIdx + 1) % SCENES.length;
+      sceneStartTime = performance.now();
+      if (!isPlaying) renderFrame(0);
+    }
 
-      try {
-        const win = frame.contentWindow;
-        if (win && win.renderAt) {
-          win.renderAt(elapsedScene);
-        }
-      } catch(e) {}
-
-      let pastDuration = 0;
-      for (let i = 0; i < curSceneIdx; i++) pastDuration += SCENES[i].duration;
-      const totalElapsed = pastDuration + elapsedScene;
-      timeFill.style.width = Math.min(100, (totalElapsed / TOTAL_TIME) * 100) + '%';
-
-      if (elapsedScene >= curScene.duration) {
-        if (curSceneIdx < SCENES.length - 1) {
-          curSceneIdx++;
-          loadScene(curSceneIdx);
-          sceneStartTime = performance.now();
-        } else {
-          curSceneIdx = 0;
-          loadScene(0);
-          pausePlayback();
-          timeFill.style.width = '0%';
-          return;
-        }
-      }
-
-      animId = requestAnimationFrame(loop);
+    function prevScene() {
+      currentSceneIdx = (currentSceneIdx - 1 + SCENES.length) % SCENES.length;
+      sceneStartTime = performance.now();
+      if (!isPlaying) renderFrame(0);
     }
 
     btnPlay.addEventListener('click', () => {
-      if (isPlaying) pausePlayback();
-      else startPlayback();
+      if (isPlaying) pause();
+      else play();
     });
 
-    btnNext.addEventListener('click', () => {
-      curSceneIdx = (curSceneIdx + 1) % SCENES.length;
-      loadScene(curSceneIdx);
-      if (isPlaying) sceneStartTime = performance.now();
+    btnNext.addEventListener('click', nextScene);
+
+    // Tap navigasi layar sentuh (kiri: mundur, tengah: jeda, kanan: maju)
+    document.getElementById('tapNext').addEventListener('click', nextScene);
+    document.getElementById('tapPrev').addEventListener('click', prevScene);
+    document.getElementById('tapPause').addEventListener('click', () => {
+      if (isPlaying) pause();
+      else play();
     });
 
-    loadScene(0);
+    // Mulai animasi
+    play();
   </script>
 </body>
 </html>
