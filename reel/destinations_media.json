@@ -1,0 +1,142 @@
+{
+  "ketapang": {
+    "title": "Stasiun Ketapang",
+    "tag": "GERBANG KEDATANGAN \u2022 SELAT BALI",
+    "desc": "Pintu masuk timur Pulau Jawa menyambut dengan hembusan angin Selat Bali dan pemandangan fajar.",
+    "img": "assets/ketapang.jpg",
+    "accent": "#f59e0b"
+  },
+  "djawatan": {
+    "title": "De Djawatan Benculuk",
+    "tag": "HUTAN PURBA TREMBESI",
+    "desc": "Menembus lorong magis pohon trembesi raksasa berlumut seperti hutan purba Fangorn di film fantasi.",
+    "img": "assets/djawatan.jpg",
+    "accent": "#10b981"
+  },
+  "ijen": {
+    "title": "Kawah Ijen Blue Fire",
+    "tag": "FENOMENA API BIRU ABADI",
+    "desc": "Pendakian dini hari menyaksikan fenomena api biru abadi dan danau kawah toska tercantik dunia di 2.386 mdpl.",
+    "img": "assets/ijen.jpg",
+    "accent": "#38bdf8"
+  },
+  "pulau_merah": {
+    "title": "Pantai Pulau Merah",
+    "tag": "GOLDEN SUNSET & SURFING",
+    "desc": "Menikmati matahari terbenam emas di tepi bukit karang merah yang menjulang eksotis di pesisir selatan.",
+    "img": "assets/pulau_merah.jpg",
+    "accent": "#f97316"
+  },
+  "red_island": {
+    "title": "Pantai Pulau Merah",
+    "tag": "GOLDEN SUNSET & SURFING",
+    "desc": "Menikmati matahari terbenam emas di tepi bukit karang merah yang menjulang eksotis di pesisir selatan.",
+    "img": "assets/pulau_merah.jpg",
+    "accent": "#f97316"
+  },
+  "kemiren": {
+    "title": "Desa Adat Kemiren",
+    "tag": "WARISAN BUDAYA USING",
+    "desc": "Menyeruput seduhan kopi sangrai khas suku Osing dan menikmati alunan musik tradisi lesung sebelum pulang.",
+    "img": "assets/kemiren.jpg",
+    "accent": "#a855f7"
+  },
+  "baluran": {
+    "title": "Taman Nasional Baluran",
+    "tag": "AFRIKA VAN JAVA",
+    "desc": "Savana luas Bekol dengan latar belakang Gunung Baluran, rumah bagi banteng jawa, rusa, dan burung merak.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Savanna_Bekol_Baluran.jpg/1280px-Savanna_Bekol_Baluran.jpg",
+    "accent": "#eab308"
+  },
+  "alas_purwo": {
+    "title": "Taman Nasional Alas Purwo",
+    "tag": "HUTAN PURBA TERTUA",
+    "desc": "Hutan tropis mistis di Semenanjung Blambangan dengan padang savana Sadengan dan pantai legendaris.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Sadengan_Feeding_Ground_Alas_Purwo.jpg/1280px-Sadengan_Feeding_Ground_Alas_Purwo.jpg",
+    "accent": "#15803d"
+  },
+  "kawah_wurung": {
+    "title": "Kawah Wurung",
+    "tag": "BUKIT TELETUBBIES HIJAU",
+    "desc": "Hamparan bukit rumput hijau bergelombang seperti karpet permadani di kaki Gunung Ijen.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Kawah_Wurung_Banyuwangi.jpg/1280px-Kawah_Wurung_Banyuwangi.jpg",
+    "accent": "#84cc16"
+  },
+  "jagir": {
+    "title": "Air Terjun Jagir",
+    "tag": "AIR TERJUN KEMBAR",
+    "desc": "Segarnya aliran air terjun tiga tingkat bersumber dari mata air alami pegunungan Ijen.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Air_terjun_jagir.jpg/1280px-Air_terjun_jagir.jpg",
+    "accent": "#06b6d4"
+  },
+  "green_bay": {
+    "title": "Teluk Hijau (Green Bay)",
+    "tag": "SURGA TERSEMBUNYI",
+    "desc": "Air laut jernih kehijauan berpadu dengan pasir putih lembut dan air terjun tawar langsung di tepi pantai.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Green_Bay_Banyuwangi.jpg/1280px-Green_Bay_Banyuwangi.jpg",
+    "accent": "#14b8a6"
+  },
+  "sukamade": {
+    "title": "Pantai Sukamade",
+    "tag": "KONSERVASI PENYU RAKSASA",
+    "desc": "Menyaksikan penyu raksasa bertelur di bawah gemerlap bintang dan melepas tukik ke Samudra Hindia.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Penyu_di_Sukamade.jpg/1280px-Penyu_di_Sukamade.jpg",
+    "accent": "#0284c7"
+  },
+  "bangsring": {
+    "title": "Bangsring Underwater",
+    "tag": "SURGA SNORKELING & KLINIK HIU",
+    "desc": "Menyelami taman terumbu karang warna-warni dan berenang bersama anakan hiu di rumah apung.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bangsring_Underwater.jpg/1280px-Bangsring_Underwater.jpg",
+    "accent": "#0ea5e9"
+  },
+  "menjangan": {
+    "title": "Pulau Menjangan",
+    "tag": "WALL DIVING TERBAIK DUNIA",
+    "desc": "Taman bawah laut spektakuler dengan dinding karang terjal dan jarak pandang bawah air hingga 30 meter.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Menjangan_Island.jpg/1280px-Menjangan_Island.jpg",
+    "accent": "#38bdf8"
+  },
+  "tabuhan": {
+    "title": "Pulau Tabuhan",
+    "tag": "PULAU TAK BERPENGHUNI",
+    "desc": "Pulau mungil berpasir putih bersih di tengah Selat Bali, tempat terbaik untuk kitesurfing dan snorkeling.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Pulau_Tabuhan.jpg/1280px-Pulau_Tabuhan.jpg",
+    "accent": "#06b6d4"
+  },
+  "pantai_boom": {
+    "title": "Pantai Boom Marina",
+    "tag": "MARINA IKONIK & JEMBATAN SPIRAL",
+    "desc": "Pusat rekreasi pesisir kota dengan jembatan spiral megah berlatar belakang siluet pulau dewata Bali.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Pantai_Boom_Banyuwangi.jpg/1280px-Pantai_Boom_Banyuwangi.jpg",
+    "accent": "#f43f5e"
+  },
+  "boom": {
+    "title": "Pantai Boom Marina",
+    "tag": "MARINA IKONIK & JEMBATAN SPIRAL",
+    "desc": "Pusat rekreasi pesisir kota dengan jembatan spiral megah berlatar belakang siluet pulau dewata Bali.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Pantai_Boom_Banyuwangi.jpg/1280px-Pantai_Boom_Banyuwangi.jpg",
+    "accent": "#f43f5e"
+  },
+  "g_land": {
+    "title": "G-Land Plengkung",
+    "tag": "OMBAK TERCEPAT KEDUA DI DUNIA",
+    "desc": "Kiblat peselancar profesional dunia dengan gulungan ombak sempurna 7 susun di ujung Alas Purwo.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/G-Land_Plengkung_Beach.jpg/1280px-G-Land_Plengkung_Beach.jpg",
+    "accent": "#3b82f6"
+  },
+  "pantai_wedi": {
+    "title": "Pantai Wedi Ireng",
+    "tag": "PASIR HITAM & PUTIH EKSOTIS",
+    "desc": "Teluk tersembunyi yang unik dengan perpaduan pasir putih dan pasir hitam vulkanik berkilau.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Wedi_Ireng_Beach.jpg/1280px-Wedi_Ireng_Beach.jpg",
+    "accent": "#64748b"
+  },
+  "city": {
+    "title": "Wisata Kota & Kuliner Banyuwangi",
+    "tag": "KULINER TRADISIONAL OSING",
+    "desc": "Menikmati Sego Tempong pedas menggigit, Rujak Soto khas Blambangan, dan keramahan pusat kota.",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Taman_Sritanjung_Banyuwangi.jpg/1280px-Taman_Sritanjung_Banyuwangi.jpg",
+    "accent": "#f59e0b"
+  }
+}

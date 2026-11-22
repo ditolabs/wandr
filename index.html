@@ -1520,6 +1520,14 @@
         🎬 Format Video Animasi (Reels / TikTok 9:16)
       </div>
       <div style="display:flex;flex-direction:column;gap:8px">
+                <a href="reel/" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fef3c7;border:1.5px solid #fde68a;border-radius:14px;color:#92400e;transition:all .2s;margin-bottom:8px">
+          <span style="font-size:24px">📱</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800">Video Reels 9:16 (Motlab Engine)</div>
+            <div style="font-size:11px;color:#b45309;line-height:1.3">Format vertikal Stories sinematik dengan foto asli pilihanmu</div>
+          </div>
+          <span style="font-size:12px;font-weight:800;color:#d97706">Tonton ↗</span>
+        </a>
         <a href="video.html" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff1f2;border:1.5px solid #fecdd3;border-radius:14px;color:#881337;transition:all .2s">
           <span style="font-size:24px">🛵</span>
           <div style="flex:1">
@@ -5848,6 +5856,32 @@ function generate() {
 }
 
 function generateFromPlan() {
+
+  // Simpan itinerary aktif ke localStorage agar sinkron dengan Video Reels & 3D Map
+  try {
+    const activeList = [];
+    if (S.planDays && S.planDays.length > 0) {
+      S.planDays.forEach((dayItems, dayIdx) => {
+        dayItems.forEach(destId => {
+          const d = (typeof DESTINATIONS !== 'undefined' ? DESTINATIONS : []).find(x => x.id === destId) ||
+                    (typeof DESTINATIONS_FALLBACK !== 'undefined' ? DESTINATIONS_FALLBACK : []).find(x => x.id === destId);
+          if (d) {
+            activeList.push({
+              id: d.id,
+              name: d.name,
+              day: dayIdx + 1,
+              cat: d.cat || 'alam',
+              desc: d.desc || ''
+            });
+          }
+        });
+      });
+    }
+    if (activeList.length > 0) {
+      localStorage.setItem('wandr_active_itinerary', JSON.stringify(activeList));
+    }
+  } catch(e) { console.error('Failed to sync active itinerary:', e); }
+
   try {
     const kota=S.kotaAsal==='Lainnya'?S.kotaAsalCustom:S.kotaAsal;
     const [totalDays]=parseDurasi(S.durasi);
