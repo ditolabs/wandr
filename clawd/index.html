@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Clawd Animation Studio • Hand-painted Watercolor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #1b1820;
+      color: #eee;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+    }
+    header {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px 14px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+    .btn-exit {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    main {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #F3EBDC;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
+    }
+    #out {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+    .p5Canvas { display: none !important; }
+    .bar {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 14px 18px;
+      border-radius: 16px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    #scrub {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.2);
+      outline: none;
+      accent-color: #f59e0b;
+      cursor: pointer;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    #tt { font-variant-numeric: tabular-nums; color: #f59e0b; }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn {
+      flex: 1;
+      height: 44px;
+      border-radius: 10px;
+      border: none;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-play { background: #f59e0b; color: #0f172a; }
+    .btn-loop { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@2.3.3/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.2.3/dist/p5.brush.js"></script>
+</head>
+<body>
+  <header>
+    <div class="badge"><span class="dot"></span> CLAUDE ANIMATION BASE • P5.BRUSH</div>
+    <a href="../index.html" class="btn-exit">✕ Keluar</a>
+  </header>
+
+  <main>
+    <div class="canvas-container">
+      <canvas id="out" width="1920" height="1080"></canvas>
+    </div>
+
+    <div class="bar">
+      <div class="slider-row">
+        <input id="scrub" type="range" min="0" max="11" step="0.0417" value="0">
+      </div>
+      <div class="status-row">
+        <span>⏱ Waktu: <strong id="tt">loading engine…</strong></span>
+        <span>🎨 Boiling Lines: 12 fps</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-play" id="btnPlay">▶ Putar Animasi</button>
+        <button class="btn btn-loop" id="btnEmotions" onclick="window.location.search='?loop=emotions'">Emosi Clawd</button>
+        <button class="btn btn-loop" id="btnDemo" onclick="window.location.search=''">Demo Cerita</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="src/config.js"></script>
+  <script src="src/core.js"></script>
+  <script src="src/clawd.js"></script>
+  <script src="src/timeline.js"></script>
+  <script src="src/sheets.js"></script>
+  <script src="src/scenes/demo.js"></script>
+  <script>
+    const q = new URLSearchParams(location.search).get('loop');
+    if (q && typeof LOOPS !== 'undefined' && LOOPS[q]) window.LOOP = LOOPS[q];
+
+    const scrub = document.getElementById('scrub');
+    const tt = document.getElementById('tt');
+    const btnPlay = document.getElementById('btnPlay');
+
+    let playing = false;
+    let playTimer = null;
+
+    btnPlay.addEventListener('click', () => {
+      playing = !playing;
+      btnPlay.innerHTML = playing ? '⏸ Jeda' : '▶ Putar Animasi';
+      if (playing) {
+        let last = performance.now();
+        function step(now) {
+          if (!playing) return;
+          const dt = (now - last) / 1000;
+          last = now;
+          let val = parseFloat(scrub.value) + dt;
+          if (val > parseFloat(scrub.max)) val = 0;
+          scrub.value = val;
+          scrub.dispatchEvent(new Event('input'));
+          playTimer = requestAnimationFrame(step);
+        }
+        playTimer = requestAnimationFrame(step);
+      } else {
+        cancelAnimationFrame(playTimer);
+      }
+    });
+  </script>
+</body>
+</html>
