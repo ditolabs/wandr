@@ -1,0 +1,12 @@
+{
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "scenes": [
+    "scenes/01-arrival.html",
+    "scenes/02-djawatan.html",
+    "scenes/03-ijen.html",
+    "scenes/04-selesai.html"
+  ],
+  "audio": []
+}

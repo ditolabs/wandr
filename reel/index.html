@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Wandr Reel • Motlab Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --amber: #f59e0b;
+      --text: #f8fafc;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      overflow-x: hidden;
+    }
+    .reel-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 390px;
+      aspect-ratio: 9 / 16;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+    .hud-top {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 99px;
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+    .close-btn {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .timeline-bar {
+      position: absolute;
+      top: 6px;
+      left: 12px;
+      right: 12px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      overflow: hidden;
+      z-index: 10;
+    }
+    .timeline-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--amber);
+      transition: width 0.05s linear;
+    }
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 390px;
+    }
+    .btn {
+      flex: 1;
+      height: 48px;
+      border-radius: 14px;
+      border: none;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.15s ease;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-play { background: var(--amber); color: #0f172a; }
+    .btn-next { background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body>
+
+  <div class="reel-wrapper">
+    <div class="timeline-bar">
+      <div class="timeline-fill" id="timeFill"></div>
+    </div>
+    <div class="hud-top">
+      <div class="badge"><span class="dot"></span> MOTLAB • 9:16 CANVAS</div>
+      <a href="../index.html" class="close-btn">✕ Keluar</a>
+    </div>
+
+    <iframe id="sceneFrame" src="scenes/01-arrival.html?scale=0.5"></iframe>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-play" id="btnPlay">▶ Putar Video</button>
+    <button class="btn btn-next" id="btnNext">Adegan Berikut ⏭</button>
+  </div>
+
+  <script>
+    const SCENES = [
+      { file: "scenes/01-arrival.html", duration: 3.5 },
+      { file: "scenes/02-djawatan.html", duration: 3.5 },
+      { file: "scenes/03-ijen.html", duration: 3.5 },
+      { file: "scenes/04-selesai.html", duration: 3.5 }
+    ];
+    const TOTAL_TIME = SCENES.reduce((a, s) => a + s.duration, 0);
+
+    let curSceneIdx = 0;
+    let isPlaying = false;
+    let sceneStartTime = 0;
+    let animId = null;
+
+    const frame = document.getElementById('sceneFrame');
+    const timeFill = document.getElementById('timeFill');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnNext = document.getElementById('btnNext');
+
+    function loadScene(idx) {
+      curSceneIdx = idx;
+      frame.src = SCENES[idx].file + "?scale=0.5&t=0";
+    }
+
+    function startPlayback() {
+      isPlaying = true;
+      btnPlay.innerHTML = '⏸ Jeda';
+      sceneStartTime = performance.now();
+      loop();
+    }
+
+    function pausePlayback() {
+      isPlaying = false;
+      btnPlay.innerHTML = '▶ Putar Video';
+      cancelAnimationFrame(animId);
+    }
+
+    function loop() {
+      if (!isPlaying) return;
+      const now = performance.now();
+      const elapsedScene = (now - sceneStartTime) / 1000;
+      const curScene = SCENES[curSceneIdx];
+
+      try {
+        const win = frame.contentWindow;
+        if (win && win.renderAt) {
+          win.renderAt(elapsedScene);
+        }
+      } catch(e) {}
+
+      let pastDuration = 0;
+      for (let i = 0; i < curSceneIdx; i++) pastDuration += SCENES[i].duration;
+      const totalElapsed = pastDuration + elapsedScene;
+      timeFill.style.width = Math.min(100, (totalElapsed / TOTAL_TIME) * 100) + '%';
+
+      if (elapsedScene >= curScene.duration) {
+        if (curSceneIdx < SCENES.length - 1) {
+          curSceneIdx++;
+          loadScene(curSceneIdx);
+          sceneStartTime = performance.now();
+        } else {
+          curSceneIdx = 0;
+          loadScene(0);
+          pausePlayback();
+          timeFill.style.width = '0%';
+          return;
+        }
+      }
+
+      animId = requestAnimationFrame(loop);
+    }
+
+    btnPlay.addEventListener('click', () => {
+      if (isPlaying) pausePlayback();
+      else startPlayback();
+    });
+
+    btnNext.addEventListener('click', () => {
+      curSceneIdx = (curSceneIdx + 1) % SCENES.length;
+      loadScene(curSceneIdx);
+      if (isPlaying) sceneStartTime = performance.now();
+    });
+
+    loadScene(0);
+  </script>
+</body>
+</html>
