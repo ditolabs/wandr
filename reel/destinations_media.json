@@ -1,7 +1,7 @@
 {
   "ketapang": {
     "title": "Stasiun Ketapang",
-    "tag": "GERBANG KEDATANGAN \u2022 SELAT BALI",
+    "tag": "GERBANG KEDATANGAN • SELAT BALI",
     "desc": "Pintu masuk timur Pulau Jawa menyambut dengan hembusan angin Selat Bali dan pemandangan fajar.",
     "img": "assets/ketapang.jpg",
     "accent": "#f59e0b"
@@ -138,5 +138,14 @@
     "desc": "Menikmati Sego Tempong pedas menggigit, Rujak Soto khas Blambangan, dan keramahan pusat kota.",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Taman_Sritanjung_Banyuwangi.jpg/1280px-Taman_Sritanjung_Banyuwangi.jpg",
     "accent": "#f59e0b"
+  },
+  "ayam_pedas_jeng_kati": {
+    "name": "Ayam Pedas Jeng Kati",
+    "category": "kuliner",
+    "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhgahkcRUDhgVW5vqGOrlc-cU9r9pvfJpVAQQ6vpgN1PIYdRyIOpXPTmeqnrAIUG56qSqtgnfZsM3cG8_m7ruOC9fgxTSMXhfc4cCDkCtmbIaz6K32BNk0Nkq41jWX577HdFlJ1LLPLN8jHskMwnckyvOSszAl6ny-R_Wm-JOTQHkD920nw6bIUwOIW7Zo/s1600/Ayam%20Pedas%20BWI_002.JPG",
+    "quote": "Ayam pedas kuah gurih & pecel bunga turi legendaris jalur Alas Purwo",
+    "tagline": "Kuliner Wajib Singgah Tegaldlimo",
+    "price": "Rp27.000",
+    "hours": "06.00 - 17.00 WIB"
   }
 }
