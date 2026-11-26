@@ -66,24 +66,7 @@
     }
 
     /* ── LAYOUT ────────────────────────────────────────────────────────────── */
-    body:has(.bento-hero-wrap) #app { max-width: 1140px !important; }
-
-    #app { 
-      max-width: 640px; 
-      width: 100%; 
-      margin: 0 auto; 
-      display: flex; 
-      flex-direction: column; 
-      min-height: 100vh; 
-      transition: max-width 0.25s ease;
-    }
-    @media (min-width: 768px) {
-      #app { max-width: 1080px !important; }
-      #content-wrap { padding: 0 40px !important; }
-      .s0-search-compact-wrap { max-width: 720px; }
-      .dest-grid, .card-opts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-      .planning-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    }
+    #app { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
 
     /* ── HEADER ────────────────────────────────────────────────────────────── */
     #header {
@@ -159,25 +142,11 @@
     /* ── NAV ───────────────────────────────────────────────────────────────── */
     #nav {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 20px 20px;
+      padding: 10px 20px 24px;
       border-top: 1px solid var(--border);
+      margin-top: 8px;
       background: var(--surface);
-      box-shadow: 0 -2px 8px rgba(0,0,0,.05);
-      position: sticky;
-      bottom: 0;
-      z-index: 40;
-    }
-    @media (min-width: 768px) {
-      #content-wrap { flex: 0 1 auto !important; margin-bottom: 16px !important; }
-      #nav {
-        position: static !important;
-        margin-top: 24px !important;
-        margin-bottom: 40px !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        border-top: 1.5px solid var(--border) !important;
-        padding: 18px 0 !important;
-      }
+      box-shadow: 0 -2px 8px rgba(0,0,0,.04);
     }
     .dest-count {
       font-size: 11px; color: var(--text-muted);
@@ -875,7 +844,7 @@
     .sortable-chosen  { box-shadow: 0 4px 16px rgba(0,0,0,.12); background: var(--white) !important; }
     .sortable-ghost   { opacity: .2; background: var(--paper-2) !important; outline: 1px dashed var(--ink); }
     .sortable-drag    { cursor: grabbing !important; z-index: 9999 !important; }
-    .drag-item        { cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none !important; }
+    .drag-item        { cursor: grab; user-select: none; -webkit-user-select: none; touch-action: pan-y; }
 
     /* ── PLANNING BOARD ────────────────────────────────────────────────────── */
     .planning-board { display: flex; flex-direction: column; gap: 10px; }
@@ -1119,149 +1088,7 @@
       font-family:'Inter',sans-serif;
       font-size:17px; font-weight:700;  color:#111;
     }
-  
-    /* ── BENTO GRID HERO (Opsi 2 - Desktop & Mobile Friendly) ─────────────── */
-    .bento-hero-wrap {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 24px 16px 40px;
-      width: 100%;
-    }
-
-    .bento-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    @media (min-width: 768px) {
-      .bento-grid {
-        grid-template-columns: repeat(12, 1fr);
-        gap: 18px;
-      }
-      .bento-col-8 { grid-column: span 8; }
-      .bento-col-4 { grid-column: span 4; }
-      .bento-col-6 { grid-column: span 6; }
-      .bento-col-12 { grid-column: span 12; }
-    }
-
-    .bento-card {
-      background: #ffffff;
-      border: 2.5px solid #111;
-      border-radius: 18px;
-      padding: 24px;
-      box-shadow: 5px 5px 0 #111;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .bento-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 7px 7px 0 #111;
-    }
-
-    .bento-card-hero {
-      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 40%, #fed7aa 100%);
-      min-height: 280px;
-    }
-
-    .bento-badge {
-      display: inline-block;
-      align-self: flex-start;
-      background: #111;
-      color: #fef08a;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-bottom: 14px;
-      text-transform: uppercase;
-    }
-
-    .bento-title {
-      font-family: 'Arial Black', Arial, sans-serif;
-      font-size: 26px;
-      line-height: 1.15;
-      color: #111;
-      text-transform: uppercase;
-      font-weight: 900;
-      margin-bottom: 12px;
-    }
-    @media (min-width: 768px) {
-      .bento-title { font-size: 34px; }
-    }
-
-    .bento-desc {
-      font-size: 14px;
-      line-height: 1.5;
-      color: #334155;
-      margin-bottom: 24px;
-      max-width: 540px;
-    }
-
-    .bento-cta-btn {
-      background: #e8532f;
-      color: #fff;
-      border: 3px solid #111;
-      box-shadow: 5px 5px 0 #111;
-      padding: 14px 28px;
-      font-size: 15px;
-      font-weight: 900;
-      text-transform: uppercase;
-      cursor: pointer;
-      border-radius: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      align-self: flex-start;
-      transition: transform 0.15s;
-    }
-    .bento-cta-btn:active {
-      transform: scale(0.97);
-      box-shadow: 2px 2px 0 #111;
-    }
-
-    .bento-formats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .bento-format-item {
-      text-decoration: none;
-      background: #f8fafc;
-      border: 2px solid #111;
-      border-radius: 14px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      box-shadow: 3px 3px 0 #111;
-      color: #111;
-      transition: all 0.2s;
-    }
-    .bento-format-item:hover {
-      background: #fff;
-      transform: translateY(-2px);
-    }
-    .bento-format-title {
-      font-size: 13px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .bento-format-sub {
-      font-size: 11px;
-      color: #64748b;
-      line-height: 1.3;
-    }
-
-</style>
+  </style>
   <!-- Export libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1450,105 +1277,65 @@
 </div>
 
 
-<!-- ── EXPORT MODAL ──────────────────────────────────────────────────────────── -->
+<!-- ── EXPORT / PILIH FORMAT MODAL ────────────────────────────────────────────── -->
 <div id="export-modal">
-  <div id="export-panel" style="max-width:440px; border-radius:24px; box-shadow:0 25px 70px rgba(0,0,0,.35)">
-    <div id="export-panel-title" style="background:#0F3460; padding:16px 22px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:18px">✨</span>
-        <span style="font-family:'Inter',sans-serif;font-size:15px;font-weight:800;letter-spacing:-0.3px">Pilih Format Itinerary</span>
-      </div>
+  <div id="export-panel" style="max-width:440px">
+    <div id="export-panel-title">
+      <span style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;font-style:italic">Pilih Format Itinerary</span>
       <button onclick="document.getElementById('export-modal').classList.remove('open')"
-        style="background:rgba(255,255,255,.15);border:none;color:#fff;
-        width:28px;height:28px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+        style="background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;
+        width:24px;height:24px;font-size:12px;cursor:pointer">✕</button>
     </div>
-    <div style="padding:22px; max-height:80vh; overflow-y:auto">
-      <p style="font-size:12px;color:#64748b;margin-bottom:18px;font-family:'Inter',sans-serif;line-height:1.5">
-        Pilih format perjalanan yang kamu suka. Dokumen cetak resmi PDF tetap tersedia, atau coba format interaktif & video kekinian:
+    <div style="padding:20px">
+      <p style="font-size:12px;color:#888;margin-bottom:16px;font-family:'Inter',sans-serif;line-height:1.6">
+        Silakan pilih format tampilan rencana liburanmu ke Banyuwangi:
       </p>
-
-      <!-- Kategori 1: Dokumen Resmi -->
-      <div style="font-size:11px;font-weight:800;color:#0F3460;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
-        📄 Dokumen & Cetak (Format Resmi)
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px">
-        <button id="btn-export-pdf" class="btn-pri" style="width:100%;justify-content:center;gap:8px;padding:12px 10px;font-size:12px;border-radius:12px;background:#0F3460">
-          <span>📄</span> Unduh PDF
-        </button>
-        <button id="btn-export-jpg" class="btn-ghost" style="width:100%;justify-content:center;gap:8px;padding:12px 10px;font-size:12px;border-radius:12px;border:1.5px solid #cbd5e1">
-          <span>🖼️</span> Unduh JPG
-        </button>
-      </div>
-
-      <!-- Kategori 2: Format Interaktif & Gameboard -->
-      <div style="font-size:11px;font-weight:800;color:#d97706;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
-        🎮 Format Interaktif & Gameboard
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
-        <!-- Direct 3D Route Generator Button -->
-        <button id="btn-export-3d-route" style="width:100%;text-align:left;border:2px solid #e8532f;box-shadow:4px 4px 0 #111;cursor:pointer;display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(135deg,#fff7ed,#ffedd5);border-radius:16px;color:#9a3412;transition:all .2s">
-          <span style="font-size:28px">🚙</span>
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:900;color:#c2410c;display:flex;align-items:center;gap:6px">
-              Putar & Rekam Rute 3D Saya <span style="font-size:10px;background:#ea580c;color:#fff;padding:2px 6px;border-radius:10px">REELS READY</span>
-            </div>
-            <div style="font-size:11px;color:#7c2d12;line-height:1.4">Animasi mobil Jeep menyusuri rute destinasi yang baru kamu pilih di atas, lengkap dengan telemetri & tombol rekam video!</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <!-- Opsi 1: PDF Standar -->
+        <button id="btn-export-pdf" class="btn-pri" style="width:100%;justify-content:flex-start;padding:12px 14px;gap:12px;text-align:left;border-radius:4px">
+          <span style="font-size:22px">📄</span>
+          <div>
+            <div style="font-weight:700;font-size:13px;line-height:1.2">Dokumen PDF Resmi (Standar)</div>
+            <div style="font-size:11px;opacity:0.8;font-weight:400;margin-top:2px">Format formal lengkap rincian rute, jam, budget & info transport</div>
           </div>
-          <span style="font-size:13px;font-weight:900;color:#ea580c">Mulai ↗</span>
         </button>
 
-        <a href="rpg.html" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;color:#78350f;transition:all .2s">
-          <span style="font-size:24px">🎒</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:800">Retro 16-Bit RPG (Harvest Moon)</div>
-            <div style="font-size:11px;color:#92400e;line-height:1.3">Peta quest piksel, stamina, almanak & AI Tour Leader (AG-UI)</div>
+        <!-- Opsi 2: Board Game Monopoli -->
+        <a href="monopoli.html" target="_blank" onclick="document.getElementById('export-modal').classList.remove('open')"
+           class="btn-ghost" style="width:100%;justify-content:flex-start;padding:12px 14px;gap:12px;text-align:left;text-decoration:none;color:inherit;border:2px solid var(--primary);background:rgba(200,75,49,0.06);border-radius:4px;display:flex;align-items:center">
+          <span style="font-size:22px">🎲</span>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:var(--primary);line-height:1.2">Papan Monopoli Interaktif</div>
+            <div style="font-size:11px;color:#666;font-weight:400;margin-top:2px">Format visual board game retro dengan dadu & bidak petualangan per hari</div>
           </div>
-          <span style="font-size:12px;font-weight:800;color:#d97706">Buka ↗</span>
         </a>
-        <a href="monopoli.html" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;color:#14532d;transition:all .2s">
-          <span style="font-size:24px">🎲</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:800">Monopoli Board Game</div>
-            <div style="font-size:11px;color:#166534;line-height:1.3">Perjalanan keliling papan 01-09, kocok dadu & kartu tiket</div>
-          </div>
-          <span style="font-size:12px;font-weight:800;color:#16a34a">Buka ↗</span>
-        </a>
-      </div>
 
-      <!-- Kategori 3: Format Video Animasi Reels / TikTok (9:16) -->
-      <div style="font-size:11px;font-weight:800;color:#e11d48;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
-        🎬 Format Video Animasi (Reels / TikTok 9:16)
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-                <a href="reel/" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fef3c7;border:1.5px solid #fde68a;border-radius:14px;color:#92400e;transition:all .2s;margin-bottom:8px">
-          <span style="font-size:24px">📱</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:800">Video Reels 9:16 (Motlab Engine)</div>
-            <div style="font-size:11px;color:#b45309;line-height:1.3">Format vertikal Stories sinematik dengan foto asli pilihanmu</div>
+        <!-- Opsi 3: Tonton Video Reels Itinerary (Sesuai Itinerary yang Dibuat) -->
+        <a href="javascript:void(0)" onclick="openReelPlayer()"
+           class="btn-ghost" style="width:100%;justify-content:flex-start;padding:12px 14px;gap:12px;text-align:left;text-decoration:none;color:inherit;border:2px solid #f59e0b;background:rgba(245,158,11,0.08);border-radius:4px;display:flex;align-items:center">
+          <span style="font-size:22px">🎬</span>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:#d97706;line-height:1.2">Tonton Video Reels Itinerary (Instan)</div>
+            <div style="font-size:11px;color:#666;font-weight:400;margin-top:2px">Format video 9:16 sinematik otomatis dibuat dari itinerary yang baru kamu susun</div>
           </div>
-          <span style="font-size:12px;font-weight:800;color:#d97706">Tonton ↗</span>
         </a>
-        <a href="video.html" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff1f2;border:1.5px solid #fecdd3;border-radius:14px;color:#881337;transition:all .2s">
-          <span style="font-size:24px">🛵</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:800">Pusat Video Animasi Wandr</div>
-            <div style="font-size:11px;color:#9f1239;line-height:1.3">TravelBoast 3D Route, 16-Bit Pixel Journey, & Cinematic Reel</div>
-          </div>
-          <span style="font-size:12px;font-weight:800;color:#e11d48">Pilih Video ↗</span>
-        </a>
-      </div>
 
-      <div id="export-progress" style="display:none;margin-top:16px;text-align:center">
-        <div style="font-size:12px;color:#64748b;font-family:'Inter',sans-serif">
+        <!-- Opsi 3: JPG -->
+        <button id="btn-export-jpg" class="btn-ghost" style="width:100%;justify-content:flex-start;padding:10px 14px;gap:12px;text-align:left;border-radius:4px">
+          <span style="font-size:18px">🖼️</span>
+          <div>
+            <div style="font-weight:600;font-size:12px">Download Gambar JPG (Infografis)</div>
+          </div>
+        </button>
+      </div>
+      <div id="export-progress" style="display:none;margin-top:14px;text-align:center">
+        <div style="font-size:12px;color:#888;font-family:'Inter',sans-serif">
           <span id="export-progress-text">Menyiapkan...</span>
         </div>
-        <div style="margin-top:8px;height:4px;background:#e2e8f0;border-radius:4px;overflow:hidden">
-          <div id="export-progress-bar" style="height:100%;background:#0F3460;width:0%;transition:width .3s"></div>
+        <div style="margin-top:8px;height:3px;background:#e0dbd4">
+          <div id="export-progress-bar" style="height:100%;background:#111;width:0%;transition:width .3s"></div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
     </div>
   </div>
 </div>
@@ -1588,12 +1375,12 @@
   </div>
 
   <!-- CONTENT -->
-  <div id="content-wrap" style="padding:0 24px;flex:1;margin-top:16px">
+  <div id="content-wrap" style="padding:0 24px;flex:1;margin-top:24px">
     <div id="content"></div>
   </div>
 
-  <!-- NAV (DI BAWAH KONTEN/PILIHAN) -->
-  <div id="nav">
+  <!-- NAV -->
+  <div id="nav" style="position:sticky;bottom:0;z-index:40;background:#ffffff;box-shadow:0 -1px 0 #e4e8f0;">
     <button class="btn-ghost hidden" id="btn-back">← Kembali</button>
     <span class="dest-count" id="dest-count"></span>
     <button class="btn-pri" id="btn-next" disabled>Lanjut →</button>
@@ -1904,24 +1691,24 @@ const KAWASAN_ZONE = {
 const JADWAL_TRANSPORT = {
   kereta: {
     'surabaya': [
-      { nama:'KA Probowangi (266)',        berangkat:'05:30', tiba:'12:30', harga:56000,  kelas:'Ekonomi',            catatan:'Gubeng ➔ Ketapang (Tiba siang, pas check-in)' },
-      { nama:'Blambangan Ekspres (146)',   berangkat:'22:49', tiba:'04:44', harga:220000, kelas:'Eksekutif/Ekonomi',  catatan:'Gubeng ➔ Ketapang (+1 hari, Langsung subuh)' },
-      { nama:'Sri Tanjung (278)',          berangkat:'13:34', tiba:'19:34', harga:88000,  kelas:'Ekonomi',            catatan:'Gubeng ➔ Ketapang (Tiba malam)' },
-      { nama:'Mutiara Timur (209A)',       berangkat:'09:24', tiba:'15:19', harga:245000, kelas:'Eksekutif/Bisnis',   catatan:'Gubeng ➔ Ketapang (Tiba sore)' },
-      { nama:'Wijayakusuma (158)',         berangkat:'23:48', tiba:'05:22', harga:225000, kelas:'Eksekutif/Ekonomi',  catatan:'Gubeng ➔ Ketapang (+1 hari, Subuh)' },
-    ],
-    'jakarta': [
-      { nama:'Blambangan Ekspres (146/147)',berangkat:'12:10', tiba:'04:44', harga:450000, kelas:'Eksekutif/Ekonomi', catatan:'Pasarsenen ➔ Ketapang (+1 hari, Langsung)' },
-      { nama:'Pandalungan (46/47) + Transit',berangkat:'09:10', tiba:'22:14', harga:480000, kelas:'Eksekutif',         catatan:'Gambir ➔ Jember (Lanjut KA Lokal)' },
-      { nama:'Pandalungan Malam (42/43)',    berangkat:'21:00', tiba:'10:04', harga:480000, kelas:'Eksekutif',         catatan:'Gambir ➔ Jember (+1 hari)' },
-    ],
-    'yogyakarta': [
-      { nama:'Sri Tanjung (242/241)',       berangkat:'07:00', tiba:'20:05', harga:94000,  kelas:'Ekonomi',            catatan:'Lempuyangan ➔ Ketapang (±13 jam)' },
-      { nama:'Wijayakusuma (116/117)',      berangkat:'18:40', tiba:'05:22', harga:330000, kelas:'Eksekutif/Ekonomi',  catatan:'Tugu/Lempuyangan ➔ Ketapang (+1 hari, Subuh)' },
+      { nama:'Sri Tanjung (278)',       berangkat:'13:34', tiba:'19:34', harga:88000,  kelas:'Ekonomi (C)',  catatan:'' },
+      { nama:'Mutiara Timur (209A)',    berangkat:'09:24', tiba:'15:19', harga:245000, kelas:'Ekonomi (CC)', catatan:'' },
+      { nama:'Logawa (248C)',           berangkat:'14:45', tiba:'21:05', harga:260000, kelas:'Ekonomi (CC)', catatan:'' },
+      { nama:'Blambangan Ekspres (146)',berangkat:'22:50', tiba:'04:25', harga:220000, kelas:'Ekonomi (CC)', catatan:'+1 hari' },
+      { nama:'Wijayakusuma (158)',      berangkat:'23:48', tiba:'05:22', harga:225000, kelas:'Ekonomi (CC)', catatan:'+1 hari' },
+      { nama:'Sangkuriang (7044A)',     berangkat:'01:37', tiba:'06:34', harga:200000, kelas:'Ekonomi (CC)', catatan:'+1 hari' },
     ],
     'malang': [
-      { nama:'Tawang Alun (314/315)',       berangkat:'16:10', tiba:'23:45', harga:62000,  kelas:'Ekonomi',            catatan:'Malang Kotalama ➔ Ketapang (Malam)' },
-      { nama:'Sri Tanjung (via Gubeng)',    berangkat:'09:30', tiba:'19:34', harga:120000, kelas:'Ekonomi',            catatan:'Transit Surabaya Gubeng' },
+      { nama:'Tawang Jaya Premium',     berangkat:'07:15', tiba:'14:30', harga:195000, kelas:'Eksekutif',    catatan:'via Surabaya' },
+      { nama:'Sri Tanjung (transit)',   berangkat:'10:00', tiba:'20:30', harga:110000, kelas:'Ekonomi',      catatan:'transit Surabaya' },
+    ],
+    'yogyakarta': [
+      { nama:'Sri Tanjung (277)',       berangkat:'07:00', tiba:'20:30', harga:115000, kelas:'Ekonomi (C)',  catatan:'±13 jam' },
+      { nama:'Sritanjung (via Mlg)',    berangkat:'13:00', tiba:'02:30', harga:130000, kelas:'Ekonomi',      catatan:'+1 hari' },
+    ],
+    'jakarta': [
+      { nama:'Sritanjung (via Yk+Sby)', berangkat:'08:00', tiba:'06:00', harga:140000, kelas:'Ekonomi',     catatan:'+1 hari, ±22 jam' },
+      { nama:'Blambangan Ekspres',      berangkat:'15:00', tiba:'14:30', harga:285000, kelas:'Eksekutif',   catatan:'+1 hari, via Sby' },
     ],
   },
   pesawat: {
@@ -2086,7 +1873,6 @@ function mapToWandr(id, d) {
 let DESTINATIONS = [];
 
 const DESTINATIONS_FALLBACK = [
-  { id:'ayam_pedas_jeng_kati', name:'Ayam Pedas Jeng Kati', cat:'kuliner', emoji:'🍗', desc:'Kuliner ayam pedas & pecel turi jalur Alas Purwo', bestTime:'pagi-siang', zone:'selatan', tiket:27000, dur:60,  aliases:['ayam pedas jeng kati','jeng kati','ayam pedas mbak ribut','mbak ribut','kuliner alas purwo','ayam pedas tegaldlimo'] },
   { id:'ijen',         name:'Kawah Ijen',              cat:'alam',   emoji:'🌋', desc:'Blue fire & kawah asam',          bestTime:'dini hari', zone:'barat',   tiket:5000,  dur:360, isIjen:true,    aliases:['ijen','kawah ijen','blue fire'] },
   { id:'baluran',      name:'TN Baluran',               cat:'alam',   emoji:'🦌', desc:'Afrika van Java',                 bestTime:'pagi',      zone:'utara',   tiket:15000, dur:240, aliases:['baluran','taman nasional baluran','tn baluran'] },
   { id:'alas_purwo',   name:'TN Alas Purwo',            cat:'alam',   emoji:'🌿', desc:'Hutan purba tersembunyi',         bestTime:'pagi',      zone:'selatan', tiket:5000,  dur:300, aliases:['alas purwo','tn alas purwo','taman nasional alas purwo','purwo'] },
@@ -2441,79 +2227,14 @@ const DEST_CAT_COLOR = { alam:'rgba(74,144,74,.8)', pantai:'rgba(57,157,224,.8)'
 
 function renderStepHero() {
   return `
-    <div class="bento-hero-wrap">
-      <div class="bento-grid">
-        <!-- Box 1: Hero Action (Lebar 8 Kolom di Desktop) -->
-        <div class="bento-card bento-card-hero bento-col-8">
-          <div>
-            <span class="bento-badge">🗺️ AI ITINERARY GENERATOR • BANYUWANGI</span>
-            <h1 class="bento-title">Petualangan berikutnya,<br>mau kemana aja?</h1>
-            <p class="bento-desc">Dari blue fire Kawah Ijen sampai kanopi Lord of the Rings De Djawatan. Wandr menyusun rute jalan aspal nyata, estimasi biaya tiket transparan, dan jadwal hari-per-hari secara otomatis.</p>
-          </div>
-          <div>
-            <button id="btn-hero-start" class="bento-cta-btn">Yuk, Mulai Jalan-Jalan →</button>
-            <div style="font-size:11px;font-weight:700;color:#64748b;margin-top:10px;text-transform:uppercase">Gratis · 5 Langkah Mudah · Selesai dalam 2 Menit</div>
-          </div>
-        </div>
-
-        <!-- Box 2: Visual Spotlight (Lebar 4 Kolom di Desktop) -->
-        <div class="bento-card bento-col-4" style="background:#0F3460;color:#fff;justify-content:center;text-align:center;border-color:#111">
-          <div style="font-size:42px;margin-bottom:8px">🌋</div>
-          <div style="font-size:16px;font-weight:900;text-transform:uppercase;margin-bottom:6px">Kawah Ijen & Blue Fire</div>
-          <p style="font-size:12px;color:#94a3b8;line-height:1.4">Trekking dini hari 2.386 mdpl dan danau kawah asam toska terbesar di dunia.</p>
-          <div style="margin-top:14px;display:inline-flex;gap:6px;justify-content:center">
-            <span style="background:rgba(255,255,255,0.15);padding:3px 8px;border-radius:12px;font-size:10px;font-weight:800">🏔️ 2.386 mdpl</span>
-            <span style="background:rgba(255,255,255,0.15);padding:3px 8px;border-radius:12px;font-size:10px;font-weight:800">🔥 Blue Fire</span>
-          </div>
-        </div>
-
-        <!-- Box 3: Format Eksplorasi (Lebar 8 Kolom di Desktop) -->
-        <div class="bento-card bento-col-8" style="background:#fefefe">
-          <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <span style="font-size:12px;font-weight:800;color:#0F3460;text-transform:uppercase;letter-spacing:0.5px">🎮 Format Hasil Generate Yang Tersedia</span>
-              <span style="font-size:11px;font-weight:700;color:#64748b">Pilih Sesuai Gayamu</span>
-            </div>
-            <div class="bento-formats-grid">
-              <a href="route3d.html" target="_blank" class="bento-format-item">
-                <span class="bento-format-title">🚙 3D Route Map</span>
-                <span class="bento-format-sub">Peta animasi jalan aspal nyata, Safari Jeep & live GPS HP.</span>
-              </a>
-              <a href="rpg.html" target="_blank" class="bento-format-item">
-                <span class="bento-format-title">🎒 Retro 16-Bit RPG</span>
-                <span class="bento-format-sub">Gaya Harvest Moon, stamina, almanak & AI Copilot.</span>
-              </a>
-              <a href="monopoli.html" target="_blank" class="bento-format-item">
-                <span class="bento-format-title">🎲 Monopoli Board</span>
-                <span class="bento-format-sub">Format keliling petak destinasi 01-09 & kocok dadu.</span>
-              </a>
-              <a href="video-cinematic.html" target="_blank" class="bento-format-item">
-                <span class="bento-format-title">🎬 Cinematic Video</span>
-                <span class="bento-format-sub">Video vertikal 9:16 Reels dengan narator suara Gadis Neural.</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Box 4: Keunggulan (Lebar 4 Kolom di Desktop) -->
-        <div class="bento-card bento-col-4" style="background:#f8fafc">
-          <div style="font-size:12px;font-weight:800;color:#111;text-transform:uppercase;margin-bottom:12px">⚡ Kenapa Pakai Wandr?</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div style="display:flex;gap:10px;align-items:flex-start">
-              <span style="font-size:18px">🛣️</span>
-              <div style="font-size:12px;color:#334155;line-height:1.3"><b>Jalur Nyata OSRM:</b> Mengikuti kontur jalan aspal asli, bukan garis lurus.</div>
-            </div>
-            <div style="display:flex;gap:10px;align-items:flex-start">
-              <span style="font-size:18px">💰</span>
-              <div style="font-size:12px;color:#334155;line-height:1.3"><b>Estimasi Transparan:</b> Rincian tiket masuk & konsumsi riil.</div>
-            </div>
-            <div style="display:flex;gap:10px;align-items:flex-start">
-              <span style="font-size:18px">📄</span>
-              <div style="font-size:12px;color:#334155;line-height:1.3"><b>Offline Ready:</b> Cetak PDF resmi kapan pun tanpa internet.</div>
-            </div>
-          </div>
-        </div>
+    <div class="hero-wrap">
+      <div class="hero-eyebrow">Wandr · Banyuwangi</div>
+      <h1 class="hero-title">Petualangan berikutnya,<br><em>mau kemana aja?</em></h1>
+      <p class="hero-sub">Dari blue fire Ijen sampai pasir hitam Pulau Merah — Wandr bantu susun rutenya, kamu tinggal jalan.</p>
+      <div class="hero-cta-wrap">
+        <button id="btn-hero-start" class="hero-cta">Yuk, Mulai Jalan-jalan →</button>
       </div>
+      <div class="hero-hint">Gratis · 5 langkah singkat · ~2 menit</div>
     </div>`;
 }
 
@@ -3053,7 +2774,7 @@ function renderStep3() {
     </div>` : ''}
 
     <div style="display:flex;gap:8px;margin-top:26px;padding-bottom:8px;flex-wrap:wrap">
-      <button class="btn-pri" id="btn-export" style="flex:1;justify-content:center;min-width:120px">↓ Export PDF</button>
+      <button class="btn-pri" id="btn-export" style="flex:1;justify-content:center;min-width:140px;gap:6px"><span>🚀</span> Pilih Format Itinerary</button>
       <button class="btn-ghost" id="btn-back-to-plan" style="flex:1;justify-content:center;min-width:100px">← Susun Ulang</button>
       <button class="btn-ghost" id="btn-restart" style="flex:1;justify-content:center;min-width:100px">↺ Buat Baru</button>
     </div>`;
@@ -3581,6 +3302,42 @@ function buildPrintPage(it) {
 </html>`;
 }
 
+
+function openReelPlayer() {
+  const modal = document.getElementById('export-modal');
+  if (modal) modal.classList.remove('open');
+
+  if (typeof S !== 'undefined' && S && S.itinerary) {
+    const payload = {
+      summary: S.itinerary.summary || '',
+      durasi: S.durasi || '3 Hari 2 Malam',
+      transport: S.transport || 'Kereta Api',
+      subTransport: S.subTransport || 'KA Probowangi',
+      kotaAsal: S.kotaAsal === 'Lainnya' ? (S.kotaAsalCustom || 'Surabaya') : (S.kotaAsal || 'Surabaya'),
+      jumlahOrang: S.jumlahOrang || 2,
+      estimatedBudget: S.itinerary.estimatedBudget || { min: 780000, max: 1200000 },
+      destinations: Array.from(S.destinations || []),
+      days: (S.itinerary.days || []).map((d, idx) => ({
+        dayIndex: idx + 1,
+        title: d.title || `Hari ${idx + 1}`,
+        activities: (d.activities || []).map(a => ({
+          name: a.name || '',
+          type: a.type || 'aktivitas',
+          location: a.location || a.name || '',
+          estimatedCost: a.estimatedCost || 0,
+          description: a.description || ''
+        }))
+      })),
+      timestamp: Date.now()
+    };
+    try {
+      localStorage.setItem('wandr_active_itinerary', JSON.stringify(payload));
+    } catch(e) {
+      console.warn('Gagal simpan itinerary ke localStorage', e);
+    }
+  }
+  window.open('reel_player.html', '_blank');
+}
 
 async function exportItinerary(format) {
   if (typeof bwiLogFunnel === 'function') bwiLogFunnel('export_' + format, 3);
@@ -5736,19 +5493,14 @@ function renderPlanningBoard() {
     </div>`:'';
 
   return `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px">
-      <div>
-        <h2 class="step-title" style="margin-bottom:2px">Susun Perjalananmu</h2>
-        <p class="step-sub" style="margin-bottom:0">Tahan lalu seret destinasi ke hari yang diinginkan</p>
+    <h2 class="step-title">Susun Perjalananmu</h2>
+    <p class="step-sub">Tahan lalu seret destinasi ke hari yang diinginkan</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:11px;color:#888888">
+        ${S.destinations.size} destinasi · ${totalDays} hari
+        ${S.planBacklog.length>0?`<span style="color:#E94560"> · ${S.planBacklog.length} belum dijadwalkan</span>`:''}
       </div>
-
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;background:#f8fafc;padding:8px 12px;border-radius:10px;border:1px solid #e2e8f0">
-      <div style="font-size:12px;color:#334155;font-weight:700">
-        📍 ${S.destinations.size} destinasi · ${totalDays} hari
-        ${S.planBacklog.length>0?`<span style="color:#e11d48;margin-left:6px">(${S.planBacklog.length} belum dijadwalkan)</span>`:''}
-      </div>
-      <button id="btn-reset-plan" style="font-size:11px;font-weight:700;color:#3d4461;background:#ffffff;border:1.5px solid #cbd5e1;border-radius:12px;padding:5px 12px;cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.08)">
+      <button id="btn-reset-plan" style="font-size:11px;color:#3d4461;background:#ffffff;border:1.5px solid #e4e8f0;border-radius:20px;padding:5px 12px;cursor:pointer;font-family:inherit;box-shadow:0 1px 4px rgba(15,52,96,.08)">
         ↺ Saran Otomatis
       </button>
     </div>
@@ -5767,9 +5519,9 @@ function initSortableBoard() {
     const isArrival=col.id==='bucket-day-arrival';
     const isBacklog=col.id==='bucket-unassigned';
     const inst=new Sortable(col,{
-      group:{name:'wandr-board',pull:true,put:['wandr-board','wandr-arrival']},
-      animation:200,easing:'cubic-bezier(0.25,1,0.5,1)',delay:0,
-      fallbackTolerance:3,touchStartThreshold:3,scroll:true,scrollSensitivity:80,scrollSpeed:20,bubbleScroll:true,
+      group:isArrival?{name:'wandr-arrival',pull:'wandr-board',put:['wandr-board','wandr-arrival']}:isBacklog?{name:'wandr-board',pull:true,put:['wandr-board','wandr-arrival']}:{name:'wandr-board',pull:true,put:['wandr-board']},
+      animation:280,easing:'cubic-bezier(0.25,1,0.5,1)',delay:150,delayOnTouchOnly:true,
+      fallbackTolerance:5,scroll:true,scrollSensitivity:80,scrollSpeed:20,bubbleScroll:true,
       forceFallback:true,fallbackOnBody:true,
       ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',dragClass:'sortable-drag',
       onEnd:()=>readPlanFromDOM(),
@@ -5857,32 +5609,6 @@ function generate() {
 }
 
 function generateFromPlan() {
-
-  // Simpan itinerary aktif ke localStorage agar sinkron dengan Video Reels & 3D Map
-  try {
-    const activeList = [];
-    if (S.planDays && S.planDays.length > 0) {
-      S.planDays.forEach((dayItems, dayIdx) => {
-        dayItems.forEach(destId => {
-          const d = (typeof DESTINATIONS !== 'undefined' ? DESTINATIONS : []).find(x => x.id === destId) ||
-                    (typeof DESTINATIONS_FALLBACK !== 'undefined' ? DESTINATIONS_FALLBACK : []).find(x => x.id === destId);
-          if (d) {
-            activeList.push({
-              id: d.id,
-              name: d.name,
-              day: dayIdx + 1,
-              cat: d.cat || 'alam',
-              desc: d.desc || ''
-            });
-          }
-        });
-      });
-    }
-    if (activeList.length > 0) {
-      localStorage.setItem('wandr_active_itinerary', JSON.stringify(activeList));
-    }
-  } catch(e) { console.error('Failed to sync active itinerary:', e); }
-
   try {
     const kota=S.kotaAsal==='Lainnya'?S.kotaAsalCustom:S.kotaAsal;
     const [totalDays]=parseDurasi(S.durasi);

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Wandr Reel — Video Itinerary Pribadi</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(15, 23, 42, 0.78);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --primary: #f59e0b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: #030712;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Container 9:16 Fullscreen Mobile / Centered Phone Mockup Desktop */
+    .reel-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 430px;
+      max-height: 932px;
+      background: var(--bg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    @media (min-width: 480px) {
+      .reel-container {
+        height: 90vh;
+        border-radius: 28px;
+        border: 4px solid #1e293b;
+      }
+    }
+
+    /* Background Slides with Ken Burns Animation */
+    .bg-slides {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: -5%;
+      width: 110%;
+      height: 110%;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: scale(1.0);
+    }
+
+    .slide.active {
+      opacity: 1;
+      animation: kenBurns 7s ease-in-out forwards;
+    }
+
+    @keyframes kenBurns {
+      0% { transform: scale(1.0) translate(0, 0); }
+      100% { transform: scale(1.08) translate(-1.5%, -1%); }
+    }
+
+    /* Dark Cinematic Gradients & Vignette */
+    .vignette-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: linear-gradient(180deg, 
+        rgba(3, 7, 18, 0.75) 0%, 
+        rgba(3, 7, 18, 0.15) 30%, 
+        rgba(3, 7, 18, 0.4) 60%, 
+        rgba(3, 7, 18, 0.95) 100%);
+      pointer-events: none;
+    }
+
+    /* Header Bar & Story Segment Progress */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      padding: 16px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .progress-segments {
+      display: flex;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .segment-bar {
+      height: 3px;
+      flex: 1;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .segment-fill {
+      height: 100%;
+      width: 0%;
+      background: #ffffff;
+      border-radius: 2px;
+      transition: width 0.05s linear;
+    }
+
+    .top-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+    }
+
+    .btn-close {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    /* Dynamic Banner Notice (If showing generated vs sample) */
+    .trip-source-pill {
+      font-size: 10px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+      max-width: fit-content;
+      margin: 0 auto;
+    }
+
+    /* Floating Travel Receipt Card */
+    .receipt-card {
+      position: absolute;
+      top: 110px;
+      left: 16px;
+      right: 16px;
+      z-index: 5;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .receipt-tag {
+      font-size: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .receipt-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      line-height: 1.3;
+    }
+
+    .item-name {
+      color: var(--text-muted);
+      max-width: 70%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-price {
+      font-weight: 700;
+      color: #ffffff;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+
+    .receipt-divider {
+      height: 1px;
+      background: dashed 1px rgba(255, 255, 255, 0.15);
+      margin: 8px 0;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .total-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .total-amount {
+      font-size: 19px;
+      font-weight: 900;
+      color: #22c55e;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+    }
+
+    /* Subtitle Container (Wrapped, Centered, No Clipping) */
+    .subtitle-container {
+      position: absolute;
+      bottom: 95px;
+      left: 16px;
+      right: 16px;
+      z-index: 6;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .subtitle-pill {
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      font-weight: 700;
+      line-height: 1.45;
+      color: #ffffff;
+      text-align: center;
+      max-width: 95%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    .subtitle-pill .highlight {
+      color: var(--primary);
+    }
+
+    /* Bottom Control Dock */
+    .bottom-dock {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .play-toggle {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .day-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex: 1;
+    }
+
+    .day-chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .day-chip {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .day-chip.active {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+    }
+
+    .btn-action-back {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="reel-container">
+  <!-- Dynamic Background Slides -->
+  <div class="bg-slides" id="bg-slides"></div>
+
+  <!-- Vignette -->
+  <div class="vignette-overlay"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="progress-segments" id="progress-segments"></div>
+    <div class="top-meta">
+      <div class="brand-badge"><span>🌾</span> WANDR REEL</div>
+      <div class="trip-source-pill" id="source-pill">Memuat Itinerary...</div>
+      <a href="wandr_index.html" class="btn-close">✕</a>
+    </div>
+  </div>
+
+  <!-- Floating Receipt Card -->
+  <div class="receipt-card" id="receipt-card">
+    <div class="receipt-tag" id="receipt-tag">// ESTIMASI BIAYA</div>
+    <div class="receipt-title" id="receipt-title">Memuat...</div>
+    <div class="item-list" id="item-list"></div>
+    <div class="receipt-divider"></div>
+    <div class="total-row">
+      <div class="total-label" id="total-lbl">Subtotal:</div>
+      <div class="total-amount" id="total-val">Rp0</div>
+    </div>
+  </div>
+
+  <!-- Safe Subtitle Container -->
+  <div class="subtitle-container">
+    <div class="subtitle-pill" id="subtitle-pill">
+      Memuat rincian perjalananmu...
+    </div>
+  </div>
+
+  <!-- Bottom Interactive Dock -->
+  <div class="bottom-dock">
+    <button class="play-toggle" id="btn-play" onclick="togglePlay()">⏸</button>
+    <div class="day-chips" id="day-chips"></div>
+    <a href="wandr_index.html" class="btn-action-back">✏️ Edit</a>
+  </div>
+</div>
+
+<!-- Audio Player (Relaxed Acoustic Roadtrip Guitar Bed) -->
+<audio id="bgm-audio" src="../laci_video_shorts/travel_01_rincian_biaya/voice_norm.mp3" preload="auto"></audio>
+
+<script>
+// ─── 1. ASSET PHOTO MAPPING ──────────────────────────────────────────────────
+const PHOTO_ASSETS = {
+  ketapang: "cinematic_assets/intro_ketapang.jpg",
+  djawatan: "cinematic_assets/de_djawatan.jpg",
+  ijen:     "cinematic_assets/kawah_ijen.jpg",
+  kemiren:  "cinematic_assets/desa_kemiren.jpg",
+  glamping: "cinematic_assets/outro_glamping.jpg"
+};
+
+function resolvePhoto(text) {
+  const t = (text || "").toLowerCase();
+  if (t.includes("ijen") || t.includes("kawah") || t.includes("paltuding") || t.includes("blue fire")) return PHOTO_ASSETS.ijen;
+  if (t.includes("djawatan") || t.includes("hutan") || t.includes("benculuk")) return PHOTO_ASSETS.djawatan;
+  if (t.includes("kemiren") || t.includes("osing") || t.includes("makan") || t.includes("tempong") || t.includes("kuliner")) return PHOTO_ASSETS.kemiren;
+  if (t.includes("pantai") || t.includes("pulau") || t.includes("merah") || t.includes("bama") || t.includes("hotel") || t.includes("glamping")) return PHOTO_ASSETS.glamping;
+  return PHOTO_ASSETS.ketapang;
+}
+
+// ─── 2. DYNAMIC ITINERARY BUILDER ────────────────────────────────────────────
+function loadItineraryData() {
+  let saved = null;
+  try {
+    const raw = localStorage.getItem('wandr_active_itinerary');
+    if (raw) saved = JSON.parse(raw);
+  } catch(e) {
+    console.warn("Gagal membaca localStorage", e);
+  }
+
+  // Jika user SUDAH create itinerary di Wandr:
+  if (saved && saved.days && saved.days.length > 0) {
+    document.getElementById('source-pill').innerText = `✨ Itinerary Anda: ${saved.durasi || 'Banyuwangi'}`;
+    return buildScenesFromUserPlan(saved);
+  }
+
+  // Fallback jika belum pernah create itinerary di Wandr:
+  document.getElementById('source-pill').innerText = `📌 Contoh 3D2N • Buat di Wandr`;
+  return buildFallbackScenes();
+}
+
+function buildScenesFromUserPlan(data) {
+  const scenes = [];
+  const durasi = data.durasi || `${data.days.length} Hari`;
+  const transportName = data.subTransport || data.transport || "Kereta Api";
+  const pax = data.jumlahOrang || 2;
+  const days = data.days || [];
+
+  // Hitung total estimasi keseluruhan
+  let grandTotal = 0;
+  days.forEach(d => {
+    (d.activities || []).forEach(a => {
+      grandTotal += (a.estimatedCost || 0);
+    });
+  });
+
+  // Tambah perkiraan transport & penginapan jika ada di budget min
+  const minBudget = (data.estimatedBudget && data.estimatedBudget.min) ? data.estimatedBudget.min : Math.max(780000, grandTotal);
+
+  // SCENE 0: INTRO / HOOK
+  scenes.push({
+    duration: 5.5,
+    tag: `// ITINERARY ${durasi.toUpperCase()}`,
+    title: `Liburan ${durasi} Habis Berapa?`,
+    items: [
+      { name: `Moda: ${transportName}`, price: transportName.includes('Probowangi') ? 'Rp56.000' : 'Termasuk' },
+      { name: `Peserta: ${pax} Orang (${data.kotaAsal || 'Jawa'})`, price: `${pax} Pax` },
+      { name: `Destinasi: ${days.slice(0, 2).map(d => d.title.replace(/^Hari \d+:\s*/i, '')).join(' & ')}`, price: 'Terjadwal' }
+    ],
+    totalLabel: "Estimasi Budget Bersih:",
+    totalValue: `Rp${minBudget.toLocaleString('id-ID')}`,
+    subtitle: `Rencana liburan ${durasi} ke Banyuwangi untuk ${pax} orang sudah siap. <span class='highlight'>Ini rincian rute dan biayanya!</span>`,
+    photo: resolvePhoto(days[0] ? days[0].title : "")
+  });
+
+  // SCENE 1..N: PER HARI DARI ITINERARY ASLI USER
+  days.forEach((day, idx) => {
+    const actList = day.activities || [];
+    let dayTotal = 0;
+    const topItems = [];
+
+    actList.forEach(a => {
+      dayTotal += (a.estimatedCost || 0);
+      if (topItems.length < 3) {
+        topItems.push({
+          name: a.name || a.location || 'Aktivitas',
+          price: a.estimatedCost > 0 ? `Rp${a.estimatedCost.toLocaleString('id-ID')}` : 'Gratis'
+        });
+      }
+    });
+
+    if (topItems.length === 0) {
+      topItems.push({ name: day.title, price: "Fleksibel" });
+    }
+
+    const cleanTitle = day.title.replace(/^Hari \d+:\s*/i, '');
+    const spotNames = actList.slice(0, 2).map(a => a.name).join(' dan ') || cleanTitle;
+
+    scenes.push({
+      duration: 8.0,
+      tag: `// HARI ${idx + 1}: ${cleanTitle.toUpperCase()}`,
+      title: day.title,
+      items: topItems,
+      totalLabel: `Subtotal Hari ${idx + 1}:`,
+      totalValue: `Rp${dayTotal.toLocaleString('id-ID')}`,
+      subtitle: `Hari ke-${idx + 1}: eksplorasi ${spotNames}. <span class='highlight'>Subtotal hari ini Rp${dayTotal.toLocaleString('id-ID')}.</span>`,
+      photo: resolvePhoto(cleanTitle + " " + spotNames)
+    });
+  });
+
+  // SCENE TERAKHIR: RANGKUMAN TOTAL
+  scenes.push({
+    duration: 7.0,
+    tag: `// TOTAL PENGELUARAN BERSIH`,
+    title: `Rangkuman Budget Liburan`,
+    items: [
+      { name: "Transportasi & Tiket Kereta", price: "Sesuai Pilihan" },
+      { name: "Sewa Motor / Transport Lokal", price: "Rp75.000/hari" },
+      { name: "Homestay & Tiket Masuk", price: "Terhitung" }
+    ],
+    totalLabel: "TOTAL PER ORANG:",
+    totalValue: `Rp${Math.round(minBudget / (pax || 1)).toLocaleString('id-ID')}`,
+    subtitle: `Total bersih liburanmu sekitar <span class='highlight'>Rp${Math.round(minBudget / (pax || 1)).toLocaleString('id-ID')} per orang!</span> Rute lengkap ada di Wandr.`,
+    photo: PHOTO_ASSETS.glamping
+  });
+
+  return scenes;
+}
+
+function buildFallbackScenes() {
+  return [
+    {
+      duration: 5.0,
+      tag: "// ESTIMASI BIAYA 3D2N",
+      title: "Banyuwangi 3H2M Habis Berapa?",
+      items: [
+        { name: "Kereta KA Probowangi (Sby)", price: "Rp56.000" },
+        { name: "Sewa Motor 3 Hari", price: "Rp225.000" },
+        { name: "Tiket De Djawatan & Ijen", price: "Rp20.000" }
+      ],
+      totalLabel: "Estimasi Budget:",
+      totalValue: "Rp780rb-an",
+      subtitle: "Liburan 3 hari 2 malam ke Banyuwangi habis berapa sih? <span class='highlight'>Ini rincian jujurnya sampai ke bensin!</span>",
+      photo: PHOTO_ASSETS.ketapang
+    },
+    {
+      duration: 8.5,
+      tag: "// HARI 1: KEDATANGAN & HUTAN",
+      title: "Transportasi & Hutan De Djawatan",
+      items: [
+        { name: "Kereta KA Probowangi (Sby)", price: "Rp56.000" },
+        { name: "Sewa Motor (Hari 1)", price: "Rp75.000" },
+        { name: "Tiket Masuk De Djawatan", price: "Rp10.000" }
+      ],
+      totalLabel: "Subtotal Hari 1:",
+      totalValue: "Rp141.000",
+      subtitle: "Hari pertama, naik KA Probowangi 56 ribu dari Surabaya, sewa motor 75 ribu, <span class='highlight'>foto di De Djawatan cuma 10 ribu.</span>",
+      photo: PHOTO_ASSETS.djawatan
+    },
+    {
+      duration: 8.5,
+      tag: "// HARI 2: KAWAH & KULINER",
+      title: "Midnight Ijen & Kuliner Kemiren",
+      items: [
+        { name: "Tiket Masuk Kawah Ijen", price: "Rp10.000" },
+        { name: "Sewa Masker Gas Respirator", price: "Rp25.000" },
+        { name: "Sarapan Sego Tempong", price: "Rp35.000" }
+      ],
+      totalLabel: "Subtotal Hari 2:",
+      totalValue: "Rp70.000",
+      subtitle: "Hari kedua, midnight tracking ke Ijen lihat blue fire, tiket 10 ribu dan masker 25 ribu. <span class='highlight'>Turun kawah, sarapan sego tempong!</span>",
+      photo: PHOTO_ASSETS.ijen
+    },
+    {
+      duration: 8.0,
+      tag: "// TOTAL PENGELUARAN 3D2N",
+      title: "Rangkuman Budget Bersih",
+      items: [
+        { name: "Homestay 2 Malam (Sharing)", price: "Rp250.000" },
+        { name: "Bensin Motor 3 Hari", price: "Rp60.000" },
+        { name: "Makan & Jajan Kuliner", price: "Rp150.000" }
+      ],
+      totalLabel: "TOTAL PER ORANG:",
+      totalValue: "Rp786.000",
+      subtitle: "Total bersihnya cuma sekitar <span class='highlight'>780 ribuan per orang!</span> Mau susun jadwal otomatisnya? Buka aplikasi Wandr.",
+      photo: PHOTO_ASSETS.glamping
+    }
+  ];
+}
+
+// ─── 3. RUNTIME PLAYER CONTROLLER ────────────────────────────────────────────
+const scenes = loadItineraryData();
+let curIdx = 0;
+let isPlaying = true;
+let sceneTimer = null;
+let segProgressTimer = null;
+const audio = document.getElementById('bgm-audio');
+
+// Setup Dynamic DOM Elements
+function setupDOM() {
+  const bgContainer = document.getElementById('bg-slides');
+  const segContainer = document.getElementById('progress-segments');
+  const chipContainer = document.getElementById('day-chips');
+
+  bgContainer.innerHTML = '';
+  segContainer.innerHTML = '';
+  chipContainer.innerHTML = '';
+
+  scenes.forEach((s, idx) => {
+    // 1. Background image slide
+    const slide = document.createElement('div');
+    slide.className = 'slide' + (idx === 0 ? ' active' : '');
+    slide.id = `slide-${idx}`;
+    slide.style.backgroundImage = `url('${s.photo}')`;
+    bgContainer.appendChild(slide);
+
+    // 2. Top Segment
+    const seg = document.createElement('div');
+    seg.className = 'segment-bar';
+    seg.innerHTML = `<div class="segment-fill" id="seg-${idx}"></div>`;
+    segContainer.appendChild(seg);
+
+    // 3. Bottom Chip
+    const chip = document.createElement('div');
+    chip.className = 'day-chip' + (idx === 0 ? ' active' : '');
+    chip.id = `chip-${idx}`;
+    chip.innerText = idx === 0 ? 'Intro' : (idx === scenes.length - 1 ? 'Total' : `Hari ${idx}`);
+    chip.onclick = () => jumpToScene(idx);
+    chipContainer.appendChild(chip);
+  });
+}
+
+function renderScene(idx) {
+  curIdx = idx;
+  const s = scenes[idx];
+
+  // Images Active
+  scenes.forEach((_, i) => {
+    const el = document.getElementById(`slide-${i}`);
+    if (el) {
+      if (i === idx) el.classList.add('active');
+      else el.classList.remove('active');
+    }
+  });
+
+  // Card Content
+  document.getElementById('receipt-tag').innerText = s.tag;
+  document.getElementById('receipt-title').innerText = s.title;
+  
+  const listEl = document.getElementById('item-list');
+  listEl.innerHTML = s.items.map(it => `
+    <div class="item-row">
+      <span class="item-name">• ${it.name}</span>
+      <span class="item-price">${it.price}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('total-lbl').innerText = s.totalLabel;
+  document.getElementById('total-val').innerText = s.totalValue;
+  document.getElementById('subtitle-pill').innerHTML = s.subtitle;
+
+  // Day Chips
+  scenes.forEach((_, ci) => {
+    const c = document.getElementById(`chip-${ci}`);
+    if (c) {
+      if (ci === idx) c.classList.add('active');
+      else c.classList.remove('active');
+    }
+  });
+
+  // Progress segments
+  scenes.forEach((_, i) => {
+    const seg = document.getElementById(`seg-${i}`);
+    if (seg) {
+      if (i < idx) seg.style.width = '100%';
+      else if (i > idx) seg.style.width = '0%';
+    }
+  });
+
+  const curSeg = document.getElementById(`seg-${idx}`);
+  if (curSeg) curSeg.style.width = '0%';
+  
+  clearInterval(segProgressTimer);
+  clearTimeout(sceneTimer);
+
+  const startMs = Date.now();
+  const durMs = s.duration * 1000;
+
+  if (isPlaying) {
+    segProgressTimer = setInterval(() => {
+      const elapsed = Date.now() - startMs;
+      const pct = Math.min(100, (elapsed / durMs) * 100);
+      if (curSeg) curSeg.style.width = `${pct}%`;
+    }, 50);
+
+    sceneTimer = setTimeout(() => {
+      if (curIdx < scenes.length - 1) {
+        renderScene(curIdx + 1);
+      } else {
+        renderScene(0); // loop
+      }
+    }, durMs);
+  }
+}
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('btn-play');
+  if (isPlaying) {
+    btn.innerText = '⏸';
+    renderScene(curIdx);
+    if (audio) audio.play().catch(() => {});
+  } else {
+    btn.innerText = '▶';
+    clearInterval(segProgressTimer);
+    clearTimeout(sceneTimer);
+    if (audio) audio.pause();
+  }
+}
+
+function jumpToScene(idx) {
+  renderScene(idx);
+}
+
+// Inisialisasi Player
+setupDOM();
+renderScene(0);
+
+// Auto-start audio with user gesture fallback
+document.body.addEventListener('click', () => {
+  if (audio && audio.paused && isPlaying) {
+    audio.play().catch(() => {});
+  }
+}, { once: true });
+</script>
+</body>
+</html>
