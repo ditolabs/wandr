@@ -1088,7 +1088,160 @@
       font-family:'Inter',sans-serif;
       font-size:17px; font-weight:700;  color:#111;
     }
-  </style>
+  
+  /* ── FIXES FOR CLUNKY RETRO BRUTALIST RESIDUES & OVERLAPS ── */
+  
+  /* 1. HIDE the floating pink chat bubble that covers the LANJUT button! */
+  #btnFeedback {
+    display: none !important;
+  }
+
+  /* 2. OVERHAUL Hero Section: remove giant orange box, make it sleek native hero card */
+  .hero-wrap {
+    margin: 12px 0 20px !important;
+    padding: 24px 20px !important;
+    min-height: auto !important;
+    background: linear-gradient(145deg, #162032 0%, #0f172a 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45) !important;
+  }
+  .hero-badge, .hero-tag, .hero-kicker {
+    background: rgba(255, 94, 54, 0.15) !important;
+    color: #ff7a59 !important;
+    border: 1px solid rgba(255, 94, 54, 0.25) !important;
+    border-radius: 8px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+    display: inline-block !important;
+  }
+  .hero-title, .hero-h1, .hero-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1.25 !important;
+    text-shadow: none !important;
+    margin: 10px 0 !important;
+  }
+  .hero-card, .hero-box, .hero-pitch-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    color: #cbd5e1 !important;
+    box-shadow: none !important;
+    padding: 14px 16px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.45 !important;
+  }
+
+  /* 3. FIX Search Bar: eradicate the glaring white box around dark input */
+  .s0-search-compact-wrap {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 14px !important;
+    padding: 6px 14px !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .s0-search-compact-wrap input, #dest-input {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    padding: 8px 0 !important;
+    box-shadow: none !important;
+    font-size: 0.88rem !important;
+    width: 100% !important;
+  }
+  .s0-search-compact-wrap input:focus, #dest-input:focus {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+  }
+  .s0-sc-icon {
+    font-size: 1.1rem !important;
+    color: #94a3b8 !important;
+  }
+
+  /* 4. FIX Step Indicator Tabs: replace yellow/white stickers with sleek segmented pills */
+  .step-indicator, #step-ind, .s0-cats, .cat-btns {
+    display: flex !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    overflow-x: auto !important;
+  }
+  .step-indicator button, .step-tab, .cat-btn, .s0-cat-btn {
+    background: transparent !important;
+    color: #94a3b8 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    text-transform: uppercase !important;
+  }
+  .step-indicator button.active, .step-tab.active, .cat-btn.active, .s0-cat-btn.active {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 5. FIX Destination & Popular Selection Cards */
+  .s0-quick-card, .dest-card, .dest-quick-card, .populer-card {
+    background: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+  }
+  .s0-quick-card.selected, .dest-card.selected, .dest-quick-card.selected {
+    background: #162032 !important;
+    border-color: #ff5e36 !important;
+    box-shadow: 0 0 12px rgba(255, 94, 54, 0.3) !important;
+  }
+
+  /* 6. FIX Bottom Navigation (#nav): clean layout, clear thumb buttons */
+  #nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: sticky !important;
+    bottom: 64px !important;
+    z-index: 50 !important;
+    gap: 12px !important;
+  }
+  #btn-back {
+    flex: 1 !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e2e8f0 !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+  }
+  #btn-next {
+    flex: 1.4 !important;
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 14px rgba(255, 94, 54, 0.4) !important;
+  }
+
+</style>
   <!-- Export libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1233,7 +1386,160 @@
       transition:opacity .35s ease, transform .35s ease;
     }
     .toast-sticker.hide { opacity:0; transform:translateX(-50%) translateY(16px); }
-  </style>
+  
+  /* ── FIXES FOR CLUNKY RETRO BRUTALIST RESIDUES & OVERLAPS ── */
+  
+  /* 1. HIDE the floating pink chat bubble that covers the LANJUT button! */
+  #btnFeedback {
+    display: none !important;
+  }
+
+  /* 2. OVERHAUL Hero Section: remove giant orange box, make it sleek native hero card */
+  .hero-wrap {
+    margin: 12px 0 20px !important;
+    padding: 24px 20px !important;
+    min-height: auto !important;
+    background: linear-gradient(145deg, #162032 0%, #0f172a 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45) !important;
+  }
+  .hero-badge, .hero-tag, .hero-kicker {
+    background: rgba(255, 94, 54, 0.15) !important;
+    color: #ff7a59 !important;
+    border: 1px solid rgba(255, 94, 54, 0.25) !important;
+    border-radius: 8px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+    display: inline-block !important;
+  }
+  .hero-title, .hero-h1, .hero-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1.25 !important;
+    text-shadow: none !important;
+    margin: 10px 0 !important;
+  }
+  .hero-card, .hero-box, .hero-pitch-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    color: #cbd5e1 !important;
+    box-shadow: none !important;
+    padding: 14px 16px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.45 !important;
+  }
+
+  /* 3. FIX Search Bar: eradicate the glaring white box around dark input */
+  .s0-search-compact-wrap {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 14px !important;
+    padding: 6px 14px !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .s0-search-compact-wrap input, #dest-input {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    padding: 8px 0 !important;
+    box-shadow: none !important;
+    font-size: 0.88rem !important;
+    width: 100% !important;
+  }
+  .s0-search-compact-wrap input:focus, #dest-input:focus {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+  }
+  .s0-sc-icon {
+    font-size: 1.1rem !important;
+    color: #94a3b8 !important;
+  }
+
+  /* 4. FIX Step Indicator Tabs: replace yellow/white stickers with sleek segmented pills */
+  .step-indicator, #step-ind, .s0-cats, .cat-btns {
+    display: flex !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    overflow-x: auto !important;
+  }
+  .step-indicator button, .step-tab, .cat-btn, .s0-cat-btn {
+    background: transparent !important;
+    color: #94a3b8 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    text-transform: uppercase !important;
+  }
+  .step-indicator button.active, .step-tab.active, .cat-btn.active, .s0-cat-btn.active {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 5. FIX Destination & Popular Selection Cards */
+  .s0-quick-card, .dest-card, .dest-quick-card, .populer-card {
+    background: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+  }
+  .s0-quick-card.selected, .dest-card.selected, .dest-quick-card.selected {
+    background: #162032 !important;
+    border-color: #ff5e36 !important;
+    box-shadow: 0 0 12px rgba(255, 94, 54, 0.3) !important;
+  }
+
+  /* 6. FIX Bottom Navigation (#nav): clean layout, clear thumb buttons */
+  #nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: sticky !important;
+    bottom: 64px !important;
+    z-index: 50 !important;
+    gap: 12px !important;
+  }
+  #btn-back {
+    flex: 1 !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e2e8f0 !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+  }
+  #btn-next {
+    flex: 1.4 !important;
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 14px rgba(255, 94, 54, 0.4) !important;
+  }
+
+</style>
 
 
 <!-- =====================================================================
@@ -1444,6 +1750,159 @@
     font-size: 1.25rem;
     line-height: 1;
   }
+
+  /* ── FIXES FOR CLUNKY RETRO BRUTALIST RESIDUES & OVERLAPS ── */
+  
+  /* 1. HIDE the floating pink chat bubble that covers the LANJUT button! */
+  #btnFeedback {
+    display: none !important;
+  }
+
+  /* 2. OVERHAUL Hero Section: remove giant orange box, make it sleek native hero card */
+  .hero-wrap {
+    margin: 12px 0 20px !important;
+    padding: 24px 20px !important;
+    min-height: auto !important;
+    background: linear-gradient(145deg, #162032 0%, #0f172a 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45) !important;
+  }
+  .hero-badge, .hero-tag, .hero-kicker {
+    background: rgba(255, 94, 54, 0.15) !important;
+    color: #ff7a59 !important;
+    border: 1px solid rgba(255, 94, 54, 0.25) !important;
+    border-radius: 8px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+    display: inline-block !important;
+  }
+  .hero-title, .hero-h1, .hero-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1.25 !important;
+    text-shadow: none !important;
+    margin: 10px 0 !important;
+  }
+  .hero-card, .hero-box, .hero-pitch-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    color: #cbd5e1 !important;
+    box-shadow: none !important;
+    padding: 14px 16px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.45 !important;
+  }
+
+  /* 3. FIX Search Bar: eradicate the glaring white box around dark input */
+  .s0-search-compact-wrap {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 14px !important;
+    padding: 6px 14px !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .s0-search-compact-wrap input, #dest-input {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    padding: 8px 0 !important;
+    box-shadow: none !important;
+    font-size: 0.88rem !important;
+    width: 100% !important;
+  }
+  .s0-search-compact-wrap input:focus, #dest-input:focus {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+  }
+  .s0-sc-icon {
+    font-size: 1.1rem !important;
+    color: #94a3b8 !important;
+  }
+
+  /* 4. FIX Step Indicator Tabs: replace yellow/white stickers with sleek segmented pills */
+  .step-indicator, #step-ind, .s0-cats, .cat-btns {
+    display: flex !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    overflow-x: auto !important;
+  }
+  .step-indicator button, .step-tab, .cat-btn, .s0-cat-btn {
+    background: transparent !important;
+    color: #94a3b8 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    text-transform: uppercase !important;
+  }
+  .step-indicator button.active, .step-tab.active, .cat-btn.active, .s0-cat-btn.active {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 5. FIX Destination & Popular Selection Cards */
+  .s0-quick-card, .dest-card, .dest-quick-card, .populer-card {
+    background: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+  }
+  .s0-quick-card.selected, .dest-card.selected, .dest-quick-card.selected {
+    background: #162032 !important;
+    border-color: #ff5e36 !important;
+    box-shadow: 0 0 12px rgba(255, 94, 54, 0.3) !important;
+  }
+
+  /* 6. FIX Bottom Navigation (#nav): clean layout, clear thumb buttons */
+  #nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: sticky !important;
+    bottom: 64px !important;
+    z-index: 50 !important;
+    gap: 12px !important;
+  }
+  #btn-back {
+    flex: 1 !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e2e8f0 !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+  }
+  #btn-next {
+    flex: 1.4 !important;
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 14px rgba(255, 94, 54, 0.4) !important;
+  }
+
 </style>
 
 </head>
@@ -3424,6 +3883,159 @@ function buildPrintPage(it) {
     font-size:7.5pt;color:#aaa;
   }
   .footer-brand { font-weight:800;color:#c0392b;font-size:10pt; }
+
+  /* ── FIXES FOR CLUNKY RETRO BRUTALIST RESIDUES & OVERLAPS ── */
+  
+  /* 1. HIDE the floating pink chat bubble that covers the LANJUT button! */
+  #btnFeedback {
+    display: none !important;
+  }
+
+  /* 2. OVERHAUL Hero Section: remove giant orange box, make it sleek native hero card */
+  .hero-wrap {
+    margin: 12px 0 20px !important;
+    padding: 24px 20px !important;
+    min-height: auto !important;
+    background: linear-gradient(145deg, #162032 0%, #0f172a 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45) !important;
+  }
+  .hero-badge, .hero-tag, .hero-kicker {
+    background: rgba(255, 94, 54, 0.15) !important;
+    color: #ff7a59 !important;
+    border: 1px solid rgba(255, 94, 54, 0.25) !important;
+    border-radius: 8px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+    display: inline-block !important;
+  }
+  .hero-title, .hero-h1, .hero-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1.25 !important;
+    text-shadow: none !important;
+    margin: 10px 0 !important;
+  }
+  .hero-card, .hero-box, .hero-pitch-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    color: #cbd5e1 !important;
+    box-shadow: none !important;
+    padding: 14px 16px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.45 !important;
+  }
+
+  /* 3. FIX Search Bar: eradicate the glaring white box around dark input */
+  .s0-search-compact-wrap {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 14px !important;
+    padding: 6px 14px !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .s0-search-compact-wrap input, #dest-input {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    padding: 8px 0 !important;
+    box-shadow: none !important;
+    font-size: 0.88rem !important;
+    width: 100% !important;
+  }
+  .s0-search-compact-wrap input:focus, #dest-input:focus {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+  }
+  .s0-sc-icon {
+    font-size: 1.1rem !important;
+    color: #94a3b8 !important;
+  }
+
+  /* 4. FIX Step Indicator Tabs: replace yellow/white stickers with sleek segmented pills */
+  .step-indicator, #step-ind, .s0-cats, .cat-btns {
+    display: flex !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    overflow-x: auto !important;
+  }
+  .step-indicator button, .step-tab, .cat-btn, .s0-cat-btn {
+    background: transparent !important;
+    color: #94a3b8 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    text-transform: uppercase !important;
+  }
+  .step-indicator button.active, .step-tab.active, .cat-btn.active, .s0-cat-btn.active {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 5. FIX Destination & Popular Selection Cards */
+  .s0-quick-card, .dest-card, .dest-quick-card, .populer-card {
+    background: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+  }
+  .s0-quick-card.selected, .dest-card.selected, .dest-quick-card.selected {
+    background: #162032 !important;
+    border-color: #ff5e36 !important;
+    box-shadow: 0 0 12px rgba(255, 94, 54, 0.3) !important;
+  }
+
+  /* 6. FIX Bottom Navigation (#nav): clean layout, clear thumb buttons */
+  #nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: sticky !important;
+    bottom: 64px !important;
+    z-index: 50 !important;
+    gap: 12px !important;
+  }
+  #btn-back {
+    flex: 1 !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e2e8f0 !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+  }
+  #btn-next {
+    flex: 1.4 !important;
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 14px rgba(255, 94, 54, 0.4) !important;
+  }
+
 </style>
 
 <!-- =====================================================================
@@ -3634,6 +4246,159 @@ function buildPrintPage(it) {
     font-size: 1.25rem;
     line-height: 1;
   }
+
+  /* ── FIXES FOR CLUNKY RETRO BRUTALIST RESIDUES & OVERLAPS ── */
+  
+  /* 1. HIDE the floating pink chat bubble that covers the LANJUT button! */
+  #btnFeedback {
+    display: none !important;
+  }
+
+  /* 2. OVERHAUL Hero Section: remove giant orange box, make it sleek native hero card */
+  .hero-wrap {
+    margin: 12px 0 20px !important;
+    padding: 24px 20px !important;
+    min-height: auto !important;
+    background: linear-gradient(145deg, #162032 0%, #0f172a 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45) !important;
+  }
+  .hero-badge, .hero-tag, .hero-kicker {
+    background: rgba(255, 94, 54, 0.15) !important;
+    color: #ff7a59 !important;
+    border: 1px solid rgba(255, 94, 54, 0.25) !important;
+    border-radius: 8px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+    display: inline-block !important;
+  }
+  .hero-title, .hero-h1, .hero-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1.25 !important;
+    text-shadow: none !important;
+    margin: 10px 0 !important;
+  }
+  .hero-card, .hero-box, .hero-pitch-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    color: #cbd5e1 !important;
+    box-shadow: none !important;
+    padding: 14px 16px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.45 !important;
+  }
+
+  /* 3. FIX Search Bar: eradicate the glaring white box around dark input */
+  .s0-search-compact-wrap {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 14px !important;
+    padding: 6px 14px !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .s0-search-compact-wrap input, #dest-input {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    padding: 8px 0 !important;
+    box-shadow: none !important;
+    font-size: 0.88rem !important;
+    width: 100% !important;
+  }
+  .s0-search-compact-wrap input:focus, #dest-input:focus {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+  }
+  .s0-sc-icon {
+    font-size: 1.1rem !important;
+    color: #94a3b8 !important;
+  }
+
+  /* 4. FIX Step Indicator Tabs: replace yellow/white stickers with sleek segmented pills */
+  .step-indicator, #step-ind, .s0-cats, .cat-btns {
+    display: flex !important;
+    gap: 6px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    overflow-x: auto !important;
+  }
+  .step-indicator button, .step-tab, .cat-btn, .s0-cat-btn {
+    background: transparent !important;
+    color: #94a3b8 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+    text-transform: uppercase !important;
+  }
+  .step-indicator button.active, .step-tab.active, .cat-btn.active, .s0-cat-btn.active {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 5. FIX Destination & Popular Selection Cards */
+  .s0-quick-card, .dest-card, .dest-quick-card, .populer-card {
+    background: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+  }
+  .s0-quick-card.selected, .dest-card.selected, .dest-quick-card.selected {
+    background: #162032 !important;
+    border-color: #ff5e36 !important;
+    box-shadow: 0 0 12px rgba(255, 94, 54, 0.3) !important;
+  }
+
+  /* 6. FIX Bottom Navigation (#nav): clean layout, clear thumb buttons */
+  #nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 16px !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: sticky !important;
+    bottom: 64px !important;
+    z-index: 50 !important;
+    gap: 12px !important;
+  }
+  #btn-back {
+    flex: 1 !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e2e8f0 !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+  }
+  #btn-next {
+    flex: 1.4 !important;
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    height: 48px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 14px rgba(255, 94, 54, 0.4) !important;
+  }
+
 </style>
 
 </head>
