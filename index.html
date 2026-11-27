@@ -1235,6 +1235,217 @@
     .toast-sticker.hide { opacity:0; transform:translateX(-50%) translateY(16px); }
   </style>
 
+
+<!-- =====================================================================
+     WANDR NATIVE MOBILE PWA THEME (iOS / OneUI Modern Ergonomics)
+     Crafted with PIXEL & ATLAS - 100% Engine & Logic Preserved
+     ===================================================================== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+<style id="wandr-native-mobile-theme">
+  :root {
+    --primary:       #ff5e36 !important;
+    --primary-dark:  #ea580c !important;
+    --primary-light: #ff7a59 !important;
+    --surface:       #111827 !important;
+    --bg:            #090d16 !important;
+    --text:          #f8fafc !important;
+    --text-muted:    #94a3b8 !important;
+    --border:        rgba(255, 255, 255, 0.08) !important;
+    --shadow:        0 4px 20px rgba(0, 0, 0, 0.45) !important;
+    --shadow-lg:     0 12px 35px rgba(0, 0, 0, 0.6) !important;
+    --radius:        18px !important;
+
+    --navy:          #162032 !important;
+    --navy-2:        #1e293b !important;
+    --navy-lt:       rgba(56, 189, 248, 0.12) !important;
+
+    --brand:         #ff5e36 !important;
+    --brand-2:       #ea580c !important;
+    --brand-lt:      rgba(255, 94, 54, 0.12) !important;
+    --accent:        #ff5e36 !important;
+    --accent-lt:     rgba(255, 94, 54, 0.12) !important;
+    --ink:           #f8fafc !important;
+    --ink-2:         #e2e8f0 !important;
+    --ink-3:         #94a3b8 !important;
+    --ink-4:         #64748b !important;
+    --paper:         #0b101b !important;
+    --paper-2:       #131c2e !important;
+    --line:          rgba(255, 255, 255, 0.08) !important;
+    --white:         #111827 !important;
+    --sh-sm:         0 2px 10px rgba(0, 0, 0, 0.3) !important;
+    --sh-md:         0 6px 24px rgba(0, 0, 0, 0.45) !important;
+    --sh-lg:         0 14px 40px rgba(0, 0, 0, 0.6) !important;
+    --r-sm:          10px !important;
+    --r-md:          16px !important;
+    --r-lg:          20px !important;
+    --r-xl:          26px !important;
+  }
+
+  /* Body & Canvas Setup */
+  body {
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 94, 54, 0.15), transparent 70%),
+      radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.08), transparent 50%) !important;
+    background-attachment: fixed !important;
+    padding-bottom: 74px !important;
+    -webkit-font-smoothing: antialiased !important;
+  }
+
+  /* Mobile App Container */
+  #app {
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    min-height: 100vh !important;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.8) !important;
+    background: transparent !important;
+    position: relative !important;
+  }
+
+  /* Top App Bar Styling */
+  #header {
+    background: rgba(9, 13, 22, 0.88) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 14px 20px !important;
+  }
+  #header .logo-text, #header h1 {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.3px !important;
+  }
+
+  /* Cards, Containers & Steps */
+  .step-wrap, .card, .itinerary-card, #content, .section-card {
+    border-radius: 20px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: #111827 !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  /* Form Inputs & Selects */
+  input[type="text"], input[type="date"], input[type="time"], select, textarea {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #f8fafc !important;
+    border-radius: 14px !important;
+    padding: 12px 14px !important;
+    font-family: inherit !important;
+    font-weight: 600 !important;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(255, 94, 54, 0.25) !important;
+  }
+
+  /* Chips, Filter Pills & Badges */
+  .chip, .pill, .filter-chip, .cat-btn, .tag {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-muted) !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease !important;
+  }
+  .chip.active, .chip.selected, .cat-btn.active, .pill.active {
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 14px rgba(255, 94, 54, 0.4) !important;
+  }
+
+  /* Action Buttons & Tactile Feedback */
+  .btn, button.primary, #btn-next, #btn-hero-start {
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 6px 20px rgba(255, 94, 54, 0.35) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    min-height: 48px !important;
+  }
+  .btn:active, button:active {
+    transform: scale(0.97) !important;
+  }
+  #btn-back {
+    background: #1e293b !important;
+    color: #cbd5e1 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+    font-weight: 700 !important;
+    min-height: 48px !important;
+  }
+
+  /* Bottom Navigation Bar on Form Steps */
+  #nav {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    position: sticky !important;
+    bottom: 64px !important;
+    z-index: 40 !important;
+  }
+
+  /* Progress Area & Stepper */
+  #progress-area {
+    background: transparent !important;
+  }
+  .step-dot.active {
+    background: #ff5e36 !important;
+    box-shadow: 0 0 10px rgba(255, 94, 54, 0.6) !important;
+  }
+
+  /* Floating Native Bottom Navigation Bar */
+  .wandr-native-dock {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 440px;
+    height: 64px;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+    padding: 0 10px;
+  }
+  .dock-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .dock-tab.active {
+    color: #ff5e36;
+  }
+  .dock-tab .dock-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+</style>
+
 </head>
 <body>
 
@@ -3214,6 +3425,217 @@ function buildPrintPage(it) {
   }
   .footer-brand { font-weight:800;color:#c0392b;font-size:10pt; }
 </style>
+
+<!-- =====================================================================
+     WANDR NATIVE MOBILE PWA THEME (iOS / OneUI Modern Ergonomics)
+     Crafted with PIXEL & ATLAS - 100% Engine & Logic Preserved
+     ===================================================================== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+<style id="wandr-native-mobile-theme">
+  :root {
+    --primary:       #ff5e36 !important;
+    --primary-dark:  #ea580c !important;
+    --primary-light: #ff7a59 !important;
+    --surface:       #111827 !important;
+    --bg:            #090d16 !important;
+    --text:          #f8fafc !important;
+    --text-muted:    #94a3b8 !important;
+    --border:        rgba(255, 255, 255, 0.08) !important;
+    --shadow:        0 4px 20px rgba(0, 0, 0, 0.45) !important;
+    --shadow-lg:     0 12px 35px rgba(0, 0, 0, 0.6) !important;
+    --radius:        18px !important;
+
+    --navy:          #162032 !important;
+    --navy-2:        #1e293b !important;
+    --navy-lt:       rgba(56, 189, 248, 0.12) !important;
+
+    --brand:         #ff5e36 !important;
+    --brand-2:       #ea580c !important;
+    --brand-lt:      rgba(255, 94, 54, 0.12) !important;
+    --accent:        #ff5e36 !important;
+    --accent-lt:     rgba(255, 94, 54, 0.12) !important;
+    --ink:           #f8fafc !important;
+    --ink-2:         #e2e8f0 !important;
+    --ink-3:         #94a3b8 !important;
+    --ink-4:         #64748b !important;
+    --paper:         #0b101b !important;
+    --paper-2:       #131c2e !important;
+    --line:          rgba(255, 255, 255, 0.08) !important;
+    --white:         #111827 !important;
+    --sh-sm:         0 2px 10px rgba(0, 0, 0, 0.3) !important;
+    --sh-md:         0 6px 24px rgba(0, 0, 0, 0.45) !important;
+    --sh-lg:         0 14px 40px rgba(0, 0, 0, 0.6) !important;
+    --r-sm:          10px !important;
+    --r-md:          16px !important;
+    --r-lg:          20px !important;
+    --r-xl:          26px !important;
+  }
+
+  /* Body & Canvas Setup */
+  body {
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 94, 54, 0.15), transparent 70%),
+      radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.08), transparent 50%) !important;
+    background-attachment: fixed !important;
+    padding-bottom: 74px !important;
+    -webkit-font-smoothing: antialiased !important;
+  }
+
+  /* Mobile App Container */
+  #app {
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    min-height: 100vh !important;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.8) !important;
+    background: transparent !important;
+    position: relative !important;
+  }
+
+  /* Top App Bar Styling */
+  #header {
+    background: rgba(9, 13, 22, 0.88) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 14px 20px !important;
+  }
+  #header .logo-text, #header h1 {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.3px !important;
+  }
+
+  /* Cards, Containers & Steps */
+  .step-wrap, .card, .itinerary-card, #content, .section-card {
+    border-radius: 20px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: #111827 !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  /* Form Inputs & Selects */
+  input[type="text"], input[type="date"], input[type="time"], select, textarea {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #f8fafc !important;
+    border-radius: 14px !important;
+    padding: 12px 14px !important;
+    font-family: inherit !important;
+    font-weight: 600 !important;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(255, 94, 54, 0.25) !important;
+  }
+
+  /* Chips, Filter Pills & Badges */
+  .chip, .pill, .filter-chip, .cat-btn, .tag {
+    background: #162032 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-muted) !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease !important;
+  }
+  .chip.active, .chip.selected, .cat-btn.active, .pill.active {
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 14px rgba(255, 94, 54, 0.4) !important;
+  }
+
+  /* Action Buttons & Tactile Feedback */
+  .btn, button.primary, #btn-next, #btn-hero-start {
+    background: linear-gradient(135deg, #ff5e36, #ea580c) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 6px 20px rgba(255, 94, 54, 0.35) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    min-height: 48px !important;
+  }
+  .btn:active, button:active {
+    transform: scale(0.97) !important;
+  }
+  #btn-back {
+    background: #1e293b !important;
+    color: #cbd5e1 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+    font-weight: 700 !important;
+    min-height: 48px !important;
+  }
+
+  /* Bottom Navigation Bar on Form Steps */
+  #nav {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    position: sticky !important;
+    bottom: 64px !important;
+    z-index: 40 !important;
+  }
+
+  /* Progress Area & Stepper */
+  #progress-area {
+    background: transparent !important;
+  }
+  .step-dot.active {
+    background: #ff5e36 !important;
+    box-shadow: 0 0 10px rgba(255, 94, 54, 0.6) !important;
+  }
+
+  /* Floating Native Bottom Navigation Bar */
+  .wandr-native-dock {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 440px;
+    height: 64px;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+    padding: 0 10px;
+  }
+  .dock-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .dock-tab.active {
+    color: #ff5e36;
+  }
+  .dock-tab .dock-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+</style>
+
 </head>
 <body>
 <div class="no-print">
