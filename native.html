@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WANDR • Native Mobile Experience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover: rgba(255, 255, 255, 0.12);
+      --accent-orange: #ff5e36;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --accent-cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-sub: #64748b;
+      --nav-height: 68px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 94, 54, 0.15), transparent 70%),
+        radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.08), transparent 50%);
+      overflow-x: hidden;
+    }
+
+    /* Mobile Container Frame */
+    .app-frame {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: calc(var(--nav-height) + 24px);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Top App Bar */
+    .top-bar {
+      padding: 16px 20px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 50;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar-pill {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ff5e36, #f59e0b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255, 94, 54, 0.3);
+    }
+
+    .greeting-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .greeting-sub {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .greeting-name {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    /* Content Area */
+    .content-area {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Active Trip Hero Banner */
+    .hero-trip-card {
+      background: linear-gradient(145deg, #162032 0%, #0f172a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-trip-card::before {
+      content: "";
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle, rgba(255, 94, 54, 0.25) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .hero-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .hero-tag {
+      background: rgba(255, 94, 54, 0.15);
+      color: #ff7a59;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid rgba(255, 94, 54, 0.25);
+    }
+
+    .hero-weather {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .hero-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .hero-route {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .hero-progress-box {
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .progress-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .prog-label {
+      font-size: 0.68rem;
+      color: var(--text-sub);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .prog-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .hero-btn {
+      background: linear-gradient(135deg, #ff5e36, #ea580c);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+      transition: transform 0.15s ease;
+    }
+
+    .hero-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      color: #fff;
+    }
+
+    .section-link {
+      font-size: 0.78rem;
+      color: var(--accent-orange);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* Horizontal Discovery Carousel */
+    .discovery-scroll {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin: 0 -20px;
+      padding-left: 20px;
+      padding-right: 20px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .discovery-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .spot-card {
+      flex: 0 0 160px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .spot-card:active {
+      transform: scale(0.97);
+    }
+
+    .spot-img-box {
+      width: 100%;
+      height: 100px;
+      border-radius: 14px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .spot-badge {
+      position: absolute;
+      top: 6px; left: 6px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #f6c85f;
+    }
+
+    .spot-name {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+    }
+
+    .spot-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Day Segment Selector Pills */
+    .day-selector-bar {
+      display: flex;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px;
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      gap: 4px;
+    }
+
+    .day-pill-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 8px 12px;
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .day-pill-btn.active {
+      background: #1e293b;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .day-pill-btn .day-date {
+      font-size: 0.62rem;
+      opacity: 0.7;
+    }
+
+    /* Native Timeline Schedule Card */
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 14px;
+      position: relative;
+    }
+
+    .timeline-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    .indicator-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-orange);
+      border: 3px solid #1e293b;
+      box-shadow: 0 0 8px rgba(255, 94, 54, 0.5);
+      z-index: 2;
+    }
+
+    .indicator-line {
+      width: 2px;
+      flex: 1;
+      background: rgba(255, 255, 255, 0.08);
+      margin-top: 4px;
+      margin-bottom: -8px;
+    }
+
+    .timeline-card {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: background 0.15s ease;
+      cursor: pointer;
+    }
+
+    .timeline-card:active {
+      background: var(--card-hover);
+    }
+
+    .tl-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tl-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .tl-cost {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .tl-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .tl-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Floating Bottom Action Sheet Drawer */
+    .sheet-drawer {
+      position: fixed;
+      bottom: var(--nav-height);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      background: #111827;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px 28px 0 0;
+      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.75);
+      z-index: 80;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sheet-drawer.collapsed {
+      transform: translateX(-50%) translateY(calc(100% - 48px));
+    }
+
+    .sheet-handle-bar {
+      width: 100%;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .sheet-pill {
+      width: 36px;
+      height: 4px;
+      background: #475569;
+      border-radius: 2px;
+      margin-bottom: 6px;
+    }
+
+    .sheet-summary-line {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sheet-body {
+      padding: 16px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .budget-split-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .budget-mini-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .b-label {
+      font-size: 0.65rem;
+      color: var(--text-sub);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .b-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-sheet-secondary {
+      flex: 1;
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid var(--card-border);
+      padding: 12px;
+      border-radius: 14px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .btn-sheet-primary {
+      flex: 1.4;
+      background: linear-gradient(135deg, #ff5e36, #ea580c);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 14px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(255, 94, 54, 0.35);
+    }
+
+    /* Floating Native Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      height: var(--nav-height);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      padding: 0 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      color: var(--text-sub);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: var(--accent-orange);
+    }
+
+    .nav-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    /* Toast Notification */
+    .native-toast {
+      position: fixed;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      padding: 10px 18px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 200;
+    }
+
+    .native-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-frame">
+
+    <!-- Top Native Navigation Bar -->
+    <header class="top-bar">
+      <div class="user-profile">
+        <div class="avatar-pill">W</div>
+        <div class="greeting-col">
+          <span class="greeting-sub">Rute Banyuwangi 3H2M</span>
+          <span class="greeting-name">Halo, Mas Dito 👋</span>
+        </div>
+      </div>
+      <div class="status-badge">
+        <span>☀️ 28°C Cerah</span>
+      </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="content-area">
+
+      <!-- Active Hero Trip Card -->
+      <section class="hero-trip-card">
+        <div class="hero-meta">
+          <span class="hero-tag">Sedang Berlangsung</span>
+          <span class="hero-weather">Ketapang • Hari ke-1</span>
+        </div>
+        <h1 class="hero-title">Ekspedisi Sunrise of Java</h1>
+        <div class="hero-route">
+          <span>📍 Stasiun Ketapang</span>
+          <span>➔</span>
+          <span>De Djawatan</span>
+          <span>➔</span>
+          <span>Pulau Merah</span>
+        </div>
+
+        <div class="hero-progress-box">
+          <div class="progress-col">
+            <span class="prog-label">Rincian Anggaran (Aktif)</span>
+            <span class="prog-val">Rp485.000 / Rp980.000</span>
+          </div>
+          <button class="hero-btn" onclick="openDrawer()">
+            <span>Buka Rute</span>
+            <span>⚡</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Horizontal Discovery Carousel -->
+      <section>
+        <div class="section-header">
+          <h2 class="section-title">Destinasi Unggulan</h2>
+          <a href="#" class="section-link" onclick="showToast('Menampilkan semua 16 destinasi!')">Lihat Semua</a>
+        </div>
+
+        <div class="discovery-scroll">
+          <!-- Card 1: Kawah Ijen -->
+          <div class="spot-card" onclick="showToast('Kawah Ijen: Blue Fire & Danau Belerang')">
+            <div class="spot-img-box" style="background-image: url('https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=500&auto=format&fit=crop&q=60');">
+              <span class="spot-badge">★ 4.8</span>
+            </div>
+            <div class="spot-name">Kawah Ijen</div>
+            <div class="spot-meta">
+              <span>🌋 Gunung Api</span>
+              <span>Hari ke-2</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Baluran -->
+          <div class="spot-card" onclick="showToast('TN Baluran: Savana Bekol & Pantai Bama')">
+            <div class="spot-img-box" style="background-image: url('https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=500&auto=format&fit=crop&q=60');">
+              <span class="spot-badge">★ 4.7</span>
+            </div>
+            <div class="spot-name">TN Baluran</div>
+            <div class="spot-meta">
+              <span>🦏 Savana Afrika</span>
+              <span>Hari ke-3</span>
+            </div>
+          </div>
+
+          <!-- Card 3: De Djawatan -->
+          <div class="spot-card" onclick="showToast('De Djawatan: Hutan Trembesi Fangorn')">
+            <div class="spot-img-box" style="background-image: url('https://images.unsplash.com/photo-1511497584788-87676104235f?w=500&auto=format&fit=crop&q=60');">
+              <span class="spot-badge">★ 4.6</span>
+            </div>
+            <div class="spot-name">De Djawatan</div>
+            <div class="spot-meta">
+              <span>🌲 Hutan Lord of Rings</span>
+              <span>Hari ke-1</span>
+            </div>
+          </div>
+
+          <!-- Card 4: Pulau Merah -->
+          <div class="spot-card" onclick="showToast('Pulau Merah: Sunset Bukit Merah')">
+            <div class="spot-img-box" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&auto=format&fit=crop&q=60');">
+              <span class="spot-badge">★ 4.6</span>
+            </div>
+            <div class="spot-name">Pulau Merah</div>
+            <div class="spot-meta">
+              <span>🌅 Pantai Sunset</span>
+              <span>Hari ke-1</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Day Segment Selector Pills -->
+      <section>
+        <div class="day-selector-bar">
+          <button class="day-pill-btn active" id="pill-d1" onclick="switchDay(1)">
+            <span>HARI 1</span>
+            <span class="day-date">Selatan & Hutan</span>
+          </button>
+          <button class="day-pill-btn" id="pill-d2" onclick="switchDay(2)">
+            <span>HARI 2</span>
+            <span class="day-date">Kawah Ijen & Kopi</span>
+          </button>
+          <button class="day-pill-btn" id="pill-d3" onclick="switchDay(3)">
+            <span>HARI 3</span>
+            <span class="day-date">Baluran & Bama</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Native Timeline Schedule List -->
+      <section class="timeline-container" id="timeline-list">
+        <!-- Hari 1 Items Default -->
+        <div class="timeline-item">
+          <div class="timeline-indicator">
+            <div class="indicator-dot"></div>
+            <div class="indicator-line"></div>
+          </div>
+          <div class="timeline-card" onclick="showToast('Tiba di Stasiun Ketapang KA Blambangan Ekspres')">
+            <div class="tl-header">
+              <span class="tl-time">04:44 - 06:00 WIB</span>
+              <span class="tl-cost">Gratis</span>
+            </div>
+            <h3 class="tl-title">Tiba di Stasiun Ketapang</h3>
+            <p class="tl-desc">Pembersihan diri, pengambilan sewa motor (Rp75.000/hari), dan persiapan rute selatan.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-indicator">
+            <div class="indicator-dot"></div>
+            <div class="indicator-line"></div>
+          </div>
+          <div class="timeline-card" onclick="showToast('Sarapan Sego Cawuk Kalimas')">
+            <div class="tl-header">
+              <span class="tl-time">06:00 - 07:30 WIB</span>
+              <span class="tl-cost">Rp15.000</span>
+            </div>
+            <h3 class="tl-title">Sarapan Sego Cawuk Kalimas</h3>
+            <p class="tl-desc">Kuliner legendaris kuah parutan kelapa muda & pipilan jagung manis gurih dengan lauk pindang.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-indicator">
+            <div class="indicator-dot"></div>
+            <div class="indicator-line"></div>
+          </div>
+          <div class="timeline-card" onclick="showToast('Eksplorasi Hutan De Djawatan Benculuk')">
+            <div class="tl-header">
+              <span class="tl-time">08:30 - 10:30 WIB</span>
+              <span class="tl-cost">Rp10.000</span>
+            </div>
+            <h3 class="tl-title">Hutan De Djawatan Benculuk</h3>
+            <p class="tl-desc">Spot foto megah pohon trembesi raksasa berlumut seperti hutan Fangorn Lord of the Rings.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-indicator">
+            <div class="indicator-dot"></div>
+          </div>
+          <div class="timeline-card" onclick="showToast('Menikmati Sunset Pantai Pulau Merah')">
+            <div class="tl-header">
+              <span class="tl-time">14:00 - 18:00 WIB</span>
+              <span class="tl-cost">Rp15.000</span>
+            </div>
+            <h3 class="tl-title">Sunset Pantai Pulau Merah</h3>
+            <p class="tl-desc">Menikmati deburan ombak dan siluet bukit merah di garis pantai saat matahari terbenam.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Action Sheet Drawer (Draggable Style) -->
+    <aside class="sheet-drawer collapsed" id="sheet-drawer">
+      <div class="sheet-handle-bar" onclick="toggleDrawer()">
+        <div class="sheet-pill"></div>
+        <div class="sheet-summary-line">
+          <span>📊 Ringkasan Estimasi Biaya & Export</span>
+          <span>▲</span>
+        </div>
+      </div>
+      <div class="sheet-body">
+        <div class="budget-split-row">
+          <div class="budget-mini-box">
+            <div class="b-label">Kereta PP</div>
+            <div class="b-val">Rp112.000</div>
+          </div>
+          <div class="budget-mini-box">
+            <div class="b-label">Motor (3 Hari)</div>
+            <div class="b-val">Rp225.000</div>
+          </div>
+          <div class="budget-mini-box">
+            <div class="b-label">Tiket Wisata</div>
+            <div class="b-val">Rp148.000</div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-sheet-secondary" onclick="window.location.href='/laci_wandr/rpg.html'">
+            <span>🎮 Buka Map RPG</span>
+          </button>
+          <button class="btn-sheet-primary" onclick="showToast('PDF Resmi Wandr sedang disiapkan!')">
+            <span>Unduh PDF Resmi</span>
+            <span>📥</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Floating Native Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" onclick="setActiveNav(this)">
+        <span class="nav-icon">🧭</span>
+        <span>Jelajah</span>
+      </div>
+      <div class="nav-item" onclick="window.location.href='/laci_wandr/rpg.html'">
+        <span class="nav-icon">🗺️</span>
+        <span>Peta RPG</span>
+      </div>
+      <div class="nav-item" onclick="window.location.href='/laci_wandr/reel_player.html'">
+        <span class="nav-icon">🎬</span>
+        <span>Reels</span>
+      </div>
+      <div class="nav-item" onclick="toggleDrawer()">
+        <span class="nav-icon">📑</span>
+        <span>Rincian</span>
+      </div>
+    </nav>
+
+    <!-- Native Toast Popups -->
+    <div class="native-toast" id="app-toast">
+      <span>🔔</span>
+      <span id="toast-msg">Notifikasi</span>
+    </div>
+
+  </div>
+
+  <script>
+    // Bottom Sheet Drawer Toggle
+    const drawer = document.getElementById('sheet-drawer');
+    let isDrawerOpen = false;
+
+    function toggleDrawer() {
+      isDrawerOpen = !isDrawerOpen;
+      drawer.classList.toggle('collapsed', !isDrawerOpen);
+    }
+
+    function openDrawer() {
+      isDrawerOpen = true;
+      drawer.classList.remove('collapsed');
+    }
+
+    // Toast Messenger
+    let toastTimeout = null;
+    function showToast(text) {
+      const toast = document.getElementById('app-toast');
+      const msg = document.getElementById('toast-msg');
+      msg.textContent = text;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2400);
+    }
+
+    // Nav Item Activation
+    function setActiveNav(el) {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    // Day Data Schedule
+    const DAY_DATA = {
+      1: [
+        { time: "04:44 - 06:00 WIB", title: "Tiba di Stasiun Ketapang", cost: "Gratis", desc: "Pembersihan diri, pengambilan sewa motor (Rp75.000/hari), dan persiapan rute selatan." },
+        { time: "06:00 - 07:30 WIB", title: "Sarapan Sego Cawuk Kalimas", cost: "Rp15.000", desc: "Kuliner legendaris kuah parutan kelapa muda & pipilan jagung manis gurih dengan lauk pindang." },
+        { time: "08:30 - 10:30 WIB", title: "Hutan De Djawatan Benculuk", cost: "Rp10.000", desc: "Spot foto megah pohon trembesi raksasa berlumut seperti hutan Fangorn Lord of the Rings." },
+        { time: "14:00 - 18:00 WIB", title: "Sunset Pantai Pulau Merah", cost: "Rp15.000", desc: "Menikmati deburan ombak dan siluet bukit merah di garis pantai saat matahari terbenam." }
+      ],
+      2: [
+        { time: "00:30 - 06:30 WIB", title: "Dini Hari: Kawah Ijen & Blue Fire", cost: "Rp35.000", desc: "Pendakian puncak Paltuding, menyaksikan fenomena api biru abadi dan danau kawah belerang toska." },
+        { time: "08:00 - 09:30 WIB", title: "Sarapan & Rehat: Warung Kemiren", cost: "Rp20.000", desc: "Sarapan Pecel Pitik khas suku Osing dan menikmati udara pegunungan yang segar." },
+        { time: "10:30 - 13:00 WIB", title: "Desa Adat Osing Kemiren", cost: "Rp15.000", desc: "Menikmati seduhan kopi sangrai tradisional di Sanggar Genjah Arum dan rumah adat Osing." },
+        { time: "15:00 - 17:30 WIB", title: "Bangsring Underwater", cost: "Rp10.000", desc: "Snorkeling terumbu karang dan melihat konservasi hiu ramah di perairan Selat Bali." }
+      ],
+      3: [
+        { time: "07:00 - 11:30 WIB", title: "Taman Nasional Baluran", cost: "Rp25.000", desc: "Safari Savana Bekol bertabur satwa liar banteng & rusa, serta pantai mangrove Bama." },
+        { time: "12:00 - 13:30 WIB", title: "Makan Siang: Rujak Soto Mbok Ro", cost: "Rp25.000", desc: "Kombinasi unik rujak cingur bumbu petis disiram kuah soto daging gurih beraroma rempah." },
+        { time: "14:00 - 16:30 WIB", title: "Belanja Oleh-Oleh Osing Deles", cost: "Fleksibel", desc: "Membeli Kopi Osing, Pia Glenmore, dan kaos khas Banyuwangi sebelum kembali." },
+        { time: "18:00 WIB", title: "Boarding KA Blambangan / Probowangi", cost: "Rp56.000", desc: "Perjalanan pulang dari Stasiun Ketapang menuju kota asal dengan sejuta kenangan indah." }
+      ]
+    };
+
+    function switchDay(day) {
+      document.querySelectorAll('.day-pill-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`pill-d${day}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const container = document.getElementById('timeline-list');
+      const items = DAY_DATA[day] || [];
+      
+      container.innerHTML = items.map((it, idx) => `
+        <div class="timeline-item">
+          <div class="timeline-indicator">
+            <div class="indicator-dot"></div>
+            ${idx < items.length - 1 ? '<div class="indicator-line"></div>' : ''}
+          </div>
+          <div class="timeline-card" onclick="showToast('${it.title}')">
+            <div class="tl-header">
+              <span class="tl-time">${it.time}</span>
+              <span class="tl-cost">${it.cost}</span>
+            </div>
+            <h3 class="tl-title">${it.title}</h3>
+            <p class="tl-desc">${it.desc}</p>
+          </div>
+        </div>
+      `).join('');
+
+      showToast(`Menampilkan Rute Hari ke-${day}`);
+    }
+  </script>
+</body>
+</html>
